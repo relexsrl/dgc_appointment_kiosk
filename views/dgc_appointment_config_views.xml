@@ -9,6 +9,7 @@
             <xpath expr="//form" position="inside">
                 <app data-string="DGC Turnero"
                      string="DGC Turnero"
+                     name="dgc_appointment_kiosk"
                      groups="dgc_appointment_kiosk.group_dgc_area_manager">
                     <block title="Horarios de Atención">
                         <setting string="Hora de inicio" help="Hora de apertura del servicio">
