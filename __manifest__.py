@@ -40,12 +40,12 @@
     ],
     "assets": {
         "dgc_appointment_kiosk.assets_kiosk": [
-            "dgc_appointment_kiosk/static/src/css/kiosk.scss",
-            "dgc_appointment_kiosk/static/src/js/kiosk.js",
+            "dgc_appointment_kiosk/static/lib/css/kiosk.scss",
+            "dgc_appointment_kiosk/static/lib/js/kiosk.js",
         ],
         "dgc_appointment_kiosk.assets_display": [
-            "dgc_appointment_kiosk/static/src/css/display.scss",
-            "dgc_appointment_kiosk/static/src/js/display.js",
+            "dgc_appointment_kiosk/static/lib/css/display.scss",
+            "dgc_appointment_kiosk/static/lib/js/display.js",
         ],
         "web.assets_backend": [
             "dgc_appointment_kiosk/static/src/js/backoffice.js",
