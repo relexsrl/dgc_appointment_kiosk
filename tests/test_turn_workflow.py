@@ -23,7 +23,10 @@ class TestTurnWorkflow(TransactionCase):
         cls.operator = cls.env["res.users"].create({
             "name": "Operador Test",
             "login": "op_test_dgc",
-            "groups_id": [(4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id)],
+            "group_ids": [
+                (4, cls.env.ref("base.group_user").id),
+                (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
+            ],
             "dgc_area_ids": [(4, cls.area.id)],
         })
 
@@ -122,8 +125,8 @@ class TestTurnWorkflow(TransactionCase):
         """Wait time is computed from create_date to call_date."""
         turn = self._create_turn()
         turn.with_user(self.operator).action_call()
-        # wait_time should be >= 0
-        self.assertGreaterEqual(turn.wait_time, 0)
+        # wait_time should be approximately 0 (created and called nearly instantly)
+        self.assertAlmostEqual(turn.wait_time, 0, delta=0.5)
 
     def test_cron_closes_pending_turns(self):
         """Cron marks yesterday's pending turns as no_show."""

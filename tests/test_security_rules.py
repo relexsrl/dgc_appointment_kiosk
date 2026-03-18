@@ -19,19 +19,25 @@ class TestSecurityRules(TransactionCase):
             "code": "CAT",
         })
 
-        # Operator assigned to GEO only
+        # Operator assigned to GEO only (needs base.group_user for internal access)
         cls.operator_geo = cls.env["res.users"].create({
             "name": "Op Geo",
             "login": "op_geo_sec",
-            "groups_id": [(4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id)],
+            "group_ids": [
+                (4, cls.env.ref("base.group_user").id),
+                (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
+            ],
             "dgc_area_ids": [(4, cls.area_geo.id)],
         })
 
-        # Admin
+        # Admin (needs base.group_user for internal access)
         cls.admin_user = cls.env["res.users"].create({
             "name": "Admin DGC",
             "login": "admin_dgc_sec",
-            "groups_id": [(4, cls.env.ref("dgc_appointment_kiosk.group_dgc_admin").id)],
+            "group_ids": [
+                (4, cls.env.ref("base.group_user").id),
+                (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_admin").id),
+            ],
             "dgc_area_ids": [(4, cls.area_geo.id), (4, cls.area_cat.id)],
         })
 
@@ -81,7 +87,8 @@ class TestSecurityRules(TransactionCase):
 
     def test_group_hierarchy(self):
         """Admin inherits area_manager which inherits operator."""
-        admin_groups = self.admin_user.groups_id
+        # all_group_ids includes implied groups
+        admin_groups = self.admin_user.all_group_ids
         self.assertIn(
             self.env.ref("dgc_appointment_kiosk.group_dgc_operator"),
             admin_groups,

@@ -124,7 +124,6 @@
                 <field name="state"/>
                 <field name="operator_id"/>
                 <field name="call_count"/>
-                <field name="color"/>
                 <templates>
                     <t t-name="card">
                         <div class="oe_kanban_content">
@@ -174,7 +173,7 @@
                 <filter name="no_show" string="No se presentó"
                         domain="[('state', '=', 'no_show')]"/>
                 <separator/>
-                <group expand="0" string="Agrupar por">
+                <group>
                     <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
                     <filter name="group_area" string="Área" context="{'group_by': 'area_id'}"/>
                     <filter name="group_operator" string="Operador" context="{'group_by': 'operator_id'}"/>

@@ -40,7 +40,7 @@ class KioskController(http.Controller):
         }
         return request.render("dgc_appointment_kiosk.kiosk_main_view", values)
 
-    @http.route("/kiosk/api/areas", type="json", auth="public")
+    @http.route("/kiosk/api/areas", type="jsonrpc", auth="public")
     def kiosk_areas(self):
         areas = request.env["dgc.appointment.area"].sudo().search([
             ("active", "=", True),
@@ -55,7 +55,7 @@ class KioskController(http.Controller):
             "max_daily_turns": area.max_daily_turns,
         } for area in areas]
 
-    @http.route("/kiosk/api/turn/create", type="json", auth="public")
+    @http.route("/kiosk/api/turn/create", type="jsonrpc", auth="public")
     def kiosk_create_turn(self, dni, area_id, email=None, notes=None):
         ip = request.httprequest.remote_addr
         icp = request.env["ir.config_parameter"].sudo()

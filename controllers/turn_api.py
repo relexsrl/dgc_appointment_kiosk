@@ -14,7 +14,7 @@ class TurnAPIController(http.Controller):
             return None
         return turn
 
-    @http.route("/api/turn/call", type="json", auth="user")
+    @http.route("/api/turn/call", type="jsonrpc", auth="user")
     def turn_call(self, turn_id):
         turn = self._get_turn(turn_id)
         if not turn:
@@ -25,7 +25,7 @@ class TurnAPIController(http.Controller):
         except Exception as e:
             return {"success": False, "message": str(e)}
 
-    @http.route("/api/turn/serve", type="json", auth="user")
+    @http.route("/api/turn/serve", type="jsonrpc", auth="user")
     def turn_serve(self, turn_id):
         turn = self._get_turn(turn_id)
         if not turn:
@@ -36,7 +36,7 @@ class TurnAPIController(http.Controller):
         except Exception as e:
             return {"success": False, "message": str(e)}
 
-    @http.route("/api/turn/done", type="json", auth="user")
+    @http.route("/api/turn/done", type="jsonrpc", auth="user")
     def turn_done(self, turn_id):
         turn = self._get_turn(turn_id)
         if not turn:
@@ -47,7 +47,7 @@ class TurnAPIController(http.Controller):
         except Exception as e:
             return {"success": False, "message": str(e)}
 
-    @http.route("/api/turn/noshow", type="json", auth="user")
+    @http.route("/api/turn/noshow", type="jsonrpc", auth="user")
     def turn_noshow(self, turn_id):
         turn = self._get_turn(turn_id)
         if not turn:
@@ -58,7 +58,7 @@ class TurnAPIController(http.Controller):
         except Exception as e:
             return {"success": False, "message": str(e)}
 
-    @http.route("/api/turn/derive", type="json", auth="user")
+    @http.route("/api/turn/derive", type="jsonrpc", auth="user")
     def turn_derive(self, turn_id, to_area_id, reason):
         turn = self._get_turn(turn_id)
         if not turn:

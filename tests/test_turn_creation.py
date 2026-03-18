@@ -78,8 +78,8 @@ class TestTurnCreation(TransactionCase):
 
     def test_validate_cuit_valid(self):
         """Valid CUIT passes mod-11 check."""
-        # 20-12345678-3 is a known valid CUIT
-        self.assertTrue(self.Turn._validate_dni("20123456783"))
+        # 20-12345678-6 is a valid CUIT (check digit = 6)
+        self.assertTrue(self.Turn._validate_dni("20123456786"))
 
     def test_validate_cuit_invalid_check_digit(self):
         """CUIT with wrong check digit fails."""
@@ -147,14 +147,18 @@ class TestTurnCreation(TransactionCase):
 
     def test_no_show_does_not_consume_capacity(self):
         """Turns marked as no_show don't count toward capacity."""
+        initial_remaining = self.area_geo.remaining_turns_today
         turn = self.Turn.create({
             "citizen_dni": "12345678",
             "area_id": self.area_geo.id,
         })
-        initial_remaining = self.area_geo.remaining_turns_today
+        self.area_geo.invalidate_recordset()
+        # After creating, remaining should drop by 1
+        self.assertEqual(self.area_geo.remaining_turns_today, initial_remaining - 1)
         turn.action_call()
         turn.action_no_show()
         self.area_geo.invalidate_recordset()
+        # After no_show, remaining should go back up (no_show excluded)
         self.assertEqual(self.area_geo.remaining_turns_today, initial_remaining)
 
     def test_find_or_create_partner_new(self):

@@ -20,7 +20,10 @@ class TestDerivation(TransactionCase):
         cls.operator = cls.env["res.users"].create({
             "name": "Operador Test",
             "login": "op_deriv_test",
-            "groups_id": [(4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id)],
+            "group_ids": [
+                (4, cls.env.ref("base.group_user").id),
+                (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
+            ],
             "dgc_area_ids": [(4, cls.area_geo.id), (4, cls.area_cat.id)],
         })
 

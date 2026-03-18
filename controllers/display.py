@@ -14,7 +14,7 @@ class DisplayController(http.Controller):
         }
         return request.render("dgc_appointment_kiosk.display_queue_view", values)
 
-    @http.route("/display/api/turns", type="json", auth="public")
+    @http.route("/display/api/turns", type="jsonrpc", auth="public")
     def display_turns(self, area_id=None):
         icp = request.env["ir.config_parameter"].sudo()
         calling_count = int(icp.get_param("dgc_appointment_kiosk.display_calling_count", "3"))

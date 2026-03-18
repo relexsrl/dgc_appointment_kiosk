@@ -29,7 +29,7 @@
                 <field name="user_id"/>
                 <filter name="today" string="Hoy"
                         domain="[('derivation_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
-                <group expand="0" string="Agrupar por">
+                <group>
                     <filter name="group_from" string="Área origen"
                             context="{'group_by': 'from_area_id'}"/>
                     <filter name="group_to" string="Área destino"

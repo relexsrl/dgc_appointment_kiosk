@@ -16,6 +16,12 @@ class TestControllers(HttpCase):
             "max_counters": 2,
         })
 
+    def setUp(self):
+        super().setUp()
+        # Clear rate limiter between tests
+        from odoo.addons.dgc_appointment_kiosk.controllers.kiosk import KioskController
+        KioskController._rate_limits.clear()
+
     def _json_rpc(self, url, params=None):
         """Helper to make JSON-RPC calls."""
         payload = json.dumps({
@@ -77,6 +83,10 @@ class TestControllers(HttpCase):
             "dni": "99999999",
             "area_id": self.area.id,
         })
+        # Clear rate limit so second call goes through
+        from odoo.addons.dgc_appointment_kiosk.controllers.kiosk import KioskController
+        KioskController._rate_limits.clear()
+
         result = self._json_rpc("/kiosk/api/turn/create", {
             "dni": "99999999",
             "area_id": self.area.id,

@@ -15,7 +15,10 @@ class TestBusNotifications(TransactionCase):
         cls.operator = cls.env["res.users"].create({
             "name": "Op Bus Test",
             "login": "op_bus_test",
-            "groups_id": [(4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id)],
+            "group_ids": [
+                (4, cls.env.ref("base.group_user").id),
+                (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
+            ],
             "dgc_area_ids": [(4, cls.area.id)],
         })
 
