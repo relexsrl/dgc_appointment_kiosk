@@ -75,6 +75,7 @@ class DgcTurnCreateWizard(models.TransientModel):
             "notes": self.notes or "",
             "area_id": self.area_id.id,
             "partner_id": partner_result.get("partner_id"),
+            "source": "manual",
         })
 
         return {

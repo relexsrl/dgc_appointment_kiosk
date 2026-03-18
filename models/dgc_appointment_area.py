@@ -34,6 +34,12 @@ class DgcAppointmentArea(models.Model):
         "area_id",
         string="Turnos",
     )
+    appointment_type_id = fields.Many2one(
+        "appointment.type",
+        string="Tipo de Cita",
+        ondelete="set null",
+        help="Tipo de cita de Odoo Appointment vinculado. Permite reserva por portal web y define horarios por día.",
+    )
     company_id = fields.Many2one(
         "res.company",
         string="Compañía",

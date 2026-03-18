@@ -107,6 +107,7 @@ class KioskController(http.Controller):
                 "notes": notes or "",
                 "area_id": area.id,
                 "partner_id": partner_result.get("partner_id"),
+                "source": "kiosk",
             }
             turn = Turn.create(vals)
         except ValidationError as e:

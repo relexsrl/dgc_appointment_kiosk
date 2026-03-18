@@ -40,6 +40,18 @@ class DgcAppointmentTurn(models.Model):
     citizen_email = fields.Char(string="Email")
     notes = fields.Text(string="Notas")
     partner_id = fields.Many2one("res.partner", string="Contacto")
+    calendar_event_id = fields.Many2one(
+        "calendar.event",
+        string="Cita",
+        ondelete="set null",
+        copy=False,
+    )
+    source = fields.Selection(
+        [("kiosk", "Kiosco"), ("manual", "Manual"), ("portal", "Portal")],
+        string="Origen",
+        default="kiosk",
+        required=True,
+    )
 
     state = fields.Selection(
         TURN_STATES,

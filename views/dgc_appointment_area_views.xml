@@ -42,6 +42,7 @@
                                     <field name="company_id" groups="base.group_multi_company"/>
                                 </group>
                                 <group>
+                                    <field name="appointment_type_id"/>
                                     <field name="avg_service_time"/>
                                     <field name="max_counters"/>
                                     <field name="color" widget="color_picker"/>
