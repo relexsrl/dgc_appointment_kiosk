@@ -6,53 +6,54 @@ from odoo.tests.common import TransactionCase
 
 
 class TestAppointmentIntegration(TransactionCase):
-    """Tests for the portal booking → DGC turn bridge."""
+    """Tests for the portal booking -> DGC turn bridge."""
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.Area = cls.env["dgc.appointment.area"]
         cls.Turn = cls.env["dgc.appointment.turn"]
         cls.Event = cls.env["calendar.event"]
         cls.AppointmentType = cls.env["appointment.type"]
 
-        # Create an appointment type linked to a DGC area
-        cls.appt_type = cls.AppointmentType.create(
+        # Create an appointment type that IS a DGC area
+        cls.area_cat = cls.AppointmentType.create(
             {
                 "name": "Turno Catastro Portal",
+                "is_dgc_area": True,
+                "dgc_code": "CATI",
+                "dgc_avg_service_time": 15,
+                "dgc_max_counters": 2,
                 "category": "recurring",
                 "appointment_duration": 0.5,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
                 "max_schedule_days": 30,
                 "min_schedule_hours": 1.0,
             }
         )
+        # Alias for tests that reference appt_type
+        cls.appt_type = cls.area_cat
 
-        cls.area_cat = cls.Area.create(
-            {
-                "name": "Catastro Int",
-                "code": "CATI",
-                "avg_service_time": 15,
-                "max_counters": 2,
-                "appointment_type_id": cls.appt_type.id,
-            }
-        )
-
-        # An appointment type NOT linked to any DGC area
+        # An appointment type NOT flagged as a DGC area
         cls.appt_type_other = cls.AppointmentType.create(
             {
                 "name": "Consulta General",
                 "category": "recurring",
                 "appointment_duration": 1.0,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
 
-        # A standalone area without appointment_type_id
-        cls.area_geo = cls.Area.create(
+        # A DGC area without portal booking (standalone kiosk area)
+        cls.area_geo = cls.AppointmentType.create(
             {
                 "name": "Geografía Int",
-                "code": "GEOI",
-                "avg_service_time": 15,
-                "max_counters": 1,
+                "is_dgc_area": True,
+                "dgc_code": "GEOI",
+                "dgc_avg_service_time": 15,
+                "dgc_max_counters": 1,
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
 
@@ -104,7 +105,7 @@ class TestAppointmentIntegration(TransactionCase):
         return self.Event.create(vals)
 
     def test_portal_booking_creates_turn(self):
-        """Create a calendar.event with a DGC appointment type → a turn is created."""
+        """Create a calendar.event with a DGC appointment type -> a turn is created."""
         event = self._create_calendar_event(appointment_type=self.appt_type)
         self.assertTrue(event.dgc_turn_id, "A DGC turn should have been created for the event")
         turn = event.dgc_turn_id
@@ -112,9 +113,9 @@ class TestAppointmentIntegration(TransactionCase):
         self.assertEqual(turn.area_id, self.area_cat)
 
     def test_portal_booking_ignored_for_other_types(self):
-        """Calendar event with a non-DGC appointment type → no turn created."""
+        """Calendar event with a non-DGC appointment type -> no turn created."""
         event = self._create_calendar_event(appointment_type=self.appt_type_other)
-        self.assertFalse(event.dgc_turn_id, "No DGC turn should be created for unlinked appointment types")
+        self.assertFalse(event.dgc_turn_id, "No DGC turn should be created for non-DGC appointment types")
 
     def test_portal_booking_links_calendar_event(self):
         """Turn and event are bidirectionally linked."""
@@ -136,7 +137,7 @@ class TestAppointmentIntegration(TransactionCase):
         self.assertEqual(turn.citizen_email, self.partner_with_vat.email)
 
     def test_portal_booking_no_vat_uses_placeholder(self):
-        """Partner without VAT → turn.citizen_dni starts with 'PORTAL-'."""
+        """Partner without VAT -> turn.citizen_dni starts with 'PORTAL-'."""
         event = self._create_calendar_event(
             appointment_type=self.appt_type,
             partner=self.partner_no_vat,
@@ -165,8 +166,8 @@ class TestAppointmentIntegration(TransactionCase):
             self.assertEqual(payload["turn_id"], turn.id)
             self.assertEqual(payload["area_id"], self.area_cat.id)
 
-    def test_area_without_appointment_type_works(self):
-        """Creating a turn via kiosk (no appointment.type link) still works normally."""
+    def test_appointment_type_without_dgc_flag_works(self):
+        """Creating a turn via kiosk for a DGC area (no portal booking) still works normally."""
         turn = self.Turn.create(
             {
                 "citizen_dni": "12345678",
@@ -207,17 +208,17 @@ class TestAppointmentIntegration(TransactionCase):
         self.assertEqual(turn_portal.source, "portal")
 
     def test_slot_capacity_from_appointment_type(self):
-        """Area with appointment_type + slots → max_daily_turns is computed from area config.
+        """Area with appointment slots -> max_daily_turns is computed from area config.
 
-        The max_daily_turns for an area is computed from the area's own parameters
-        (avg_service_time, max_counters) and the system config (hour_start, hour_end).
-        The appointment.type slots define portal availability, while the area config
+        The max_daily_turns for an area is computed from the area's own DGC parameters
+        (dgc_avg_service_time, dgc_max_counters) and the system config (hour_start, hour_end).
+        The appointment.type slots define portal availability, while the DGC config
         controls the queue capacity calculation.
         """
         self.env["ir.config_parameter"].set_param("dgc_appointment_kiosk.hour_start", "8.0")
         self.env["ir.config_parameter"].set_param("dgc_appointment_kiosk.hour_end", "14.0")
         self.area_cat.invalidate_recordset()
-        # 6 hours * 60 min / 15 avg_service_time * 2 max_counters = 48
+        # 6 hours * 60 min / 15 dgc_avg_service_time * 2 dgc_max_counters = 48
         self.assertEqual(self.area_cat.max_daily_turns, 48)
         # Verify the appointment type has slots
         self.assertTrue(
@@ -227,12 +228,12 @@ class TestAppointmentIntegration(TransactionCase):
         self.assertEqual(len(self.appt_type.slot_ids), 5, "Should have 5 weekday slots")
 
     def test_event_without_appointment_type_ignored(self):
-        """Calendar event without any appointment_type_id → no turn created."""
+        """Calendar event without any appointment_type_id -> no turn created."""
         event = self._create_calendar_event(appointment_type=None)
         self.assertFalse(event.dgc_turn_id)
 
     def test_event_without_partner_ignored(self):
-        """Calendar event with DGC appointment type but no partners → no turn created."""
+        """Calendar event with DGC appointment type but no partners -> no turn created."""
         start = datetime.now() + timedelta(days=1)
         event = self.Event.create(
             {

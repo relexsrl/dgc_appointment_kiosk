@@ -6,20 +6,28 @@ class TestManualTurnCreation(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.area_geo = cls.env["dgc.appointment.area"].create(
+        cls.area_geo = cls.env["appointment.type"].create(
             {
                 "name": "Geografía",
-                "code": "MC_GEO",
-                "avg_service_time": 15,
-                "max_counters": 2,
+                "is_dgc_area": True,
+                "dgc_code": "MC_GEO",
+                "dgc_avg_service_time": 15,
+                "dgc_max_counters": 2,
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
-        cls.area_cat = cls.env["dgc.appointment.area"].create(
+        cls.area_cat = cls.env["appointment.type"].create(
             {
                 "name": "Catastro",
-                "code": "MC_CAT",
-                "avg_service_time": 15,
-                "max_counters": 1,
+                "is_dgc_area": True,
+                "dgc_code": "MC_CAT",
+                "dgc_avg_service_time": 15,
+                "dgc_max_counters": 1,
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
         cls.operator = cls.env["res.users"].create(

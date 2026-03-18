@@ -9,15 +9,19 @@ class TestTurnWorkflow(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.Area = cls.env["dgc.appointment.area"]
+        cls.Area = cls.env["appointment.type"]
         cls.Turn = cls.env["dgc.appointment.turn"]
 
         cls.area = cls.Area.create(
             {
                 "name": "Geografía",
-                "code": "TW_GEO",
-                "avg_service_time": 15,
-                "max_counters": 2,
+                "is_dgc_area": True,
+                "dgc_code": "TW_GEO",
+                "dgc_avg_service_time": 15,
+                "dgc_max_counters": 2,
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
 

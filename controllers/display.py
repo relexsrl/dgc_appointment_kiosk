@@ -50,14 +50,14 @@ class DisplayController(http.Controller):
                 "turn_number": t.turn_number,
                 "citizen_name": t.citizen_name or "",
                 "area_name": t.area_id.name,
-                "area_code": t.area_id.code,
+                "area_code": t.area_id.dgc_code,
                 "operator": t.operator_id.name or "",
                 "call_count": t.call_count,
             } for t in calling],
             "waiting": [{
                 "turn_number": t.turn_number,
                 "area_name": t.area_id.name,
-                "area_code": t.area_id.code,
+                "area_code": t.area_id.dgc_code,
             } for t in waiting],
             "scroll_messages": messages,
         }

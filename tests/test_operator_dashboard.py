@@ -6,16 +6,24 @@ class TestOperatorDashboard(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.area_geo = cls.env["dgc.appointment.area"].create(
+        cls.area_geo = cls.env["appointment.type"].create(
             {
                 "name": "Geografía",
-                "code": "OD_GEO",
+                "is_dgc_area": True,
+                "dgc_code": "OD_GEO",
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
-        cls.area_cat = cls.env["dgc.appointment.area"].create(
+        cls.area_cat = cls.env["appointment.type"].create(
             {
                 "name": "Catastro",
-                "code": "OD_CAT",
+                "is_dgc_area": True,
+                "dgc_code": "OD_CAT",
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
         cls.operator = cls.env["res.users"].create(

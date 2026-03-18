@@ -7,10 +7,14 @@ class TestBusNotifications(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.area = cls.env["dgc.appointment.area"].create(
+        cls.area = cls.env["appointment.type"].create(
             {
                 "name": "Geografía",
-                "code": "BN_GEO",
+                "is_dgc_area": True,
+                "dgc_code": "BN_GEO",
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
         cls.operator = cls.env["res.users"].create(
@@ -61,10 +65,14 @@ class TestBusNotifications(TransactionCase):
 
     def test_derivation_notifies_destination_area(self):
         """Derivation sends notification to destination area channel."""
-        area_cat = self.env["dgc.appointment.area"].create(
+        area_cat = self.env["appointment.type"].create(
             {
                 "name": "Catastro",
-                "code": "BN_CAT",
+                "is_dgc_area": True,
+                "dgc_code": "BN_CAT",
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
         self.operator.dgc_area_ids = [(4, area_cat.id)]

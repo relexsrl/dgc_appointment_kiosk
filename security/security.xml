@@ -45,6 +45,21 @@
 
         <!-- Record Rules -->
 
+        <!-- DGC groups: access to DGC appointment types -->
+        <record id="rule_appointment_type_dgc_operator" model="ir.rule">
+            <field name="name">DGC: Operador ve tipos de cita DGC</field>
+            <field name="model_id" ref="appointment.model_appointment_type"/>
+            <field name="domain_force">[('is_dgc_area', '=', True)]</field>
+            <field name="groups" eval="[(4, ref('group_dgc_operator'))]"/>
+        </record>
+
+        <record id="rule_appointment_type_dgc_admin" model="ir.rule">
+            <field name="name">DGC: Admin ve todos los tipos de cita</field>
+            <field name="model_id" ref="appointment.model_appointment_type"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_dgc_admin'))]"/>
+        </record>
+
         <!-- Operator: only turns in assigned areas -->
         <record id="rule_turn_by_area" model="ir.rule">
             <field name="name">Turnos por área asignada</field>

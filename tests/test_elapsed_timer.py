@@ -8,10 +8,14 @@ class TestElapsedTimer(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.area = cls.env["dgc.appointment.area"].create(
+        cls.area = cls.env["appointment.type"].create(
             {
                 "name": "Test",
-                "code": "ET_TIM",
+                "is_dgc_area": True,
+                "dgc_code": "ET_TIM",
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
 

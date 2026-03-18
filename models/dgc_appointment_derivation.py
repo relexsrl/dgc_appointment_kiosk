@@ -13,12 +13,12 @@ class DgcAppointmentDerivation(models.Model):
         ondelete="cascade",
     )
     from_area_id = fields.Many2one(
-        "dgc.appointment.area",
+        "appointment.type",
         string="Área origen",
         required=True,
     )
     to_area_id = fields.Many2one(
-        "dgc.appointment.area",
+        "appointment.type",
         string="Área destino",
         required=True,
     )

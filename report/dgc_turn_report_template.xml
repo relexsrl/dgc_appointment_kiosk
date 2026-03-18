@@ -22,7 +22,7 @@
                                 </tr>
                                 <tr>
                                     <td><strong>Ubicación:</strong></td>
-                                    <td><t t-out="turn.area_id.location or ''"/></td>
+                                    <td><t t-out="turn.area_id.dgc_location or ''"/></td>
                                 </tr>
                                 <tr>
                                     <td><strong>DNI/CUIT:</strong></td>

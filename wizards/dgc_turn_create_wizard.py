@@ -11,13 +11,13 @@ class DgcTurnCreateWizard(models.TransientModel):
     citizen_email = fields.Char(string="Email")
     notes = fields.Text(string="Observaciones")
     area_id = fields.Many2one(
-        "dgc.appointment.area",
+        "appointment.type",
         string="Área",
         required=True,
-        domain="[('active', '=', True), ('id', 'in', available_area_ids)]",
+        domain="[('is_dgc_area', '=', True), ('active', '=', True), ('id', 'in', available_area_ids)]",
     )
     available_area_ids = fields.Many2many(
-        "dgc.appointment.area",
+        "appointment.type",
         compute="_compute_available_area_ids",
     )
 
@@ -58,8 +58,8 @@ class DgcTurnCreateWizard(models.TransientModel):
         if self.area_id.id not in self.env.user.dgc_area_ids.ids:
             raise UserError("No tiene permisos para crear turnos en esta área.")
 
-        # Check capacity
-        if self.area_id.remaining_turns_today <= 0:
+        # Check capacity (sudo to bypass appointment record rules)
+        if self.area_id.sudo().remaining_turns_today <= 0:
             raise UserError("No hay más turnos disponibles para esta área hoy.")
 
         # Find or create partner

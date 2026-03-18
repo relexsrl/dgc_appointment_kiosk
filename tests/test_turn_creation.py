@@ -6,25 +6,33 @@ class TestTurnCreation(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.Area = cls.env["dgc.appointment.area"]
+        cls.Area = cls.env["appointment.type"]
         cls.Turn = cls.env["dgc.appointment.turn"]
 
         cls.area_geo = cls.Area.create(
             {
                 "name": "Geografía",
-                "code": "TC_GEO",
-                "location": "Planta Baja",
-                "avg_service_time": 15,
-                "max_counters": 2,
+                "is_dgc_area": True,
+                "dgc_code": "TC_GEO",
+                "dgc_location": "Planta Baja",
+                "dgc_avg_service_time": 15,
+                "dgc_max_counters": 2,
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
         cls.area_cat = cls.Area.create(
             {
                 "name": "Catastro",
-                "code": "TC_CAT",
-                "location": "Primer Piso",
-                "avg_service_time": 20,
-                "max_counters": 1,
+                "is_dgc_area": True,
+                "dgc_code": "TC_CAT",
+                "dgc_location": "Primer Piso",
+                "dgc_avg_service_time": 20,
+                "dgc_max_counters": 1,
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
 
@@ -151,8 +159,12 @@ class TestTurnCreation(TransactionCase):
         inactive_area = self.Area.create(
             {
                 "name": "Inactiva",
-                "code": "TC_INA",
+                "is_dgc_area": True,
+                "dgc_code": "TC_INA",
                 "active": False,
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
         # The area exists but is inactive - controller checks this

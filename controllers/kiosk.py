@@ -42,15 +42,16 @@ class KioskController(http.Controller):
 
     @http.route("/kiosk/api/areas", type="jsonrpc", auth="public")
     def kiosk_areas(self):
-        areas = request.env["dgc.appointment.area"].sudo().search([
+        areas = request.env["appointment.type"].sudo().search([
+            ("is_dgc_area", "=", True),
             ("active", "=", True),
         ])
         return [{
             "id": area.id,
             "name": area.name,
-            "code": area.code,
-            "location": area.location or "",
-            "welcome_message": area.welcome_message or "",
+            "code": area.dgc_code,
+            "location": area.dgc_location or "",
+            "welcome_message": area.dgc_welcome_message or "",
             "remaining_turns_today": area.remaining_turns_today,
             "max_daily_turns": area.max_daily_turns,
         } for area in areas]
@@ -79,8 +80,8 @@ class KioskController(http.Controller):
             }
 
         # Validate area
-        area = request.env["dgc.appointment.area"].sudo().browse(int(area_id))
-        if not area.exists() or not area.active:
+        area = request.env["appointment.type"].sudo().browse(int(area_id))
+        if not area.exists() or not area.active or not area.is_dgc_area:
             return {
                 "success": False,
                 "error_code": "INVALID_AREA",

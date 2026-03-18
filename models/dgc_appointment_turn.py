@@ -61,10 +61,11 @@ class DgcAppointmentTurn(models.Model):
         tracking=True,
     )
     area_id = fields.Many2one(
-        "dgc.appointment.area",
+        "appointment.type",
         string="Área",
         required=True,
         tracking=True,
+        domain="[('is_dgc_area', '=', True)]",
     )
     operator_id = fields.Many2one(
         "res.users",
@@ -173,10 +174,10 @@ class DgcAppointmentTurn(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             if not vals.get("turn_number"):
-                area = self.env["dgc.appointment.area"].browse(vals.get("area_id"))
+                area = self.env["appointment.type"].browse(vals.get("area_id"))
                 seq = self.env["ir.sequence"].next_by_code("dgc.appointment.turn") or "000"
                 counter = seq.split("-")[-1] if "-" in seq else seq
-                vals["turn_number"] = f"{area.code}-{counter}"
+                vals["turn_number"] = f"{area.dgc_code}-{counter}"
             if vals.get("state", "new") == "new":
                 vals["state"] = "waiting"
         return super().create(vals_list)

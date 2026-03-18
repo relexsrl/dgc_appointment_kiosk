@@ -6,19 +6,27 @@ class TestSecurityRules(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.Area = cls.env["dgc.appointment.area"]
+        cls.Area = cls.env["appointment.type"]
         cls.Turn = cls.env["dgc.appointment.turn"]
 
         cls.area_geo = cls.Area.create(
             {
                 "name": "Geografía",
-                "code": "TS_GEO",
+                "is_dgc_area": True,
+                "dgc_code": "TS_GEO",
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
         cls.area_cat = cls.Area.create(
             {
                 "name": "Catastro",
-                "code": "TS_CAT",
+                "is_dgc_area": True,
+                "dgc_code": "TS_CAT",
+                "category": "recurring",
+                "appointment_duration": 0.25,
+                "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
 

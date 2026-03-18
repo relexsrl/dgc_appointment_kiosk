@@ -12,10 +12,10 @@ class DgcTurnDeriveWizard(models.TransientModel):
         required=True,
     )
     to_area_id = fields.Many2one(
-        "dgc.appointment.area",
+        "appointment.type",
         string="Área destino",
         required=True,
-        domain=[("active", "=", True)],
+        domain=[("is_dgc_area", "=", True), ("active", "=", True)],
     )
     reason = fields.Text(string="Motivo", required=True)
 
