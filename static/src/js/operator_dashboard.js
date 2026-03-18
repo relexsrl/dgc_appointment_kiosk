@@ -150,14 +150,17 @@ export class DgcOperatorDashboard extends Component {
 
     async deriveTurn() {
         if (!this.state.currentTurn) return;
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            name: _t("Derivar Turno"),
-            res_model: "dgc.turn.derive.wizard",
-            views: [[false, "form"]],
-            target: "new",
-            context: {default_turn_id: this.state.currentTurn.id},
-        });
+        this.action.doAction(
+            {
+                type: "ir.actions.act_window",
+                name: _t("Derivar Turno"),
+                res_model: "dgc.turn.derive.wizard",
+                views: [[false, "form"]],
+                target: "new",
+                context: {default_turn_id: this.state.currentTurn.id},
+            },
+            {onClose: () => this.loadData()},
+        );
     }
 
     openTurnForm(turnId) {
@@ -171,13 +174,16 @@ export class DgcOperatorDashboard extends Component {
     }
 
     openCreateWizard() {
-        this.action.doAction({
-            type: "ir.actions.act_window",
-            name: _t("Crear Turno Manual"),
-            res_model: "dgc.turn.create.wizard",
-            views: [[false, "form"]],
-            target: "new",
-        });
+        this.action.doAction(
+            {
+                type: "ir.actions.act_window",
+                name: _t("Crear Turno Manual"),
+                res_model: "dgc.turn.create.wizard",
+                views: [[false, "form"]],
+                target: "new",
+            },
+            {onClose: () => this.loadData()},
+        );
     }
 
     formatDuration(minutes) {
