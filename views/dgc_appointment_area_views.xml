@@ -36,7 +36,6 @@
             <xpath expr="//group[@name='left_details']" position="inside">
                 <field name="dgc_code" invisible="not is_dgc_area"/>
                 <field name="dgc_location" invisible="not is_dgc_area"/>
-                <field name="dgc_avg_service_time" invisible="not is_dgc_area"/>
                 <field name="dgc_max_counters" invisible="not is_dgc_area"/>
             </xpath>
 

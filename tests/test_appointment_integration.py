@@ -21,7 +21,6 @@ class TestAppointmentIntegration(TransactionCase):
                 "name": "Turno Catastro Portal",
                 "is_dgc_area": True,
                 "dgc_code": "CATI",
-                "dgc_avg_service_time": 15,
                 "dgc_max_counters": 2,
                 "category": "recurring",
                 "appointment_duration": 0.5,
@@ -49,7 +48,6 @@ class TestAppointmentIntegration(TransactionCase):
                 "name": "Geografía Int",
                 "is_dgc_area": True,
                 "dgc_code": "GEOI",
-                "dgc_avg_service_time": 15,
                 "dgc_max_counters": 1,
                 "category": "recurring",
                 "appointment_duration": 0.25,
@@ -210,16 +208,14 @@ class TestAppointmentIntegration(TransactionCase):
     def test_slot_capacity_from_appointment_type(self):
         """Area with appointment slots -> max_daily_turns is computed from area config.
 
-        The max_daily_turns for an area is computed from the area's own DGC parameters
-        (dgc_avg_service_time, dgc_max_counters) and the system config (hour_start, hour_end).
-        The appointment.type slots define portal availability, while the DGC config
-        controls the queue capacity calculation.
+        The max_daily_turns for an area is computed from appointment_duration (hours)
+        and dgc_max_counters, using slots or the global config hours as fallback.
         """
         self.env["ir.config_parameter"].set_param("dgc_appointment_kiosk.hour_start", "8.0")
         self.env["ir.config_parameter"].set_param("dgc_appointment_kiosk.hour_end", "14.0")
         self.area_cat.invalidate_recordset()
-        # 6 hours * 60 min / 15 dgc_avg_service_time * 2 dgc_max_counters = 48
-        self.assertEqual(self.area_cat.max_daily_turns, 48)
+        # 6 hours * 60 min / (0.5 hrs * 60 = 30 min) * 2 counters = 24
+        self.assertEqual(self.area_cat.max_daily_turns, 24)
         # Verify the appointment type has slots
         self.assertTrue(
             self.appt_type.slot_ids,

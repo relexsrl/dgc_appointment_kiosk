@@ -9,10 +9,6 @@ class AppointmentType(models.Model):
     dgc_code = fields.Char("Código", size=10)
     dgc_location = fields.Char("Ubicación")
     dgc_color = fields.Integer("Color")
-    dgc_avg_service_time = fields.Integer(
-        "Tiempo promedio de atención (min)",
-        default=15,
-    )
     dgc_max_counters = fields.Integer(
         "Cantidad de puestos",
         default=1,
@@ -53,6 +49,11 @@ class AppointmentType(models.Model):
 
     # --- Computed methods ---
 
+    def _get_service_time_minutes(self):
+        """Return service time in minutes from appointment_duration (hours)."""
+        self.ensure_one()
+        return self.appointment_duration * 60 if self.appointment_duration > 0 else 0
+
     @api.depends("turn_ids.state")
     def _compute_pending_turn_count(self):
         today = fields.Date.context_today(self)
@@ -72,24 +73,25 @@ class AppointmentType(models.Model):
         fallback_end = float(icp.get_param("dgc_appointment_kiosk.hour_end", "14.0"))
 
         for rec in self:
-            if not rec.is_dgc_area or rec.dgc_avg_service_time <= 0:
+            service_minutes = rec.appointment_duration * 60 if rec.appointment_duration > 0 else 0
+            if not rec.is_dgc_area or service_minutes <= 0:
                 rec.max_daily_turns = 0
                 continue
 
-            # Use own slot_ids (we ARE the appointment.type now)
+            counters = rec.dgc_max_counters or 1
+
+            # Use own slot_ids (we ARE the appointment.type)
             if rec.slot_ids:
                 today_weekday = str(fields.Date.context_today(self).weekday() + 1)
                 today_slots = rec.slot_ids.filtered(lambda s, wd=today_weekday: s.weekday == wd)
                 if today_slots:
                     total_minutes = sum((s.end_hour - s.start_hour) * 60 for s in today_slots)
-                    rec.max_daily_turns = int(
-                        total_minutes / rec.dgc_avg_service_time * rec.dgc_max_counters
-                    )
+                    rec.max_daily_turns = int(total_minutes / service_minutes * counters)
                     continue
 
             # Fallback: global config hours
             minutes = (fallback_end - fallback_start) * 60
-            rec.max_daily_turns = int(minutes / rec.dgc_avg_service_time * rec.dgc_max_counters)
+            rec.max_daily_turns = int(minutes / service_minutes * counters)
 
     def _compute_remaining_turns_today(self):
         today = fields.Date.context_today(self)

@@ -13,7 +13,6 @@ class TestControllers(HttpCase):
                 "is_dgc_area": True,
                 "dgc_code": "HC_TST",
                 "dgc_location": "Hall",
-                "dgc_avg_service_time": 15,
                 "dgc_max_counters": 2,
                 "category": "recurring",
                 "appointment_duration": 0.25,

@@ -15,7 +15,6 @@ class TestTurnCreation(TransactionCase):
                 "is_dgc_area": True,
                 "dgc_code": "TC_GEO",
                 "dgc_location": "Planta Baja",
-                "dgc_avg_service_time": 15,
                 "dgc_max_counters": 2,
                 "category": "recurring",
                 "appointment_duration": 0.25,
@@ -28,10 +27,9 @@ class TestTurnCreation(TransactionCase):
                 "is_dgc_area": True,
                 "dgc_code": "TC_CAT",
                 "dgc_location": "Primer Piso",
-                "dgc_avg_service_time": 20,
                 "dgc_max_counters": 1,
                 "category": "recurring",
-                "appointment_duration": 0.25,
+                "appointment_duration": 1 / 3,
                 "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
