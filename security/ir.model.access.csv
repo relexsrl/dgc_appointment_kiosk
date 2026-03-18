@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_area_public,dgc.appointment.area.public,model_dgc_appointment_area,group_dgc_kiosk_public,1,0,0,0
+access_area_operator,dgc.appointment.area.operator,model_dgc_appointment_area,group_dgc_operator,1,0,0,0
+access_area_manager,dgc.appointment.area.manager,model_dgc_appointment_area,group_dgc_area_manager,1,1,0,0
+access_area_admin,dgc.appointment.area.admin,model_dgc_appointment_area,group_dgc_admin,1,1,1,1
+access_turn_public,dgc.appointment.turn.public,model_dgc_appointment_turn,group_dgc_kiosk_public,0,0,1,0
+access_turn_operator,dgc.appointment.turn.operator,model_dgc_appointment_turn,group_dgc_operator,1,1,0,0
+access_turn_manager,dgc.appointment.turn.manager,model_dgc_appointment_turn,group_dgc_area_manager,1,1,0,0
+access_turn_admin,dgc.appointment.turn.admin,model_dgc_appointment_turn,group_dgc_admin,1,1,1,1
+access_call_log_operator,dgc.appointment.call.log.operator,model_dgc_appointment_call_log,group_dgc_operator,1,0,1,0
+access_call_log_manager,dgc.appointment.call.log.manager,model_dgc_appointment_call_log,group_dgc_area_manager,1,0,1,0
+access_call_log_admin,dgc.appointment.call.log.admin,model_dgc_appointment_call_log,group_dgc_admin,1,1,1,1
+access_derivation_operator,dgc.appointment.derivation.operator,model_dgc_appointment_derivation,group_dgc_operator,1,0,1,0
+access_derivation_manager,dgc.appointment.derivation.manager,model_dgc_appointment_derivation,group_dgc_area_manager,1,0,1,0
+access_derivation_admin,dgc.appointment.derivation.admin,model_dgc_appointment_derivation,group_dgc_admin,1,1,1,1

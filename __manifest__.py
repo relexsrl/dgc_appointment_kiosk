@@ -1,0 +1,55 @@
+{
+    "name": "DGC Turnero - Sistema de Turnos con Kiosco",
+    "version": "19.0.1.0.0",
+    "category": "Services",
+    "summary": "Sistema de gestión de turnos con kiosco táctil para la DGC",
+    "author": "Relex SRL",
+    "website": "https://www.relex.com.ar",
+    "license": "LGPL-3",
+    "depends": [
+        "base",
+        "mail",
+        "bus",
+        "web",
+    ],
+    "data": [
+        # Security
+        "security/security.xml",
+        "security/ir.model.access.csv",
+        # Data
+        "data/ir_sequence_data.xml",
+        "data/ir_cron_data.xml",
+        "data/default_config_data.xml",
+        # Wizards
+        "wizards/dgc_turn_derive_wizard_views.xml",
+        # Views
+        "views/dgc_appointment_area_views.xml",
+        "views/dgc_appointment_turn_views.xml",
+        "views/dgc_appointment_config_views.xml",
+        "views/dgc_appointment_derivation_views.xml",
+        "views/dgc_dashboard_views.xml",
+        "views/menu_views.xml",
+        # Templates
+        "templates/kiosk_main_view.xml",
+        "templates/display_queue_view.xml",
+        # Reports
+        "report/dgc_turn_report.xml",
+        "report/dgc_turn_report_template.xml",
+    ],
+    "assets": {
+        "dgc_appointment_kiosk.assets_kiosk": [
+            "dgc_appointment_kiosk/static/src/css/kiosk.scss",
+            "dgc_appointment_kiosk/static/src/js/kiosk.js",
+        ],
+        "dgc_appointment_kiosk.assets_display": [
+            "dgc_appointment_kiosk/static/src/css/display.scss",
+            "dgc_appointment_kiosk/static/src/js/display.js",
+        ],
+        "web.assets_backend": [
+            "dgc_appointment_kiosk/static/src/js/backoffice.js",
+        ],
+    },
+    "installable": True,
+    "application": True,
+    "auto_install": False,
+}

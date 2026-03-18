@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Graph View -->
+    <record id="dgc_appointment_turn_view_graph" model="ir.ui.view">
+        <field name="name">dgc.appointment.turn.graph</field>
+        <field name="model">dgc.appointment.turn</field>
+        <field name="arch" type="xml">
+            <graph string="Turnos" type="bar">
+                <field name="area_id"/>
+                <field name="state" type="col"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot View -->
+    <record id="dgc_appointment_turn_view_pivot" model="ir.ui.view">
+        <field name="name">dgc.appointment.turn.pivot</field>
+        <field name="model">dgc.appointment.turn</field>
+        <field name="arch" type="xml">
+            <pivot string="Análisis de Turnos">
+                <field name="area_id" type="row"/>
+                <field name="state" type="col"/>
+                <field name="duration" type="measure"/>
+                <field name="wait_time" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_dgc_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">dgc.appointment.turn</field>
+        <field name="view_mode">graph,pivot</field>
+    </record>
+
+</odoo>

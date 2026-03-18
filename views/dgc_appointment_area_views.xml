@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List View -->
+    <record id="dgc_appointment_area_view_list" model="ir.ui.view">
+        <field name="name">dgc.appointment.area.list</field>
+        <field name="model">dgc.appointment.area</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="location"/>
+                <field name="pending_turn_count"/>
+                <field name="remaining_turns_today"/>
+                <field name="max_counters"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="dgc_appointment_area_view_form" model="ir.ui.view">
+        <field name="name">dgc.appointment.area.form</field>
+        <field name="model">dgc.appointment.area</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Nombre del área"/>
+                        </h1>
+                    </div>
+                    <notebook>
+                        <page string="General">
+                            <group>
+                                <group>
+                                    <field name="code"/>
+                                    <field name="location"/>
+                                    <field name="active"/>
+                                    <field name="sequence"/>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                </group>
+                                <group>
+                                    <field name="avg_service_time"/>
+                                    <field name="max_counters"/>
+                                    <field name="color" widget="color_picker"/>
+                                </group>
+                            </group>
+                            <group string="Mensaje de bienvenida">
+                                <field name="welcome_message" nolabel="1"/>
+                            </group>
+                        </page>
+                        <page string="Operadores">
+                            <field name="user_ids" widget="many2many_tags"/>
+                        </page>
+                        <page string="Estadísticas">
+                            <group>
+                                <field name="pending_turn_count"/>
+                                <field name="max_daily_turns"/>
+                                <field name="remaining_turns_today"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="dgc_appointment_area_view_search" model="ir.ui.view">
+        <field name="name">dgc.appointment.area.search</field>
+        <field name="model">dgc.appointment.area</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="location"/>
+                <filter name="active" string="Activas" domain="[('active', '=', True)]"/>
+                <filter name="inactive" string="Inactivas" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_dgc_appointment_area" model="ir.actions.act_window">
+        <field name="name">Áreas de Atención</field>
+        <field name="res_model">dgc.appointment.area</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="dgc_appointment_area_view_search"/>
+    </record>
+
+</odoo>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="dgc_appointment_config_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.dgc_turnero</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="DGC Turnero"
+                     string="DGC Turnero"
+                     groups="dgc_appointment_kiosk.group_dgc_area_manager">
+                    <block title="Horarios de Atención">
+                        <setting string="Hora de inicio" help="Hora de apertura del servicio">
+                            <field name="dgc_hour_start" widget="float_time"/>
+                        </setting>
+                        <setting string="Hora de fin" help="Hora de cierre del servicio">
+                            <field name="dgc_hour_end" widget="float_time"/>
+                        </setting>
+                    </block>
+                    <block title="Kiosco">
+                        <setting help="Permite que un mismo DNI saque más de un turno en distintas áreas">
+                            <field name="dgc_allow_multiple_turns"/>
+                        </setting>
+                        <setting string="Timeout" help="Segundos antes de volver a la pantalla inicial">
+                            <field name="dgc_kiosk_timeout"/>
+                        </setting>
+                        <setting help="Exigir email al ciudadano en el kiosco">
+                            <field name="dgc_kiosk_require_email"/>
+                        </setting>
+                        <setting help="Mostrar campo de notas en el kiosco">
+                            <field name="dgc_kiosk_show_notes"/>
+                        </setting>
+                        <setting string="Rate limit" help="Segundos entre solicitudes desde la misma IP">
+                            <field name="dgc_rate_limit_seconds"/>
+                        </setting>
+                    </block>
+                    <block title="Display / Pantalla">
+                        <setting string="Intervalo de refresco" help="Segundos entre actualizaciones del display">
+                            <field name="dgc_display_refresh_interval"/>
+                        </setting>
+                        <setting string="Turnos llamando" help="Cantidad de turnos llamando visibles en el display">
+                            <field name="dgc_display_calling_count"/>
+                        </setting>
+                        <setting string="Turnos en espera" help="Cantidad de turnos en espera visibles en el display">
+                            <field name="dgc_display_waiting_count"/>
+                        </setting>
+                        <setting string="Máx. llamadas" help="Cantidad máxima de llamadas antes de marcar como no presentado">
+                            <field name="dgc_max_call_count"/>
+                        </setting>
+                    </block>
+                    <block title="Mensajes Rotativos">
+                        <setting string="Mensaje 1">
+                            <field name="dgc_scroll_message_1"/>
+                        </setting>
+                        <setting string="Mensaje 2">
+                            <field name="dgc_scroll_message_2"/>
+                        </setting>
+                        <setting string="Mensaje 3">
+                            <field name="dgc_scroll_message_3"/>
+                        </setting>
+                    </block>
+                    <block title="Branding">
+                        <setting string="Color primario" help="Color principal del tema (hex)">
+                            <field name="dgc_brand_primary_color"/>
+                        </setting>
+                        <setting string="URL del logo" help="URL absoluta o relativa del logotipo">
+                            <field name="dgc_brand_logo_url"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

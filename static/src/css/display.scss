@@ -1,0 +1,213 @@
+// DGC Display Styles - Waiting Room Queue Screen
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.display-body {
+    background: #1A237E;
+    color: white;
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+// Sound overlay
+.sound-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.sound-btn {
+    background: #00C853;
+    color: white;
+    border: none;
+    padding: 30px 60px;
+    font-size: 32px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-weight: bold;
+
+    &:hover {
+        background: darken(#00C853, 10%);
+    }
+}
+
+// Header
+.display-header {
+    text-align: center;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.2);
+
+    .display-logo {
+        max-height: 50px;
+        margin-right: 15px;
+        vertical-align: middle;
+    }
+
+    h1 {
+        font-size: 24px;
+        font-weight: 600;
+        display: inline-block;
+        vertical-align: middle;
+    }
+}
+
+// Calling section
+.calling-section {
+    background: #00C853;
+    min-height: 30vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.calling-label {
+    font-size: 24px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.calling-turn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.calling-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 10px 30px;
+    border-radius: 12px;
+    margin: 5px 0;
+}
+
+.calling-number {
+    font-size: 72px;
+    font-weight: bold;
+    letter-spacing: 4px;
+}
+
+.calling-area {
+    font-size: 28px;
+    opacity: 0.9;
+}
+
+// Call count color escalation
+.call-count-1 {
+    background: #00C853;
+}
+
+.call-count-2 {
+    background: #FF9800;
+}
+
+.call-count-3 {
+    background: #F44336;
+}
+
+// Blink animations
+@keyframes blink {
+    50% {
+        opacity: 0.3;
+    }
+}
+
+.blink-slow {
+    animation: blink 2s ease-in-out infinite;
+}
+
+.blink-normal {
+    animation: blink 1s ease-in-out infinite;
+}
+
+.blink-fast {
+    animation: blink 0.5s ease-in-out infinite;
+}
+
+// Waiting section
+.waiting-section {
+    flex: 1;
+    padding: 20px;
+    overflow: hidden;
+
+    h2 {
+        font-size: 20px;
+        margin-bottom: 15px;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        opacity: 0.8;
+    }
+}
+
+.waiting-list {
+    width: 100%;
+    font-size: 32px;
+    border-collapse: collapse;
+
+    th {
+        font-size: 18px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        opacity: 0.7;
+        padding: 8px 15px;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    td {
+        padding: 10px 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .no-waiting {
+        text-align: center;
+        font-size: 20px;
+        opacity: 0.5;
+        padding: 30px;
+    }
+}
+
+// Message bar
+.message-bar {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px 20px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.message-content {
+    display: inline-block;
+    font-size: 18px;
+    animation: scroll 20s linear infinite;
+}
+
+@keyframes scroll {
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
+}

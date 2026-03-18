@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="display_queue_view" name="Display de Turnos DGC">
+        <html>
+            <head>
+                <title>Turnero DGC - Display</title>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+                <t t-call-assets="dgc_appointment_kiosk.assets_display"/>
+                <style>
+                    :root {
+                        --dgc-primary: <t t-out="brand_primary_color or '#1A237E'"/>;
+                    }
+                </style>
+            </head>
+            <body class="display-body"
+                  t-att-data-refresh-interval="refresh_interval">
+
+                <!-- Sound activation overlay -->
+                <div class="sound-overlay" id="sound-overlay">
+                    <button class="sound-btn" id="btn-activate-sound">
+                        &#128266; Activar Sonido
+                    </button>
+                </div>
+
+                <!-- Header -->
+                <div class="display-header">
+                    <t t-if="brand_logo_url">
+                        <img t-att-src="brand_logo_url" alt="Logo" class="display-logo"/>
+                    </t>
+                    <h1>Turnero - Dirección General de Catastro</h1>
+                </div>
+
+                <!-- Calling Section -->
+                <div class="calling-section" id="calling-section">
+                    <div class="calling-label">TURNO LLAMADO</div>
+                    <div class="calling-turn" id="calling-turn">
+                        <span class="calling-number">---</span>
+                        <span class="calling-area"></span>
+                    </div>
+                </div>
+
+                <!-- Waiting List -->
+                <div class="waiting-section" id="waiting-section">
+                    <h2>En Espera</h2>
+                    <table class="waiting-list">
+                        <thead>
+                            <tr>
+                                <th>Turno</th>
+                                <th>Área</th>
+                            </tr>
+                        </thead>
+                        <tbody id="waiting-list-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Message Bar -->
+                <div class="message-bar" id="message-bar">
+                    <div class="message-content" id="message-content">
+                        Bienvenido a la Dirección General de Catastro
+                    </div>
+                </div>
+
+            </body>
+        </html>
+    </template>
+</odoo>

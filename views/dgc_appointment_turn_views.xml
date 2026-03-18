@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List View -->
+    <record id="dgc_appointment_turn_view_list" model="ir.ui.view">
+        <field name="name">dgc.appointment.turn.list</field>
+        <field name="model">dgc.appointment.turn</field>
+        <field name="arch" type="xml">
+            <list decoration-info="state == 'waiting'"
+                  decoration-warning="state == 'calling'"
+                  decoration-success="state == 'serving'"
+                  decoration-muted="state in ('done', 'no_show')">
+                <field name="turn_number"/>
+                <field name="citizen_dni"/>
+                <field name="citizen_name"/>
+                <field name="area_id"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'waiting'"
+                       decoration-warning="state == 'calling'"
+                       decoration-success="state in ('serving', 'done')"
+                       decoration-danger="state == 'no_show'"/>
+                <field name="operator_id"/>
+                <field name="date"/>
+                <field name="wait_time" widget="float_time"/>
+                <field name="duration" widget="float_time"/>
+                <field name="call_count"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="dgc_appointment_turn_view_form" model="ir.ui.view">
+        <field name="name">dgc.appointment.turn.form</field>
+        <field name="model">dgc.appointment.turn</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_call" type="object" string="Llamar"
+                            class="btn-primary"
+                            invisible="state not in ('waiting',)"/>
+                    <button name="action_recall" type="object" string="Re-llamar"
+                            class="btn-warning"
+                            invisible="state != 'calling'"/>
+                    <button name="action_serve" type="object" string="Atendiendo"
+                            class="btn-primary"
+                            invisible="state != 'calling'"/>
+                    <button name="action_done" type="object" string="Finalizar"
+                            class="btn-success"
+                            invisible="state != 'serving'"/>
+                    <button name="action_no_show" type="object" string="No se presentó"
+                            class="btn-danger"
+                            invisible="state != 'calling'"/>
+                    <button name="action_derive" type="object" string="Derivar"
+                            invisible="state not in ('waiting', 'calling', 'serving')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="waiting,calling,serving,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="turn_number"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="citizen_dni"/>
+                            <field name="citizen_name"/>
+                            <field name="citizen_email"/>
+                            <field name="partner_id"/>
+                            <field name="area_id"/>
+                        </group>
+                        <group>
+                            <field name="operator_id"/>
+                            <field name="date"/>
+                            <field name="call_date"/>
+                            <field name="serve_date"/>
+                            <field name="done_date"/>
+                            <field name="wait_time" widget="float_time"/>
+                            <field name="duration" widget="float_time"/>
+                            <field name="call_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Notas">
+                            <field name="notes"/>
+                        </page>
+                        <page string="Historial de llamadas">
+                            <field name="call_log_ids">
+                                <list>
+                                    <field name="call_number"/>
+                                    <field name="call_datetime"/>
+                                    <field name="operator_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Derivaciones">
+                            <field name="derivation_ids">
+                                <list>
+                                    <field name="from_area_id"/>
+                                    <field name="to_area_id"/>
+                                    <field name="reason"/>
+                                    <field name="user_id"/>
+                                    <field name="derivation_date"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="dgc_appointment_turn_view_kanban" model="ir.ui.view">
+        <field name="name">dgc.appointment.turn.kanban</field>
+        <field name="model">dgc.appointment.turn</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="turn_number"/>
+                <field name="citizen_name"/>
+                <field name="citizen_dni"/>
+                <field name="area_id"/>
+                <field name="state"/>
+                <field name="operator_id"/>
+                <field name="call_count"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_content">
+                            <strong>
+                                <field name="turn_number"/>
+                            </strong>
+                            <div><field name="citizen_name"/></div>
+                            <div class="text-muted"><field name="citizen_dni"/></div>
+                            <div>
+                                <field name="area_id"/>
+                            </div>
+                            <div t-if="record.operator_id.value">
+                                <small class="text-muted">Op: <field name="operator_id"/></small>
+                            </div>
+                            <div t-if="record.call_count.raw_value > 0">
+                                <span class="badge bg-info">Llamadas: <field name="call_count"/></span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="dgc_appointment_turn_view_search" model="ir.ui.view">
+        <field name="name">dgc.appointment.turn.search</field>
+        <field name="model">dgc.appointment.turn</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="turn_number"/>
+                <field name="citizen_dni"/>
+                <field name="citizen_name"/>
+                <field name="area_id"/>
+                <field name="operator_id"/>
+                <filter name="today" string="Hoy"
+                        domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="waiting" string="En Espera"
+                        domain="[('state', '=', 'waiting')]"/>
+                <filter name="calling" string="Llamando"
+                        domain="[('state', '=', 'calling')]"/>
+                <filter name="serving" string="Atendiendo"
+                        domain="[('state', '=', 'serving')]"/>
+                <filter name="done" string="Finalizados"
+                        domain="[('state', '=', 'done')]"/>
+                <filter name="no_show" string="No se presentó"
+                        domain="[('state', '=', 'no_show')]"/>
+                <separator/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                    <filter name="group_area" string="Área" context="{'group_by': 'area_id'}"/>
+                    <filter name="group_operator" string="Operador" context="{'group_by': 'operator_id'}"/>
+                    <filter name="group_date" string="Fecha" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_dgc_appointment_turn" model="ir.actions.act_window">
+        <field name="name">Turnos</field>
+        <field name="res_model">dgc.appointment.turn</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="search_view_id" ref="dgc_appointment_turn_view_search"/>
+        <field name="context">{'search_default_today': 1}</field>
+    </record>
+
+</odoo>

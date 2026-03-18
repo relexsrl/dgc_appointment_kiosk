@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="report_dgc_turn">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="turn">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Comprobante de Turno</h2>
+
+                        <div style="text-align: center; margin: 30px 0;">
+                            <h1 style="font-size: 48px; color: #1A237E;">
+                                <t t-out="turn.turn_number"/>
+                            </h1>
+                        </div>
+
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Área:</strong></td>
+                                    <td><t t-out="turn.area_id.name"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Ubicación:</strong></td>
+                                    <td><t t-out="turn.area_id.location or ''"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>DNI/CUIT:</strong></td>
+                                    <td><t t-out="turn.citizen_dni"/></td>
+                                </tr>
+                                <tr t-if="turn.citizen_name">
+                                    <td><strong>Nombre:</strong></td>
+                                    <td><t t-out="turn.citizen_name"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha:</strong></td>
+                                    <td><t t-out="turn.date"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td><t t-out="dict(turn._fields['state'].selection).get(turn.state)"/></td>
+                                </tr>
+                                <tr t-if="turn.operator_id">
+                                    <td><strong>Operador:</strong></td>
+                                    <td><t t-out="turn.operator_id.name"/></td>
+                                </tr>
+                                <tr t-if="turn.call_date">
+                                    <td><strong>Hora de llamada:</strong></td>
+                                    <td><t t-out="turn.call_date"/></td>
+                                </tr>
+                                <tr t-if="turn.serve_date">
+                                    <td><strong>Hora de atención:</strong></td>
+                                    <td><t t-out="turn.serve_date"/></td>
+                                </tr>
+                                <tr t-if="turn.done_date">
+                                    <td><strong>Hora de finalización:</strong></td>
+                                    <td><t t-out="turn.done_date"/></td>
+                                </tr>
+                                <tr t-if="turn.duration">
+                                    <td><strong>Duración:</strong></td>
+                                    <td><t t-out="'%.1f min' % turn.duration"/></td>
+                                </tr>
+                                <tr t-if="turn.wait_time">
+                                    <td><strong>Tiempo de espera:</strong></td>
+                                    <td><t t-out="'%.1f min' % turn.wait_time"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+</odoo>

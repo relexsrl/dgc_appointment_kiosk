@@ -1,0 +1,305 @@
+// DGC Kiosk Styles
+:root {
+    --dgc-primary: #1A237E;
+    --dgc-bg: #F5F5F5;
+    --dgc-text: #212121;
+    --dgc-success: #4CAF50;
+    --dgc-error: #F44336;
+    --dgc-warning: #FF9800;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--dgc-bg);
+    color: var(--dgc-text);
+    -webkit-user-select: none;
+    user-select: none;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+.kiosk-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.kiosk-header {
+    text-align: center;
+    margin-bottom: 20px;
+
+    .kiosk-logo {
+        max-height: 80px;
+        margin-bottom: 10px;
+    }
+
+    .kiosk-title {
+        font-size: 28px;
+        color: var(--dgc-primary);
+        font-weight: 700;
+    }
+
+    .kiosk-subtitle {
+        font-size: 16px;
+        color: #666;
+    }
+}
+
+// Steps
+.step {
+    display: none;
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+
+    &.active {
+        display: block;
+    }
+
+    h2 {
+        font-size: 22px;
+        margin-bottom: 20px;
+        color: var(--dgc-primary);
+    }
+}
+
+// DNI Input
+.dni-display {
+    margin-bottom: 20px;
+}
+
+.dni-field {
+    width: 100%;
+    font-size: 32px;
+    text-align: center;
+    padding: 15px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    background: white;
+    color: var(--dgc-text);
+    letter-spacing: 4px;
+}
+
+// Numpad
+.numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.numpad-btn {
+    min-width: 60px;
+    min-height: 60px;
+    font-size: 24px;
+    font-weight: 600;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    color: var(--dgc-text);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.15s;
+
+    &:hover,
+    &:active {
+        background: #e0e0e0;
+    }
+}
+
+.numpad-clear {
+    background: var(--dgc-warning);
+    color: white;
+    border-color: var(--dgc-warning);
+
+    &:hover,
+    &:active {
+        background: darken(#FF9800, 10%);
+    }
+}
+
+.numpad-next {
+    background: var(--dgc-primary);
+    color: white;
+    border-color: var(--dgc-primary);
+
+    &:hover,
+    &:active {
+        background: lighten(#1A237E, 10%);
+    }
+}
+
+// Area Cards
+.area-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.area-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    min-height: 80px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:hover,
+    &:active {
+        border-color: var(--dgc-primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    &.area-full {
+        opacity: 0.5;
+        cursor: not-allowed;
+
+        .capacity-fill {
+            background: var(--dgc-error);
+        }
+    }
+}
+
+.area-info {
+    text-align: left;
+
+    .area-name {
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .area-location {
+        font-size: 14px;
+        color: #666;
+    }
+}
+
+.area-capacity {
+    text-align: right;
+    min-width: 120px;
+}
+
+.capacity-bar {
+    width: 100px;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 4px;
+    margin-left: auto;
+
+    .capacity-fill {
+        height: 100%;
+        background: var(--dgc-success);
+        border-radius: 4px;
+        transition: width 0.3s;
+
+        &.full {
+            background: var(--dgc-error);
+        }
+    }
+}
+
+.capacity-text {
+    font-size: 12px;
+    color: #666;
+}
+
+// Confirmation
+.confirmation-panel {
+    padding: 40px 20px;
+}
+
+.confirmation-icon {
+    font-size: 64px;
+    color: var(--dgc-success);
+    margin-bottom: 10px;
+}
+
+.turn-number-display {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--dgc-primary);
+    margin: 20px 0 10px;
+}
+
+.turn-area-display {
+    font-size: 20px;
+    color: #333;
+}
+
+.turn-location {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.countdown-text {
+    font-size: 14px;
+    color: #999;
+}
+
+// Error
+.error-panel {
+    padding: 40px 20px;
+}
+
+.error-icon {
+    font-size: 64px;
+    color: var(--dgc-error);
+    margin-bottom: 10px;
+}
+
+.error-message {
+    color: var(--dgc-error);
+    font-size: 14px;
+    margin-top: 10px;
+    padding: 10px;
+    background: #fce4ec;
+    border-radius: 6px;
+}
+
+// Buttons
+.btn-primary {
+    background: var(--dgc-primary);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    font-size: 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    touch-action: manipulation;
+
+    &:hover {
+        opacity: 0.9;
+    }
+}
+
+.btn-back {
+    background: transparent;
+    color: var(--dgc-primary);
+    border: 2px solid var(--dgc-primary);
+    padding: 10px 24px;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    touch-action: manipulation;
+}

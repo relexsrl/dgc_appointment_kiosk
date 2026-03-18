@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Root Menu -->
+    <menuitem id="menu_dgc_turnero_root"
+              name="Turnero DGC"
+              web_icon="dgc_appointment_kiosk,static/description/icon.png"
+              sequence="200"/>
+
+    <!-- Turnos -->
+    <menuitem id="menu_dgc_turnos"
+              name="Turnos"
+              parent="menu_dgc_turnero_root"
+              action="action_dgc_appointment_turn"
+              sequence="10"/>
+
+    <!-- Áreas -->
+    <menuitem id="menu_dgc_areas"
+              name="Áreas"
+              parent="menu_dgc_turnero_root"
+              action="action_dgc_appointment_area"
+              sequence="20"/>
+
+    <!-- Derivaciones -->
+    <menuitem id="menu_dgc_derivaciones"
+              name="Derivaciones"
+              parent="menu_dgc_turnero_root"
+              action="action_dgc_appointment_derivation"
+              sequence="30"/>
+
+    <!-- Dashboard -->
+    <menuitem id="menu_dgc_dashboard"
+              name="Dashboard"
+              parent="menu_dgc_turnero_root"
+              action="action_dgc_dashboard"
+              sequence="40"/>
+
+    <!-- Configuración -->
+    <menuitem id="menu_dgc_config"
+              name="Configuración"
+              parent="menu_dgc_turnero_root"
+              sequence="100"/>
+
+    <menuitem id="menu_dgc_config_settings"
+              name="Ajustes"
+              parent="menu_dgc_config"
+              action="base.action_general_configuration"
+              sequence="10"/>
+
+</odoo>

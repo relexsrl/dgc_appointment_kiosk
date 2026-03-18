@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- Module Category -->
+        <record id="module_category_dgc_turnero" model="ir.module.category">
+            <field name="name">DGC Turnero</field>
+            <field name="sequence">200</field>
+        </record>
+
+        <!-- Privilege (Odoo 19) -->
+        <record id="privilege_dgc_turnero" model="res.groups.privilege">
+            <field name="name">DGC Turnero</field>
+            <field name="category_id" ref="module_category_dgc_turnero"/>
+        </record>
+
+        <!-- Public group (no privilege) -->
+        <record id="group_dgc_kiosk_public" model="res.groups">
+            <field name="name">Kiosco Público</field>
+            <field name="category_id" ref="module_category_dgc_turnero"/>
+        </record>
+
+        <!-- Operator -->
+        <record id="group_dgc_operator" model="res.groups">
+            <field name="name">Operador</field>
+            <field name="privilege_id" ref="privilege_dgc_turnero"/>
+        </record>
+
+        <!-- Area Manager (implies operator) -->
+        <record id="group_dgc_area_manager" model="res.groups">
+            <field name="name">Responsable de Área</field>
+            <field name="privilege_id" ref="privilege_dgc_turnero"/>
+            <field name="implied_ids" eval="[(4, ref('group_dgc_operator'))]"/>
+        </record>
+
+        <!-- Admin (implies area manager) -->
+        <record id="group_dgc_admin" model="res.groups">
+            <field name="name">Administrador</field>
+            <field name="privilege_id" ref="privilege_dgc_turnero"/>
+            <field name="implied_ids" eval="[(4, ref('group_dgc_area_manager'))]"/>
+        </record>
+
+    </data>
+
+    <data noupdate="1">
+
+        <!-- Record Rules -->
+
+        <!-- Operator: only turns in assigned areas -->
+        <record id="rule_turn_by_area" model="ir.rule">
+            <field name="name">Turnos por área asignada</field>
+            <field name="model_id" ref="model_dgc_appointment_turn"/>
+            <field name="domain_force">[('area_id', 'in', user.dgc_area_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('group_dgc_operator'))]"/>
+        </record>
+
+        <!-- Admin: see all turns -->
+        <record id="rule_turn_admin_all" model="ir.rule">
+            <field name="name">Admin ve todos los turnos</field>
+            <field name="model_id" ref="model_dgc_appointment_turn"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('group_dgc_admin'))]"/>
+        </record>
+
+        <!-- Operator: call logs by area -->
+        <record id="rule_call_log_by_area" model="ir.rule">
+            <field name="name">Call logs por área asignada</field>
+            <field name="model_id" ref="model_dgc_appointment_call_log"/>
+            <field name="domain_force">[('turn_id.area_id', 'in', user.dgc_area_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('group_dgc_operator'))]"/>
+        </record>
+
+        <!-- Operator: derivations by area -->
+        <record id="rule_derivation_by_area" model="ir.rule">
+            <field name="name">Derivaciones por área asignada</field>
+            <field name="model_id" ref="model_dgc_appointment_derivation"/>
+            <field name="domain_force">['|', ('from_area_id', 'in', user.dgc_area_ids.ids), ('to_area_id', 'in', user.dgc_area_ids.ids)]</field>
+            <field name="groups" eval="[(4, ref('group_dgc_operator'))]"/>
+        </record>
+
+    </data>
+</odoo>

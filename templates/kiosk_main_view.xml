@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="kiosk_main_view" name="Kiosco DGC - Turnos">
+        <html>
+            <head>
+                <title>Turnero DGC - Kiosco</title>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+                <t t-call-assets="dgc_appointment_kiosk.assets_kiosk"/>
+                <style>
+                    :root {
+                        --dgc-primary: <t t-out="brand_primary_color or '#1A237E'"/>;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="kiosk-container"
+                     data-timeout="[timeout]"
+                     data-require-email="[require_email]"
+                     data-show-notes="[show_notes]"
+                     t-att-data-timeout="timeout"
+                     t-att-data-require-email="require_email"
+                     t-att-data-show-notes="show_notes">
+
+                    <!-- Header -->
+                    <div class="kiosk-header">
+                        <t t-if="brand_logo_url">
+                            <img t-att-src="brand_logo_url" alt="Logo" class="kiosk-logo"/>
+                        </t>
+                        <h1 class="kiosk-title">Sistema de Turnos</h1>
+                        <p class="kiosk-subtitle">Dirección General de Catastro</p>
+                    </div>
+
+                    <!-- Step 1: DNI Input -->
+                    <div class="step active" id="step-1">
+                        <h2>Ingrese su DNI o CUIT</h2>
+                        <div class="dni-display">
+                            <input type="text" id="dni-input" readonly="readonly"
+                                   placeholder="Ingrese su documento"
+                                   class="dni-field" maxlength="11"/>
+                        </div>
+                        <div class="numpad">
+                            <button class="numpad-btn" data-value="1">1</button>
+                            <button class="numpad-btn" data-value="2">2</button>
+                            <button class="numpad-btn" data-value="3">3</button>
+                            <button class="numpad-btn" data-value="4">4</button>
+                            <button class="numpad-btn" data-value="5">5</button>
+                            <button class="numpad-btn" data-value="6">6</button>
+                            <button class="numpad-btn" data-value="7">7</button>
+                            <button class="numpad-btn" data-value="8">8</button>
+                            <button class="numpad-btn" data-value="9">9</button>
+                            <button class="numpad-btn numpad-clear" data-value="clear">Borrar</button>
+                            <button class="numpad-btn" data-value="0">0</button>
+                            <button class="numpad-btn numpad-next" data-value="next">Siguiente</button>
+                        </div>
+                        <div class="error-message" id="dni-error" style="display:none;"></div>
+                    </div>
+
+                    <!-- Step 2: Area Selection -->
+                    <div class="step" id="step-2">
+                        <h2>Seleccione el área</h2>
+                        <div class="area-list" id="area-list">
+                            <!-- Areas loaded dynamically -->
+                        </div>
+                        <button class="btn-back" id="btn-back-1">Volver</button>
+                        <div class="error-message" id="area-error" style="display:none;"></div>
+                    </div>
+
+                    <!-- Step 3: Confirmation -->
+                    <div class="step" id="step-3">
+                        <div class="confirmation-panel">
+                            <div class="confirmation-icon">&#10003;</div>
+                            <h2>¡Turno generado!</h2>
+                            <div class="turn-number-display" id="turn-number-display"></div>
+                            <div class="turn-area-display" id="turn-area-display"></div>
+                            <div class="turn-location" id="turn-location"></div>
+                            <p class="countdown-text">
+                                Volviendo al inicio en <span id="countdown">10</span> segundos
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Error Step -->
+                    <div class="step" id="step-error">
+                        <div class="error-panel">
+                            <div class="error-icon">&#10007;</div>
+                            <h2 id="error-title">Error</h2>
+                            <p id="error-detail"></p>
+                            <button class="btn-primary" id="btn-retry">Reintentar</button>
+                        </div>
+                    </div>
+
+                </div>
+            </body>
+        </html>
+    </template>
+</odoo>
