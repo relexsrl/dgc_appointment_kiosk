@@ -23,14 +23,14 @@ class DgcTurnCreateWizard(models.TransientModel):
 
     @api.depends_context("uid")
     def _compute_available_area_ids(self):
-        user_areas = self.env.user.dgc_area_ids
+        user_areas = self.env['appointment.type']._get_dgc_areas_for_user()
         for wizard in self:
             wizard.available_area_ids = user_areas
 
     @api.model
     def default_get(self, fields_list):
         res = super().default_get(fields_list)
-        user_areas = self.env.user.dgc_area_ids
+        user_areas = self.env['appointment.type']._get_dgc_areas_for_user()
         if len(user_areas) == 1 and "area_id" in fields_list:
             res["area_id"] = user_areas.id
         return res
@@ -55,7 +55,8 @@ class DgcTurnCreateWizard(models.TransientModel):
             raise UserError("El DNI/CUIT ingresado no es válido.")
 
         # Validate area belongs to operator
-        if self.area_id.id not in self.env.user.dgc_area_ids.ids:
+        user_area_ids = self.env['appointment.type']._get_dgc_areas_for_user().ids
+        if self.area_id.id not in user_area_ids:
             raise UserError("No tiene permisos para crear turnos en esta área.")
 
         # Check capacity (sudo to bypass appointment record rules)

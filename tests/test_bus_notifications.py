@@ -25,9 +25,9 @@ class TestBusNotifications(TransactionCase):
                     (4, cls.env.ref("base.group_user").id),
                     (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
                 ],
-                "dgc_area_ids": [(4, cls.area.id)],
             }
         )
+        cls.area.staff_user_ids = [(4, cls.operator.id)]
 
     def test_call_sends_bus_notification(self):
         """Calling a turn sends a bus notification."""
@@ -75,7 +75,7 @@ class TestBusNotifications(TransactionCase):
                 "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
-        self.operator.dgc_area_ids = [(4, area_cat.id)]
+        area_cat.staff_user_ids = [(4, self.operator.id)]
         turn = self.env["dgc.appointment.turn"].create(
             {
                 "citizen_dni": "12345678",

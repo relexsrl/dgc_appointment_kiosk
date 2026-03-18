@@ -122,3 +122,24 @@ class AppointmentType(models.Model):
             float(icp.get_param("dgc_appointment_kiosk.hour_start", "8.0")),
             float(icp.get_param("dgc_appointment_kiosk.hour_end", "14.0")),
         )
+
+    @api.model
+    def _get_dgc_areas_for_user(self, user=None):
+        """Retorna las areas DGC asignadas al usuario via staff_user_ids.
+
+        Busca appointment.type donde is_dgc_area=True y el usuario
+        esta en staff_user_ids. Centraliza la logica que antes
+        dependia del campo custom dgc_area_ids.
+
+        Args:
+            user: Recordset de res.users. Si es None, usa el usuario actual.
+
+        Returns:
+            Recordset de appointment.type con las areas DGC del usuario.
+        """
+        if user is None:
+            user = self.env.user
+        return self.sudo().search([
+            ('is_dgc_area', '=', True),
+            ('staff_user_ids', 'in', user.id),
+        ])

@@ -34,9 +34,9 @@ class TestOperatorDashboard(TransactionCase):
                     (4, cls.env.ref("base.group_user").id),
                     (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
                 ],
-                "dgc_area_ids": [(4, cls.area_geo.id)],
             }
         )
+        cls.area_geo.staff_user_ids = [(4, cls.operator.id)]
 
     def test_dashboard_data_empty(self):
         """Dashboard returns empty lists when no turns exist."""

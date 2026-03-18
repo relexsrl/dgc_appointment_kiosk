@@ -65,7 +65,7 @@
         <record id="rule_turn_by_area" model="ir.rule">
             <field name="name">Turnos por área asignada</field>
             <field name="model_id" ref="model_dgc_appointment_turn"/>
-            <field name="domain_force">[('area_id', 'in', user.dgc_area_ids.ids)]</field>
+            <field name="domain_force">[('area_id.staff_user_ids', 'in', [user.id])]</field>
             <field name="groups" eval="[(4, ref('group_dgc_operator'))]"/>
         </record>
 
@@ -81,7 +81,7 @@
         <record id="rule_call_log_by_area" model="ir.rule">
             <field name="name">Call logs por área asignada</field>
             <field name="model_id" ref="model_dgc_appointment_call_log"/>
-            <field name="domain_force">[('turn_id.area_id', 'in', user.dgc_area_ids.ids)]</field>
+            <field name="domain_force">[('turn_id.area_id.staff_user_ids', 'in', [user.id])]</field>
             <field name="groups" eval="[(4, ref('group_dgc_operator'))]"/>
         </record>
 
@@ -89,7 +89,7 @@
         <record id="rule_derivation_by_area" model="ir.rule">
             <field name="name">Derivaciones por área asignada</field>
             <field name="model_id" ref="model_dgc_appointment_derivation"/>
-            <field name="domain_force">['|', ('from_area_id', 'in', user.dgc_area_ids.ids), ('to_area_id', 'in', user.dgc_area_ids.ids)]</field>
+            <field name="domain_force">['|', ('from_area_id.staff_user_ids', 'in', [user.id]), ('to_area_id.staff_user_ids', 'in', [user.id])]</field>
             <field name="groups" eval="[(4, ref('group_dgc_operator'))]"/>
         </record>
 

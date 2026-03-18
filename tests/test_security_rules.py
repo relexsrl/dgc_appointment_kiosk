@@ -39,9 +39,9 @@ class TestSecurityRules(TransactionCase):
                     (4, cls.env.ref("base.group_user").id),
                     (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
                 ],
-                "dgc_area_ids": [(4, cls.area_geo.id)],
             }
         )
+        cls.area_geo.staff_user_ids = [(4, cls.operator_geo.id)]
 
         # Admin (needs base.group_user for internal access)
         cls.admin_user = cls.env["res.users"].create(
@@ -52,9 +52,10 @@ class TestSecurityRules(TransactionCase):
                     (4, cls.env.ref("base.group_user").id),
                     (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_admin").id),
                 ],
-                "dgc_area_ids": [(4, cls.area_geo.id), (4, cls.area_cat.id)],
             }
         )
+        cls.area_geo.staff_user_ids = [(4, cls.admin_user.id)]
+        cls.area_cat.staff_user_ids = [(4, cls.admin_user.id)]
 
     def test_operator_sees_own_area_turns(self):
         """Operator only sees turns in their assigned areas."""

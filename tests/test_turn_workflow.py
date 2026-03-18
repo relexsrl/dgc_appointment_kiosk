@@ -32,9 +32,9 @@ class TestTurnWorkflow(TransactionCase):
                     (4, cls.env.ref("base.group_user").id),
                     (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
                 ],
-                "dgc_area_ids": [(4, cls.area.id)],
             }
         )
+        cls.area.staff_user_ids = [(4, cls.operator.id)]
 
     def _create_turn(self, dni="12345678"):
         return self.Turn.create(

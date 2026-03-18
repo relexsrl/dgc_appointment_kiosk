@@ -328,7 +328,7 @@ class DgcAppointmentTurn(models.Model):
     def get_operator_dashboard_data(self):
         """Return all data needed for the operator dashboard in a single RPC call."""
         user = self.env.user
-        area_ids = user.dgc_area_ids.ids
+        area_ids = self.env['appointment.type']._get_dgc_areas_for_user(user).ids
         today = fields.Date.context_today(self)
 
         current = self.search_read(

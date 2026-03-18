@@ -36,9 +36,9 @@ class TestManualTurnCreation(TransactionCase):
                     (4, cls.env.ref("base.group_user").id),
                     (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
                 ],
-                "dgc_area_ids": [(4, cls.area_geo.id)],
             }
         )
+        cls.area_geo.staff_user_ids = [(4, cls.operator.id)]
 
     def _create_wizard(self, user=None, **kwargs):
         vals = {
