@@ -9,3 +9,55 @@ class CalendarEvent(models.Model):
         string="Turno DGC",
         copy=False,
     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        events = super().create(vals_list)
+        events._create_dgc_turns_from_appointments()
+        return events
+
+    def _create_dgc_turns_from_appointments(self):
+        """Auto-create DGC turns for calendar events linked to DGC appointment types."""
+        if self.env.context.get("dgc_skip_turn_creation"):
+            return
+
+        Turn = self.env["dgc.appointment.turn"].sudo()
+
+        for event in self:
+            # Only process events with an appointment_type_id that is linked to a DGC area
+            if not event.appointment_type_id:
+                continue
+            area = self.env["dgc.appointment.area"].sudo().search(
+                [
+                    ("appointment_type_id", "=", event.appointment_type_id.id),
+                    ("active", "=", True),
+                ],
+                limit=1,
+            )
+            if not area:
+                continue
+
+            # Use the appointment booker (Odoo 19 field), fall back to first attendee partner
+            booker = event.appointment_booker_id or event.partner_ids[:1]
+            if not booker:
+                continue
+
+            dni = booker.vat or ""
+
+            # Create the turn
+            turn = Turn.with_context(dgc_skip_turn_creation=True).create(
+                {
+                    "citizen_dni": dni or f"PORTAL-{booker.id}",
+                    "citizen_name": booker.name or "",
+                    "citizen_email": booker.email or "",
+                    "area_id": area.id,
+                    "partner_id": booker.id,
+                    "calendar_event_id": event.id,
+                    "source": "portal",
+                    "date": event.start.date() if event.start else fields.Date.context_today(self),
+                }
+            )
+            event.dgc_turn_id = turn.id
+
+            # Send bus notification
+            turn._send_bus_notification("portal_booking")

@@ -3,27 +3,32 @@ from odoo.tests.common import TransactionCase
 
 
 class TestOperatorDashboard(TransactionCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.area_geo = cls.env["dgc.appointment.area"].create({
-            "name": "Geografía",
-            "code": "GEO",
-        })
-        cls.area_cat = cls.env["dgc.appointment.area"].create({
-            "name": "Catastro",
-            "code": "CAT",
-        })
-        cls.operator = cls.env["res.users"].create({
-            "name": "Op Dashboard",
-            "login": "op_dash_test",
-            "group_ids": [
-                (4, cls.env.ref("base.group_user").id),
-                (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
-            ],
-            "dgc_area_ids": [(4, cls.area_geo.id)],
-        })
+        cls.area_geo = cls.env["dgc.appointment.area"].create(
+            {
+                "name": "Geografía",
+                "code": "OD_GEO",
+            }
+        )
+        cls.area_cat = cls.env["dgc.appointment.area"].create(
+            {
+                "name": "Catastro",
+                "code": "OD_CAT",
+            }
+        )
+        cls.operator = cls.env["res.users"].create(
+            {
+                "name": "Op Dashboard",
+                "login": "op_dash_test",
+                "group_ids": [
+                    (4, cls.env.ref("base.group_user").id),
+                    (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
+                ],
+                "dgc_area_ids": [(4, cls.area_geo.id)],
+            }
+        )
 
     def test_dashboard_data_empty(self):
         """Dashboard returns empty lists when no turns exist."""
@@ -35,27 +40,35 @@ class TestOperatorDashboard(TransactionCase):
 
     def test_dashboard_shows_waiting_turns(self):
         """Dashboard shows waiting turns for operator's areas."""
-        self.env["dgc.appointment.turn"].create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_geo.id,
-        })
-        self.env["dgc.appointment.turn"].create({
-            "citizen_dni": "87654321",
-            "area_id": self.area_geo.id,
-        })
+        self.env["dgc.appointment.turn"].create(
+            {
+                "citizen_dni": "12345678",
+                "area_id": self.area_geo.id,
+            }
+        )
+        self.env["dgc.appointment.turn"].create(
+            {
+                "citizen_dni": "87654321",
+                "area_id": self.area_geo.id,
+            }
+        )
         data = self.env["dgc.appointment.turn"].with_user(self.operator).get_operator_dashboard_data()
         self.assertEqual(len(data["waiting_turns"]), 2)
 
     def test_dashboard_filters_by_area(self):
         """Dashboard only shows turns from operator's assigned areas."""
-        self.env["dgc.appointment.turn"].create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_geo.id,
-        })
-        self.env["dgc.appointment.turn"].create({
-            "citizen_dni": "87654321",
-            "area_id": self.area_cat.id,
-        })
+        self.env["dgc.appointment.turn"].create(
+            {
+                "citizen_dni": "12345678",
+                "area_id": self.area_geo.id,
+            }
+        )
+        self.env["dgc.appointment.turn"].create(
+            {
+                "citizen_dni": "87654321",
+                "area_id": self.area_cat.id,
+            }
+        )
         data = self.env["dgc.appointment.turn"].with_user(self.operator).get_operator_dashboard_data()
         # Operator only assigned to GEO
         self.assertEqual(len(data["waiting_turns"]), 1)
@@ -63,10 +76,12 @@ class TestOperatorDashboard(TransactionCase):
 
     def test_dashboard_current_turn(self):
         """Dashboard shows current turn when operator is serving."""
-        turn = self.env["dgc.appointment.turn"].create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_geo.id,
-        })
+        turn = self.env["dgc.appointment.turn"].create(
+            {
+                "citizen_dni": "12345678",
+                "area_id": self.area_geo.id,
+            }
+        )
         turn.with_user(self.operator).action_call()
         data = self.env["dgc.appointment.turn"].with_user(self.operator).get_operator_dashboard_data()
         self.assertTrue(data["current_turn"])
@@ -75,10 +90,12 @@ class TestOperatorDashboard(TransactionCase):
 
     def test_dashboard_done_turns(self):
         """Dashboard shows today's completed turns."""
-        turn = self.env["dgc.appointment.turn"].create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_geo.id,
-        })
+        turn = self.env["dgc.appointment.turn"].create(
+            {
+                "citizen_dni": "12345678",
+                "area_id": self.area_geo.id,
+            }
+        )
         turn.with_user(self.operator).action_call()
         turn.with_user(self.operator).action_serve()
         turn.with_user(self.operator).action_done()
@@ -89,10 +106,12 @@ class TestOperatorDashboard(TransactionCase):
     def test_dashboard_excludes_yesterday(self):
         """Dashboard only shows today's turns."""
         yesterday = fields.Date.subtract(fields.Date.context_today(self.env["dgc.appointment.turn"]), days=1)
-        self.env["dgc.appointment.turn"].create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_geo.id,
-            "date": yesterday,
-        })
+        self.env["dgc.appointment.turn"].create(
+            {
+                "citizen_dni": "12345678",
+                "area_id": self.area_geo.id,
+                "date": yesterday,
+            }
+        )
         data = self.env["dgc.appointment.turn"].with_user(self.operator).get_operator_dashboard_data()
         self.assertEqual(len(data["waiting_turns"]), 0)

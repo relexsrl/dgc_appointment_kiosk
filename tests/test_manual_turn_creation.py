@@ -3,31 +3,36 @@ from odoo.tests.common import TransactionCase
 
 
 class TestManualTurnCreation(TransactionCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.area_geo = cls.env["dgc.appointment.area"].create({
-            "name": "Geografía",
-            "code": "GEO",
-            "avg_service_time": 15,
-            "max_counters": 2,
-        })
-        cls.area_cat = cls.env["dgc.appointment.area"].create({
-            "name": "Catastro",
-            "code": "CAT",
-            "avg_service_time": 15,
-            "max_counters": 1,
-        })
-        cls.operator = cls.env["res.users"].create({
-            "name": "Op Manual Test",
-            "login": "op_manual_test",
-            "group_ids": [
-                (4, cls.env.ref("base.group_user").id),
-                (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
-            ],
-            "dgc_area_ids": [(4, cls.area_geo.id)],
-        })
+        cls.area_geo = cls.env["dgc.appointment.area"].create(
+            {
+                "name": "Geografía",
+                "code": "MC_GEO",
+                "avg_service_time": 15,
+                "max_counters": 2,
+            }
+        )
+        cls.area_cat = cls.env["dgc.appointment.area"].create(
+            {
+                "name": "Catastro",
+                "code": "MC_CAT",
+                "avg_service_time": 15,
+                "max_counters": 1,
+            }
+        )
+        cls.operator = cls.env["res.users"].create(
+            {
+                "name": "Op Manual Test",
+                "login": "op_manual_test",
+                "group_ids": [
+                    (4, cls.env.ref("base.group_user").id),
+                    (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
+                ],
+                "dgc_area_ids": [(4, cls.area_geo.id)],
+            }
+        )
 
     def _create_wizard(self, user=None, **kwargs):
         vals = {
@@ -54,9 +59,7 @@ class TestManualTurnCreation(TransactionCase):
 
     def test_wizard_defaults_single_area(self):
         """Operator with one area gets it as default."""
-        wizard = self.env["dgc.turn.create.wizard"].with_user(self.operator).default_get(
-            ["area_id", "citizen_dni"]
-        )
+        wizard = self.env["dgc.turn.create.wizard"].with_user(self.operator).default_get(["area_id", "citizen_dni"])
         self.assertEqual(wizard.get("area_id"), self.area_geo.id)
 
     def test_wizard_validates_dni(self):
@@ -96,14 +99,16 @@ class TestManualTurnCreation(TransactionCase):
     def test_operator_still_cannot_create_turn_directly(self):
         """Operator cannot bypass wizard to create turns directly."""
         with self.assertRaises(AccessError):
-            self.env["dgc.appointment.turn"].with_user(self.operator).create({
-                "citizen_dni": "99999999",
-                "area_id": self.area_geo.id,
-            })
+            self.env["dgc.appointment.turn"].with_user(self.operator).create(
+                {
+                    "citizen_dni": "99999999",
+                    "area_id": self.area_geo.id,
+                }
+            )
 
     def test_wizard_populates_turn_number(self):
         """Created turn gets a proper turn number."""
         wizard = self._create_wizard(user=self.operator)
         result = wizard.action_create_turn()
         turn = self.env["dgc.appointment.turn"].browse(result["res_id"])
-        self.assertTrue(turn.turn_number.startswith("GEO-"))
+        self.assertTrue(turn.turn_number.startswith("MC_GEO-"))

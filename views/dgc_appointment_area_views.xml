@@ -25,6 +25,18 @@
         <field name="model">dgc.appointment.area</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="action_create_appointment_type"
+                            type="object"
+                            string="Crear Tipo de Cita"
+                            class="btn-primary"
+                            invisible="appointment_type_id"/>
+                    <button name="action_view_appointment_type"
+                            type="object"
+                            string="Ver Tipo de Cita"
+                            class="btn-secondary"
+                            invisible="not appointment_type_id"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <h1>

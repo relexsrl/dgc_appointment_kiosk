@@ -7,3 +7,4 @@ from . import test_bus_notifications
 from . import test_elapsed_timer
 from . import test_manual_turn_creation
 from . import test_operator_dashboard
+from . import test_appointment_integration

@@ -6,35 +6,40 @@ from odoo.tests.common import TransactionCase
 
 
 class TestTurnWorkflow(TransactionCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.Area = cls.env["dgc.appointment.area"]
         cls.Turn = cls.env["dgc.appointment.turn"]
 
-        cls.area = cls.Area.create({
-            "name": "Geografía",
-            "code": "GEO",
-            "avg_service_time": 15,
-            "max_counters": 2,
-        })
+        cls.area = cls.Area.create(
+            {
+                "name": "Geografía",
+                "code": "TW_GEO",
+                "avg_service_time": 15,
+                "max_counters": 2,
+            }
+        )
 
-        cls.operator = cls.env["res.users"].create({
-            "name": "Operador Test",
-            "login": "op_test_dgc",
-            "group_ids": [
-                (4, cls.env.ref("base.group_user").id),
-                (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
-            ],
-            "dgc_area_ids": [(4, cls.area.id)],
-        })
+        cls.operator = cls.env["res.users"].create(
+            {
+                "name": "Operador Test",
+                "login": "op_test_dgc",
+                "group_ids": [
+                    (4, cls.env.ref("base.group_user").id),
+                    (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
+                ],
+                "dgc_area_ids": [(4, cls.area.id)],
+            }
+        )
 
     def _create_turn(self, dni="12345678"):
-        return self.Turn.create({
-            "citizen_dni": dni,
-            "area_id": self.area.id,
-        })
+        return self.Turn.create(
+            {
+                "citizen_dni": dni,
+                "area_id": self.area.id,
+            }
+        )
 
     def test_call_sets_calling_state(self):
         """Calling a turn sets state to 'calling' and creates call log."""
@@ -115,10 +120,12 @@ class TestTurnWorkflow(TransactionCase):
         turn.with_user(self.operator).action_serve()
         # Manually set timestamps for predictable duration
         now = fields.Datetime.now()
-        turn.write({
-            "serve_date": now - timedelta(minutes=10),
-            "done_date": now,
-        })
+        turn.write(
+            {
+                "serve_date": now - timedelta(minutes=10),
+                "done_date": now,
+            }
+        )
         self.assertAlmostEqual(turn.duration, 10.0, places=0)
 
     def test_wait_time_computed(self):
@@ -131,11 +138,13 @@ class TestTurnWorkflow(TransactionCase):
     def test_cron_closes_pending_turns(self):
         """Cron marks yesterday's pending turns as no_show."""
         yesterday = fields.Date.subtract(fields.Date.context_today(self.env["dgc.appointment.turn"]), days=1)
-        turn = self.Turn.create({
-            "citizen_dni": "11111111",
-            "area_id": self.area.id,
-            "date": yesterday,
-        })
+        turn = self.Turn.create(
+            {
+                "citizen_dni": "11111111",
+                "area_id": self.area.id,
+                "date": yesterday,
+            }
+        )
         self.Turn._cron_close_pending_turns()
         turn.invalidate_recordset()
         self.assertEqual(turn.state, "no_show")

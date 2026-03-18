@@ -4,31 +4,35 @@ from odoo.tests.common import HttpCase
 
 
 class TestControllers(HttpCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.area = cls.env["dgc.appointment.area"].create({
-            "name": "Test Area",
-            "code": "TST",
-            "location": "Hall",
-            "avg_service_time": 15,
-            "max_counters": 2,
-        })
+        cls.area = cls.env["dgc.appointment.area"].create(
+            {
+                "name": "Test Area",
+                "code": "HC_TST",
+                "location": "Hall",
+                "avg_service_time": 15,
+                "max_counters": 2,
+            }
+        )
 
     def setUp(self):
         super().setUp()
         # Clear rate limiter between tests
         from odoo.addons.dgc_appointment_kiosk.controllers.kiosk import KioskController
+
         KioskController._rate_limits.clear()
 
     def _json_rpc(self, url, params=None):
         """Helper to make JSON-RPC calls."""
-        payload = json.dumps({
-            "jsonrpc": "2.0",
-            "method": "call",
-            "params": params or {},
-        })
+        payload = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "method": "call",
+                "params": params or {},
+            }
+        )
         response = self.url_open(
             url,
             data=payload,
@@ -55,42 +59,55 @@ class TestControllers(HttpCase):
         areas = result.get("result", [])
         self.assertIsInstance(areas, list)
         codes = [a["code"] for a in areas]
-        self.assertIn("TST", codes)
+        self.assertIn("HC_TST", codes)
 
     def test_create_turn_success(self):
         """Turn creation via API returns success."""
-        result = self._json_rpc("/kiosk/api/turn/create", {
-            "dni": "12345678",
-            "area_id": self.area.id,
-        })
+        result = self._json_rpc(
+            "/kiosk/api/turn/create",
+            {
+                "dni": "12345678",
+                "area_id": self.area.id,
+            },
+        )
         data = result.get("result", {})
         self.assertTrue(data.get("success"), f"Expected success, got: {data}")
         self.assertTrue(data.get("turn_number"))
 
     def test_create_turn_invalid_dni(self):
         """Invalid DNI returns INVALID_DNI error."""
-        result = self._json_rpc("/kiosk/api/turn/create", {
-            "dni": "123",
-            "area_id": self.area.id,
-        })
+        result = self._json_rpc(
+            "/kiosk/api/turn/create",
+            {
+                "dni": "123",
+                "area_id": self.area.id,
+            },
+        )
         data = result.get("result", {})
         self.assertFalse(data.get("success"))
         self.assertEqual(data.get("error_code"), "INVALID_DNI")
 
     def test_create_turn_duplicate(self):
         """Duplicate turn returns DUPLICATE_TURN error."""
-        self._json_rpc("/kiosk/api/turn/create", {
-            "dni": "99999999",
-            "area_id": self.area.id,
-        })
+        self._json_rpc(
+            "/kiosk/api/turn/create",
+            {
+                "dni": "99999999",
+                "area_id": self.area.id,
+            },
+        )
         # Clear rate limit so second call goes through
         from odoo.addons.dgc_appointment_kiosk.controllers.kiosk import KioskController
+
         KioskController._rate_limits.clear()
 
-        result = self._json_rpc("/kiosk/api/turn/create", {
-            "dni": "99999999",
-            "area_id": self.area.id,
-        })
+        result = self._json_rpc(
+            "/kiosk/api/turn/create",
+            {
+                "dni": "99999999",
+                "area_id": self.area.id,
+            },
+        )
         data = result.get("result", {})
         self.assertFalse(data.get("success"))
         self.assertEqual(data.get("error_code"), "DUPLICATE_TURN")
@@ -105,10 +122,13 @@ class TestControllers(HttpCase):
 
     def test_create_turn_invalid_area(self):
         """Invalid area returns INVALID_AREA error."""
-        result = self._json_rpc("/kiosk/api/turn/create", {
-            "dni": "12345678",
-            "area_id": 99999,
-        })
+        result = self._json_rpc(
+            "/kiosk/api/turn/create",
+            {
+                "dni": "12345678",
+                "area_id": 99999,
+            },
+        )
         data = result.get("result", {})
         self.assertFalse(data.get("success"))
         self.assertEqual(data.get("error_code"), "INVALID_AREA")
@@ -117,15 +137,13 @@ class TestControllers(HttpCase):
         """Authenticated endpoints reject anonymous access."""
         result = self._json_rpc("/api/turn/call", {"turn_id": 1})
         # Should get an error (not logged in)
-        self.assertTrue(
-            result.get("error") or not result.get("result", {}).get("success")
-        )
+        self.assertTrue(result.get("error") or not result.get("result", {}).get("success"))
 
     def test_areas_api_returns_capacity(self):
         """Areas API includes capacity information."""
         result = self._json_rpc("/kiosk/api/areas")
         areas = result.get("result", [])
-        test_area = next((a for a in areas if a["code"] == "TST"), None)
+        test_area = next((a for a in areas if a["code"] == "HC_TST"), None)
         self.assertIsNotNone(test_area)
         self.assertIn("remaining_turns_today", test_area)
         self.assertIn("max_daily_turns", test_area)

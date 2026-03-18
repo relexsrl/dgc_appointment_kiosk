@@ -3,55 +3,66 @@ from odoo.tests.common import TransactionCase
 
 
 class TestTurnCreation(TransactionCase):
-
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.Area = cls.env["dgc.appointment.area"]
         cls.Turn = cls.env["dgc.appointment.turn"]
 
-        cls.area_geo = cls.Area.create({
-            "name": "Geografía",
-            "code": "GEO",
-            "location": "Planta Baja",
-            "avg_service_time": 15,
-            "max_counters": 2,
-        })
-        cls.area_cat = cls.Area.create({
-            "name": "Catastro",
-            "code": "CAT",
-            "location": "Primer Piso",
-            "avg_service_time": 20,
-            "max_counters": 1,
-        })
+        cls.area_geo = cls.Area.create(
+            {
+                "name": "Geografía",
+                "code": "TC_GEO",
+                "location": "Planta Baja",
+                "avg_service_time": 15,
+                "max_counters": 2,
+            }
+        )
+        cls.area_cat = cls.Area.create(
+            {
+                "name": "Catastro",
+                "code": "TC_CAT",
+                "location": "Primer Piso",
+                "avg_service_time": 20,
+                "max_counters": 1,
+            }
+        )
 
     def test_create_turn_generates_number(self):
         """Turn creation generates a turn number with area code prefix."""
-        turn = self.Turn.create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_geo.id,
-        })
-        self.assertTrue(turn.turn_number.startswith("GEO-"))
+        turn = self.Turn.create(
+            {
+                "citizen_dni": "12345678",
+                "area_id": self.area_geo.id,
+            }
+        )
+        self.assertTrue(turn.turn_number.startswith("TC_GEO-"))
         self.assertEqual(turn.state, "waiting")
 
     def test_create_turn_auto_waiting(self):
         """New turns automatically transition to 'waiting' state."""
-        turn = self.Turn.create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_geo.id,
-        })
+        turn = self.Turn.create(
+            {
+                "citizen_dni": "12345678",
+                "area_id": self.area_geo.id,
+            }
+        )
         self.assertEqual(turn.state, "waiting")
 
     def test_turn_sequence_increments(self):
         """Sequential turns get incrementing numbers."""
-        turn1 = self.Turn.create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_geo.id,
-        })
-        turn2 = self.Turn.create({
-            "citizen_dni": "87654321",
-            "area_id": self.area_geo.id,
-        })
+        turn1 = self.Turn.create(
+            {
+                "citizen_dni": "12345678",
+                "area_id": self.area_geo.id,
+            }
+        )
+        turn2 = self.Turn.create(
+            {
+                "citizen_dni": "87654321",
+                "area_id": self.area_geo.id,
+            }
+        )
         num1 = int(turn1.turn_number.split("-")[-1])
         num2 = int(turn2.turn_number.split("-")[-1])
         self.assertEqual(num2, num1 + 1)
@@ -87,53 +98,63 @@ class TestTurnCreation(TransactionCase):
 
     def test_duplicate_dni_same_area_rejected(self):
         """Cannot create duplicate turn for same DNI+area+date in pending states."""
-        self.Turn.create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_geo.id,
-        })
-        with self.assertRaises(ValidationError):
-            self.Turn.create({
+        self.Turn.create(
+            {
                 "citizen_dni": "12345678",
                 "area_id": self.area_geo.id,
-            })
+            }
+        )
+        with self.assertRaises(ValidationError):
+            self.Turn.create(
+                {
+                    "citizen_dni": "12345678",
+                    "area_id": self.area_geo.id,
+                }
+            )
 
     def test_duplicate_dni_different_area_allowed(self):
         """Same DNI can take turns in different areas (allow_multiple_turns=True)."""
-        self.env["ir.config_parameter"].set_param(
-            "dgc_appointment_kiosk.allow_multiple_turns", "True"
+        self.env["ir.config_parameter"].set_param("dgc_appointment_kiosk.allow_multiple_turns", "True")
+        self.Turn.create(
+            {
+                "citizen_dni": "12345678",
+                "area_id": self.area_geo.id,
+            }
         )
-        self.Turn.create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_geo.id,
-        })
-        turn2 = self.Turn.create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_cat.id,
-        })
+        turn2 = self.Turn.create(
+            {
+                "citizen_dni": "12345678",
+                "area_id": self.area_cat.id,
+            }
+        )
         self.assertTrue(turn2.exists())
 
     def test_no_multiple_turns_blocks_different_area(self):
         """When allow_multiple_turns=False, same DNI blocked across all areas."""
-        self.env["ir.config_parameter"].set_param(
-            "dgc_appointment_kiosk.allow_multiple_turns", "False"
-        )
-        self.Turn.create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_geo.id,
-        })
-        with self.assertRaises(ValidationError):
-            self.Turn.create({
+        self.env["ir.config_parameter"].set_param("dgc_appointment_kiosk.allow_multiple_turns", "False")
+        self.Turn.create(
+            {
                 "citizen_dni": "12345678",
-                "area_id": self.area_cat.id,
-            })
+                "area_id": self.area_geo.id,
+            }
+        )
+        with self.assertRaises(ValidationError):
+            self.Turn.create(
+                {
+                    "citizen_dni": "12345678",
+                    "area_id": self.area_cat.id,
+                }
+            )
 
     def test_inactive_area_turn_rejected(self):
         """Cannot create turn for inactive area (via controller logic)."""
-        inactive_area = self.Area.create({
-            "name": "Inactiva",
-            "code": "INA",
-            "active": False,
-        })
+        inactive_area = self.Area.create(
+            {
+                "name": "Inactiva",
+                "code": "TC_INA",
+                "active": False,
+            }
+        )
         # The area exists but is inactive - controller checks this
         self.assertFalse(inactive_area.active)
 
@@ -148,10 +169,12 @@ class TestTurnCreation(TransactionCase):
     def test_no_show_does_not_consume_capacity(self):
         """Turns marked as no_show don't count toward capacity."""
         initial_remaining = self.area_geo.remaining_turns_today
-        turn = self.Turn.create({
-            "citizen_dni": "12345678",
-            "area_id": self.area_geo.id,
-        })
+        turn = self.Turn.create(
+            {
+                "citizen_dni": "12345678",
+                "area_id": self.area_geo.id,
+            }
+        )
         self.area_geo.invalidate_recordset()
         # After creating, remaining should drop by 1
         self.assertEqual(self.area_geo.remaining_turns_today, initial_remaining - 1)
@@ -177,11 +200,13 @@ class TestTurnCreation(TransactionCase):
 
     def test_email_conflict_detection(self):
         """Detects email conflict when partner has different email."""
-        self.env["res.partner"].create({
-            "name": "Conflict",
-            "vat": "77777777",
-            "email": "original@example.com",
-        })
+        self.env["res.partner"].create(
+            {
+                "name": "Conflict",
+                "vat": "77777777",
+                "email": "original@example.com",
+            }
+        )
         result = self.Turn._find_or_create_partner("77777777", "Conflict", "new@example.com")
         self.assertTrue(result["email_conflict"])
         self.assertIn("***", result["existing_email_masked"])
