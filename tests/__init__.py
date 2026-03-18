@@ -4,3 +4,6 @@ from . import test_derivation
 from . import test_security_rules
 from . import test_controllers
 from . import test_bus_notifications
+from . import test_elapsed_timer
+from . import test_manual_turn_creation
+from . import test_operator_dashboard

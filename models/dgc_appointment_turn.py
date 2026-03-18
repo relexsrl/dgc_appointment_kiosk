@@ -83,6 +83,10 @@ class DgcAppointmentTurn(models.Model):
         string="Veces llamado",
         default=0,
     )
+    elapsed_time_display = fields.Char(
+        string="Tiempo transcurrido",
+        compute="_compute_elapsed_time_display",
+    )
 
     call_log_ids = fields.One2many(
         "dgc.appointment.call.log",
@@ -117,6 +121,18 @@ class DgcAppointmentTurn(models.Model):
                 turn.wait_time = delta.total_seconds() / 60.0
             else:
                 turn.wait_time = 0.0
+
+    def _compute_elapsed_time_display(self):
+        now = fields.Datetime.now()
+        for turn in self:
+            if turn.state == "serving" and turn.serve_date:
+                delta = now - turn.serve_date
+                total_secs = max(int(delta.total_seconds()), 0)
+                h, remainder = divmod(total_secs, 3600)
+                m, s = divmod(remainder, 60)
+                turn.elapsed_time_display = f"{h:02d}:{m:02d}:{s:02d}"
+            else:
+                turn.elapsed_time_display = ""
 
     @api.constrains("citizen_dni", "area_id", "date", "state")
     def _check_duplicate_turn(self):
@@ -294,6 +310,58 @@ class DgcAppointmentTurn(models.Model):
         else:
             expected = 11 - remainder
         return digits[10] == expected
+
+    @api.model
+    def get_operator_dashboard_data(self):
+        """Return all data needed for the operator dashboard in a single RPC call."""
+        user = self.env.user
+        area_ids = user.dgc_area_ids.ids
+        today = fields.Date.context_today(self)
+
+        current = self.search_read(
+            [
+                ("operator_id", "=", user.id),
+                ("state", "in", ("calling", "serving")),
+                ("date", "=", today),
+            ],
+            fields=[
+                "turn_number", "citizen_dni", "citizen_name", "citizen_email",
+                "state", "area_id", "serve_date", "call_date", "call_count",
+                "notes", "elapsed_time_display",
+            ],
+            limit=1,
+        )
+        waiting = self.search_read(
+            [
+                ("area_id", "in", area_ids),
+                ("state", "=", "waiting"),
+                ("date", "=", today),
+            ],
+            fields=[
+                "turn_number", "citizen_dni", "citizen_name", "area_id",
+                "create_date",
+            ],
+            order="create_date asc",
+        )
+        done = self.search_read(
+            [
+                ("area_id", "in", area_ids),
+                ("state", "=", "done"),
+                ("date", "=", today),
+            ],
+            fields=[
+                "turn_number", "citizen_dni", "citizen_name", "area_id",
+                "duration", "operator_id", "done_date",
+            ],
+            order="done_date desc",
+            limit=50,
+        )
+        return {
+            "current_turn": current[0] if current else False,
+            "waiting_turns": waiting,
+            "done_turns": done,
+            "area_ids": area_ids,
+        }
 
     @api.model
     def _cron_close_pending_turns(self):

@@ -22,6 +22,7 @@
         "data/ir_cron_data.xml",
         "data/default_config_data.xml",
         # Wizards
+        "wizards/dgc_turn_create_wizard_views.xml",
         "wizards/dgc_turn_derive_wizard_views.xml",
         # Views
         "views/dgc_appointment_area_views.xml",
@@ -48,6 +49,11 @@
         ],
         "web.assets_backend": [
             "dgc_appointment_kiosk/static/src/js/backoffice.js",
+            "dgc_appointment_kiosk/static/src/js/elapsed_timer.js",
+            "dgc_appointment_kiosk/static/src/xml/elapsed_timer.xml",
+            "dgc_appointment_kiosk/static/src/js/operator_dashboard.js",
+            "dgc_appointment_kiosk/static/src/xml/operator_dashboard.xml",
+            "dgc_appointment_kiosk/static/src/css/operator_dashboard.scss",
         ],
     },
     "installable": True,

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dgc_appointment_kiosk.ElapsedTimer" owl="1">
+        <span t-attf-class="badge fs-5 #{state.display !== '--:--:--' ? 'text-bg-success' : 'text-bg-secondary'}"
+              style="font-family: monospace; letter-spacing: 1px;">
+            <t t-out="state.display"/>
+        </span>
+    </t>
+</templates>

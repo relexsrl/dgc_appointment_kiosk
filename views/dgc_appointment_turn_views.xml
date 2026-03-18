@@ -10,6 +10,11 @@
                   decoration-warning="state == 'calling'"
                   decoration-success="state == 'serving'"
                   decoration-muted="state in ('done', 'no_show')">
+                <header>
+                    <button name="%(action_dgc_turn_create_wizard)d" type="action"
+                            string="Crear Turno Manual" class="btn-primary"
+                            groups="dgc_appointment_kiosk.group_dgc_operator"/>
+                </header>
                 <field name="turn_number"/>
                 <field name="citizen_dni"/>
                 <field name="citizen_name"/>
@@ -74,6 +79,8 @@
                             <field name="date"/>
                             <field name="call_date"/>
                             <field name="serve_date"/>
+                            <field name="elapsed_time_display" widget="dgc_elapsed_timer"
+                                   invisible="state != 'serving'"/>
                             <field name="done_date"/>
                             <field name="wait_time" widget="float_time"/>
                             <field name="duration" widget="float_time"/>

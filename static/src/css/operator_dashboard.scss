@@ -1,0 +1,38 @@
+// DGC Operator Dashboard Styles
+.dgc-dashboard {
+    background: #f8f9fa;
+    min-height: 100%;
+
+    .dgc-dashboard-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .dgc-current-turn {
+        .card-header {
+            h3 {
+                font-size: 1.4rem;
+            }
+        }
+
+        .card-footer {
+            background: #f8f9fa;
+        }
+    }
+
+    .dgc-waiting-queue,
+    .dgc-done-today {
+        .table {
+            th {
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+        }
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+}

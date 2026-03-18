@@ -14,3 +14,4 @@ access_derivation_operator,dgc.appointment.derivation.operator,model_dgc_appoint
 access_derivation_manager,dgc.appointment.derivation.manager,model_dgc_appointment_derivation,group_dgc_area_manager,1,0,1,0
 access_derivation_admin,dgc.appointment.derivation.admin,model_dgc_appointment_derivation,group_dgc_admin,1,1,1,1
 access_derive_wizard_operator,dgc.turn.derive.wizard.operator,model_dgc_turn_derive_wizard,group_dgc_operator,1,1,1,0
+access_create_wizard_operator,dgc.turn.create.wizard.operator,model_dgc_turn_create_wizard,group_dgc_operator,1,1,1,0

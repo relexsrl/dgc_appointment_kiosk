@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dgc_appointment_kiosk.OperatorDashboard" owl="1">
+        <div class="dgc-dashboard o_action">
+            <!-- Loading -->
+            <div t-if="state.loading" class="dgc-dashboard-loading text-center p-5">
+                <i class="fa fa-spinner fa-spin fa-3x"/>
+                <p class="mt-3">Cargando panel...</p>
+            </div>
+
+            <div t-else="" class="dgc-dashboard-content">
+
+                <!-- Header bar -->
+                <div class="dgc-dashboard-header d-flex justify-content-between align-items-center p-3 bg-white border-bottom">
+                    <h2 class="mb-0">Panel del Operador</h2>
+                    <button class="btn btn-primary" t-on-click="openCreateWizard">
+                        <i class="fa fa-plus me-1"/> Crear Turno Manual
+                    </button>
+                </div>
+
+                <!-- Current Turn Panel -->
+                <div class="dgc-current-turn p-3">
+                    <t t-if="state.currentTurn">
+                        <div class="card shadow-sm">
+                            <div t-attf-class="card-header text-white #{state.currentTurn.state === 'serving' ? 'bg-success' : 'bg-warning'}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h3 class="mb-0">
+                                        Turno Actual: <strong t-out="state.currentTurn.turn_number"/>
+                                    </h3>
+                                    <span t-if="state.currentTurn.state === 'serving'"
+                                          class="badge text-bg-light fs-4"
+                                          style="font-family: monospace;">
+                                        <i class="fa fa-clock-o me-1"/>
+                                        <t t-out="state.timerDisplay"/>
+                                    </span>
+                                    <span t-else="" class="badge text-bg-light fs-5">LLAMANDO</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <table class="table table-sm mb-0">
+                                            <tr>
+                                                <td class="fw-bold text-muted" style="width:140px">DNI/CUIT</td>
+                                                <td class="fs-5" t-out="state.currentTurn.citizen_dni"/>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-bold text-muted">Nombre</td>
+                                                <td class="fs-5" t-out="state.currentTurn.citizen_name || '-'"/>
+                                            </tr>
+                                            <tr t-if="state.currentTurn.citizen_email">
+                                                <td class="fw-bold text-muted">Email</td>
+                                                <td t-out="state.currentTurn.citizen_email"/>
+                                            </tr>
+                                            <tr>
+                                                <td class="fw-bold text-muted">Área</td>
+                                                <td t-out="state.currentTurn.area_id[1]"/>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div t-if="state.currentTurn.notes" class="mb-2">
+                                            <strong class="text-muted">Observaciones:</strong>
+                                            <p class="mb-0" t-out="state.currentTurn.notes"/>
+                                        </div>
+                                        <div class="text-muted small">
+                                            Llamadas: <span t-out="state.currentTurn.call_count"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <!-- Calling state buttons -->
+                                <t t-if="state.currentTurn.state === 'calling'">
+                                    <button class="btn btn-primary btn-lg me-2" t-on-click="serveTurn">
+                                        <i class="fa fa-play me-1"/> Atender
+                                    </button>
+                                    <button class="btn btn-warning me-2" t-on-click="recallTurn">
+                                        <i class="fa fa-bullhorn me-1"/> Re-llamar
+                                    </button>
+                                    <button class="btn btn-danger" t-on-click="noShowTurn">
+                                        <i class="fa fa-user-times me-1"/> No se presentó
+                                    </button>
+                                </t>
+                                <!-- Serving state buttons -->
+                                <t t-if="state.currentTurn.state === 'serving'">
+                                    <button class="btn btn-success btn-lg me-2" t-on-click="finalizeTurn">
+                                        <i class="fa fa-check me-1"/> Finalizar
+                                    </button>
+                                    <button class="btn btn-info" t-on-click="deriveTurn">
+                                        <i class="fa fa-share me-1"/> Derivar
+                                    </button>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+
+                    <!-- No current turn -->
+                    <t t-else="">
+                        <div class="card shadow-sm">
+                            <div class="card-body text-center p-4">
+                                <t t-if="state.waitingTurns.length > 0">
+                                    <p class="text-muted mb-3 fs-5">
+                                        <t t-out="state.waitingTurns.length"/> turno(s) en espera
+                                    </p>
+                                    <button class="btn btn-primary btn-lg" t-on-click="callNext">
+                                        <i class="fa fa-bullhorn me-2"/>
+                                        Llamar Siguiente
+                                    </button>
+                                </t>
+                                <t t-else="">
+                                    <i class="fa fa-coffee fa-3x text-muted mb-3 d-block"/>
+                                    <p class="text-muted fs-5 mb-0">No hay turnos en espera</p>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Waiting Queue -->
+                <div class="dgc-waiting-queue p-3">
+                    <div class="card">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fa fa-list-ol me-2"/>Por Atender
+                                <span class="badge text-bg-primary ms-2" t-out="state.waitingTurns.length"/>
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <t t-if="state.waitingTurns.length > 0">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Turno</th>
+                                            <th>DNI</th>
+                                            <th>Nombre</th>
+                                            <th>Área</th>
+                                            <th>Hora</th>
+                                            <th/>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="state.waitingTurns" t-as="turn" t-key="turn.id">
+                                            <td class="fw-bold" t-out="turn.turn_number"/>
+                                            <td t-out="turn.citizen_dni"/>
+                                            <td t-out="turn.citizen_name || '-'"/>
+                                            <td t-out="turn.area_id[1]"/>
+                                            <td class="text-muted" t-out="turn.create_date ? turn.create_date.split(' ')[1].substring(0, 5) : ''"/>
+                                            <td class="text-end">
+                                                <button class="btn btn-sm btn-outline-primary"
+                                                        t-on-click="() => this.callTurn(turn.id)">
+                                                    <i class="fa fa-bullhorn"/> Llamar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="text-center text-muted p-3 mb-0">Cola vacía</p>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Done Today -->
+                <div class="dgc-done-today p-3">
+                    <div class="card">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fa fa-check-circle me-2"/>Atendidos Hoy
+                                <span class="badge text-bg-success ms-2" t-out="state.doneTurns.length"/>
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <t t-if="state.doneTurns.length > 0">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Hora</th>
+                                            <th>Turno</th>
+                                            <th>Nombre</th>
+                                            <th>Duración</th>
+                                            <th>Operador</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="state.doneTurns" t-as="turn" t-key="turn.id"
+                                            class="cursor-pointer"
+                                            t-on-click="() => this.openTurnForm(turn.id)">
+                                            <td class="text-muted" t-out="turn.done_date ? turn.done_date.split(' ')[1].substring(0, 5) : ''"/>
+                                            <td t-out="turn.turn_number"/>
+                                            <td t-out="turn.citizen_name || '-'"/>
+                                            <td>
+                                                <span class="badge text-bg-secondary" t-out="this.formatDuration(turn.duration)"/>
+                                            </td>
+                                            <td class="text-muted" t-out="turn.operator_id ? turn.operator_id[1] : '-'"/>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="text-center text-muted p-3 mb-0">Sin atenciones hoy</p>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

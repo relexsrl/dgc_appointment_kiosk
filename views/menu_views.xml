@@ -7,6 +7,14 @@
               web_icon="dgc_appointment_kiosk,static/description/icon.png"
               sequence="200"/>
 
+    <!-- Panel Operador -->
+    <menuitem id="menu_dgc_operator_panel"
+              name="Panel Operador"
+              parent="menu_dgc_turnero_root"
+              action="action_dgc_operator_dashboard"
+              sequence="5"
+              groups="dgc_appointment_kiosk.group_dgc_operator"/>
+
     <!-- Turnos -->
     <menuitem id="menu_dgc_turnos"
               name="Turnos"
@@ -28,9 +36,9 @@
               action="action_dgc_appointment_derivation"
               sequence="30"/>
 
-    <!-- Dashboard -->
+    <!-- Estadísticas -->
     <menuitem id="menu_dgc_dashboard"
-              name="Dashboard"
+              name="Estadísticas"
               parent="menu_dgc_turnero_root"
               action="action_dgc_dashboard"
               sequence="40"/>
