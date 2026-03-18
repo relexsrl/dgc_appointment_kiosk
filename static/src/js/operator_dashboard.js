@@ -154,7 +154,7 @@ export class DgcOperatorDashboard extends Component {
             type: "ir.actions.act_window",
             name: _t("Derivar Turno"),
             res_model: "dgc.turn.derive.wizard",
-            view_mode: "form",
+            views: [[false, "form"]],
             target: "new",
             context: {default_turn_id: this.state.currentTurn.id},
         });
@@ -165,7 +165,7 @@ export class DgcOperatorDashboard extends Component {
             type: "ir.actions.act_window",
             res_model: "dgc.appointment.turn",
             res_id: turnId,
-            view_mode: "form",
+            views: [[false, "form"]],
             target: "current",
         });
     }
@@ -175,7 +175,7 @@ export class DgcOperatorDashboard extends Component {
             type: "ir.actions.act_window",
             name: _t("Crear Turno Manual"),
             res_model: "dgc.turn.create.wizard",
-            view_mode: "form",
+            views: [[false, "form"]],
             target: "new",
         });
     }
