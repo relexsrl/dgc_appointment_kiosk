@@ -1,5 +1,7 @@
 from odoo import api, fields, models
 
+from .dgc_appointment_turn import _today_tz
+
 
 class AppointmentType(models.Model):
     _inherit = "appointment.type"
@@ -56,7 +58,7 @@ class AppointmentType(models.Model):
 
     @api.depends("turn_ids.state")
     def _compute_pending_turn_count(self):
-        today = fields.Date.context_today(self)
+        today = _today_tz(self.env)
         for rec in self:
             if not rec.is_dgc_area:
                 rec.pending_turn_count = 0
@@ -82,7 +84,7 @@ class AppointmentType(models.Model):
 
             # Use own slot_ids (we ARE the appointment.type)
             if rec.slot_ids:
-                today_weekday = str(fields.Date.context_today(self).weekday() + 1)
+                today_weekday = str(_today_tz(self.env).weekday() + 1)
                 today_slots = rec.slot_ids.filtered(lambda s, wd=today_weekday: s.weekday == wd)
                 if today_slots:
                     total_minutes = sum((s.end_hour - s.start_hour) * 60 for s in today_slots)
@@ -94,7 +96,7 @@ class AppointmentType(models.Model):
             rec.max_daily_turns = int(minutes / service_minutes * counters)
 
     def _compute_remaining_turns_today(self):
-        today = fields.Date.context_today(self)
+        today = _today_tz(self.env)
         for rec in self:
             if not rec.is_dgc_area:
                 rec.remaining_turns_today = 0
@@ -110,7 +112,7 @@ class AppointmentType(models.Model):
         """Return (start_hour, end_hour) for today from slots or fallback."""
         self.ensure_one()
         if self.slot_ids:
-            today_weekday = str(fields.Date.context_today(self).weekday() + 1)
+            today_weekday = str(_today_tz(self.env).weekday() + 1)
             today_slots = self.slot_ids.filtered(lambda s: s.weekday == today_weekday)
             if today_slots:
                 return (

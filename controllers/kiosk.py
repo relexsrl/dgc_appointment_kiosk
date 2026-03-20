@@ -1,32 +1,45 @@
+import hashlib
+import json
 import logging
-import threading
 import time
 
 from odoo import http
 from odoo.http import request
 
+from ..models.dgc_appointment_turn import _today_tz
+
 _logger = logging.getLogger(__name__)
 
 
 class KioskController(http.Controller):
-    _rate_limits = {}
-    _rate_lock = threading.Lock()
 
     @classmethod
-    def _check_rate_limit(cls, ip, seconds):
+    def _check_rate_limit(cls, ip):
+        icp = request.env["ir.config_parameter"].sudo()
+        window = int(icp.get_param("dgc_appointment_kiosk.rate_limit_seconds", "60"))
+        max_hits = int(icp.get_param("dgc_appointment_kiosk.rate_limit_max_hits", "5"))
+        ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:16]
+        key = f"dgc_kiosk.rl.{ip_hash}"
         now = time.time()
-        with cls._rate_lock:
-            last = cls._rate_limits.get(ip, 0)
-            if now - last < seconds:
-                return True
-            cls._rate_limits[ip] = now
-            # Clean old entries periodically
-            if len(cls._rate_limits) > 1000:
-                cutoff = now - 300
-                cls._rate_limits = {
-                    k: v for k, v in cls._rate_limits.items() if v > cutoff
-                }
-            return False
+        raw = icp.get_param(key, "")
+        if raw:
+            try:
+                state = json.loads(raw)
+                if now - state["ts"] < window:
+                    if state["count"] >= max_hits:
+                        return True  # rate-limited
+                    state["count"] += 1
+                else:
+                    state = {"ts": now, "count": 1}
+            except (ValueError, KeyError):
+                state = {"ts": now, "count": 1}
+        else:
+            state = {"ts": now, "count": 1}
+        try:
+            icp.set_param(key, json.dumps(state))
+        except Exception:
+            pass
+        return False
 
     @http.route("/kiosk/checkin", type="http", auth="public", website=False)
     def kiosk_main(self):
@@ -59,10 +72,8 @@ class KioskController(http.Controller):
     @http.route("/kiosk/api/turn/create", type="jsonrpc", auth="public")
     def kiosk_create_turn(self, dni, area_id, email=None, notes=None):
         ip = request.httprequest.remote_addr
-        icp = request.env["ir.config_parameter"].sudo()
-        rate_seconds = int(icp.get_param("dgc_appointment_kiosk.rate_limit_seconds", "5"))
 
-        if self._check_rate_limit(ip, rate_seconds):
+        if self._check_rate_limit(ip):
             return {
                 "success": False,
                 "error_code": "RATE_LIMIT",
