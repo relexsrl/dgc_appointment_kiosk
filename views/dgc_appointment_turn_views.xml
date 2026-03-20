@@ -26,6 +26,7 @@
                        decoration-danger="state == 'no_show'"/>
                 <field name="operator_id"/>
                 <field name="date"/>
+                <field name="scheduled_datetime" optional="show" widget="datetime"/>
                 <field name="source" widget="badge" optional="hide"/>
                 <field name="wait_time" widget="float_time"/>
                 <field name="duration" widget="float_time"/>
@@ -80,6 +81,7 @@
                         <group>
                             <field name="operator_id"/>
                             <field name="date"/>
+                            <field name="scheduled_datetime" optional="show"/>
                             <field name="call_date"/>
                             <field name="serve_date"/>
                             <field name="elapsed_time_display" widget="dgc_elapsed_timer"

@@ -87,6 +87,11 @@ class DgcAppointmentTurn(models.Model):
         default=fields.Date.context_today,
         required=True,
     )
+    scheduled_datetime = fields.Datetime(
+        string="Hora del turno",
+        compute="_compute_scheduled_datetime",
+        store=True,
+    )
     call_date = fields.Datetime(string="Fecha de llamada")
     serve_date = fields.Datetime(string="Fecha de atención")
     done_date = fields.Datetime(string="Fecha de finalización")
@@ -125,6 +130,11 @@ class DgcAppointmentTurn(models.Model):
         string="Compañía",
         default=lambda self: self.env.company,
     )
+
+    @api.depends("calendar_event_id.start")
+    def _compute_scheduled_datetime(self):
+        for rec in self:
+            rec.scheduled_datetime = rec.calendar_event_id.start if rec.calendar_event_id else False
 
     @api.depends("serve_date", "done_date")
     def _compute_duration(self):
