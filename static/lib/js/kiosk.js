@@ -180,6 +180,16 @@ class DgcKiosk {
                 document.getElementById("turn-number-display").textContent = result.turn_number;
                 document.getElementById("turn-area-display").textContent = result.area_name;
                 document.getElementById("turn-location").textContent = result.area_location || "";
+
+                const turnsAhead = result.turns_ahead ?? 0;
+                const waitMin = result.estimated_wait_minutes ?? 0;
+                document.getElementById("turns-ahead-display").textContent = turnsAhead;
+                if (waitMin <= 0) {
+                    document.getElementById("estimated-wait-display").textContent = "Próximo en atender";
+                } else {
+                    document.getElementById("estimated-wait-display").textContent = `~${waitMin} min`;
+                }
+
                 this.showStep(3);
                 this.startCountdown(this.timeout);
                 // Invalidate cache since a turn was taken

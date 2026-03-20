@@ -125,11 +125,23 @@ class KioskController(http.Controller):
                 "message": "Error interno. Intente nuevamente.",
             }
 
+        # Count turns ahead in queue (same area, same day, earlier ID, pending states)
+        turns_ahead = request.env["dgc.appointment.turn"].sudo().search_count([
+            ("area_id", "=", area.id),
+            ("date", "=", turn.date),
+            ("state", "in", ["new", "waiting", "calling"]),
+            ("id", "<", turn.id),
+        ])
+        service_minutes = int(area.appointment_duration * 60) if area.appointment_duration > 0 else 15
+        estimated_wait_minutes = turns_ahead * service_minutes
+
         return {
             "success": True,
             "turn_number": turn.turn_number,
             "area_name": area.name,
-            "area_location": area.location or "",
+            "area_location": area.dgc_location or "",
+            "turns_ahead": turns_ahead,
+            "estimated_wait_minutes": estimated_wait_minutes,
             "email_conflict": partner_result.get("email_conflict", False),
             "existing_email_masked": partner_result.get("existing_email_masked", ""),
         }
