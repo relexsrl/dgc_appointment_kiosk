@@ -162,7 +162,7 @@ class DgcAppointmentTurn(models.Model):
                 ("state", "in", list(PENDING_STATES)),
                 ("id", "!=", turn.id),
             ]
-            if allow_multiple in ("True", "true", "1"):
+            if str(allow_multiple).lower() not in ("false", "0", ""):
                 domain.append(("area_id", "=", turn.area_id.id))
             if self.search_count(domain):
                 raise ValidationError(
@@ -177,7 +177,7 @@ class DgcAppointmentTurn(models.Model):
                 area = self.env["appointment.type"].browse(vals.get("area_id"))
                 seq = self.env["ir.sequence"].next_by_code("dgc.appointment.turn") or "000"
                 counter = seq.split("-")[-1] if "-" in seq else seq
-                vals["turn_number"] = f"{area.dgc_code}-{counter}"
+                vals["turn_number"] = f"{area.dgc_code or 'GEN'}-{counter}"
             if vals.get("state", "new") == "new":
                 vals["state"] = "waiting"
         return super().create(vals_list)

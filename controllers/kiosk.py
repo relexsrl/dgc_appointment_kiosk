@@ -129,7 +129,7 @@ class KioskController(http.Controller):
             "success": True,
             "turn_number": turn.turn_number,
             "area_name": area.name,
-            "area_location": area.location or "",
+            "area_location": area.dgc_location or "",
             "email_conflict": partner_result.get("email_conflict", False),
             "existing_email_masked": partner_result.get("existing_email_masked", ""),
         }

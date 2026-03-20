@@ -11,14 +11,6 @@
                      string="DGC Turnero"
                      name="dgc_appointment_kiosk"
                      groups="dgc_appointment_kiosk.group_dgc_area_manager">
-                    <block title="Horarios de Atención">
-                        <setting string="Hora de inicio" help="Hora de apertura del servicio">
-                            <field name="dgc_hour_start" widget="float_time"/>
-                        </setting>
-                        <setting string="Hora de fin" help="Hora de cierre del servicio">
-                            <field name="dgc_hour_end" widget="float_time"/>
-                        </setting>
-                    </block>
                     <block title="Kiosco">
                         <setting help="Permite que un mismo DNI saque más de un turno en distintas áreas">
                             <field name="dgc_allow_multiple_turns"/>

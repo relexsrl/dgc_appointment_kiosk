@@ -4,16 +4,6 @@ from odoo import fields, models
 class DgcAppointmentConfig(models.TransientModel):
     _inherit = "res.config.settings"
 
-    dgc_hour_start = fields.Float(
-        string="Hora de inicio",
-        config_parameter="dgc_appointment_kiosk.hour_start",
-        default=8.0,
-    )
-    dgc_hour_end = fields.Float(
-        string="Hora de fin",
-        config_parameter="dgc_appointment_kiosk.hour_end",
-        default=14.0,
-    )
     dgc_allow_multiple_turns = fields.Boolean(
         string="Permitir múltiples turnos por DNI",
         config_parameter="dgc_appointment_kiosk.allow_multiple_turns",

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ============================================================ -->
+        <!-- Operators (res.users)                                        -->
+        <!-- ============================================================ -->
+
+        <!-- Area Geodesia operators -->
+        <record id="user_op_geo_1" model="res.users">
+            <field name="name">María López</field>
+            <field name="login">maria.lopez@dgc.demo</field>
+            <field name="password">demo</field>
+            <field name="tz">America/Argentina/Buenos_Aires</field>
+            <field name="group_ids" eval="[
+                Command.link(ref('base.group_user')),
+                Command.link(ref('dgc_appointment_kiosk.group_dgc_operator')),
+            ]"/>
+        </record>
+
+        <record id="user_op_geo_2" model="res.users">
+            <field name="name">Juan Pérez</field>
+            <field name="login">juan.perez@dgc.demo</field>
+            <field name="password">demo</field>
+            <field name="tz">America/Argentina/Buenos_Aires</field>
+            <field name="group_ids" eval="[
+                Command.link(ref('base.group_user')),
+                Command.link(ref('dgc_appointment_kiosk.group_dgc_operator')),
+            ]"/>
+        </record>
+
+        <!-- Area Catastro operators -->
+        <record id="user_op_cat_1" model="res.users">
+            <field name="name">Ana García</field>
+            <field name="login">ana.garcia@dgc.demo</field>
+            <field name="password">demo</field>
+            <field name="tz">America/Argentina/Buenos_Aires</field>
+            <field name="group_ids" eval="[
+                Command.link(ref('base.group_user')),
+                Command.link(ref('dgc_appointment_kiosk.group_dgc_operator')),
+            ]"/>
+        </record>
+
+        <record id="user_op_cat_2" model="res.users">
+            <field name="name">Carlos Ruiz</field>
+            <field name="login">carlos.ruiz@dgc.demo</field>
+            <field name="password">demo</field>
+            <field name="tz">America/Argentina/Buenos_Aires</field>
+            <field name="group_ids" eval="[
+                Command.link(ref('base.group_user')),
+                Command.link(ref('dgc_appointment_kiosk.group_dgc_operator')),
+            ]"/>
+        </record>
+
+        <!-- ============================================================ -->
+        <!-- Areas (appointment.type)                                     -->
+        <!-- ============================================================ -->
+
+        <record id="area_geodesia" model="appointment.type">
+            <field name="name">Geodesia</field>
+            <field name="is_dgc_area" eval="True"/>
+            <field name="is_published" eval="True"/>
+            <field name="dgc_code">GEO</field>
+            <field name="dgc_location">Planta Baja - Ventanilla 1</field>
+            <field name="dgc_max_counters">2</field>
+            <field name="dgc_welcome_message">Bienvenido al área de Geodesia</field>
+            <field name="appointment_duration">0.25</field>
+            <field name="appointment_tz">America/Argentina/Buenos_Aires</field>
+            <field name="category">recurring</field>
+            <field name="staff_user_ids" eval="[
+                Command.link(ref('user_op_geo_1')),
+                Command.link(ref('user_op_geo_2')),
+            ]"/>
+        </record>
+
+        <record id="area_catastro" model="appointment.type">
+            <field name="name">Catastro</field>
+            <field name="is_dgc_area" eval="True"/>
+            <field name="is_published" eval="True"/>
+            <field name="dgc_code">CAT</field>
+            <field name="dgc_location">Primer Piso - Ventanilla 3</field>
+            <field name="dgc_max_counters">2</field>
+            <field name="dgc_welcome_message">Bienvenido al área de Catastro</field>
+            <field name="appointment_duration">0.33</field>
+            <field name="appointment_tz">America/Argentina/Buenos_Aires</field>
+            <field name="category">recurring</field>
+            <field name="staff_user_ids" eval="[
+                Command.link(ref('user_op_cat_1')),
+                Command.link(ref('user_op_cat_2')),
+            ]"/>
+        </record>
+
+    </data>
+</odoo>

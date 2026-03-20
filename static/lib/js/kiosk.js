@@ -107,15 +107,15 @@ class DgcKiosk {
             return;
         }
 
-        await this.fetchAreas();
-        this.showStep(2);
+        const ok = await this.fetchAreas();
+        if (ok) this.showStep(2);
     }
 
     async fetchAreas() {
         const now = Date.now();
         if (this.areaCache && now - this.areaCacheTime < this.CACHE_TTL) {
             this._renderAreas(this.areaCache);
-            return;
+            return true;
         }
 
         try {
@@ -123,8 +123,10 @@ class DgcKiosk {
             this.areaCache = result;
             this.areaCacheTime = now;
             this._renderAreas(result);
+            return true;
         } catch {
             this._showError("area-error", "Error al cargar las áreas. Intente nuevamente.");
+            return false;
         }
     }
 
@@ -207,12 +209,12 @@ class DgcKiosk {
         const el = document.getElementById("countdown");
 
         const tick = () => {
-            if (el) el.textContent = remaining;
             if (remaining <= 0) {
                 this._clearCountdown();
                 this.showStep(1);
                 return;
             }
+            if (el) el.textContent = remaining;
             remaining--;
         };
 

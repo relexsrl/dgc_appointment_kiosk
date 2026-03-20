@@ -49,10 +49,18 @@
               parent="menu_dgc_turnero_root"
               sequence="100"/>
 
+    <record id="action_dgc_config_settings" model="ir.actions.act_window">
+        <field name="name">Ajustes del Turnero</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">main</field>
+        <field name="context">{'module': 'dgc_appointment_kiosk'}</field>
+    </record>
+
     <menuitem id="menu_dgc_config_settings"
               name="Ajustes"
               parent="menu_dgc_config"
-              action="base_setup.action_general_configuration"
+              action="action_dgc_config_settings"
               sequence="10"/>
 
 </odoo>

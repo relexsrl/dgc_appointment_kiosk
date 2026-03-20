@@ -10,6 +10,26 @@ class CalendarEvent(models.Model):
         copy=False,
     )
 
+    def _cancel_linked_turns(self):
+        """Cancela los turnos DGC pendientes vinculados a estos eventos."""
+        from .dgc_appointment_turn import PENDING_STATES
+        turns = self.env["dgc.appointment.turn"].sudo().search([
+            ("calendar_event_id", "in", self.ids),
+            ("state", "in", list(PENDING_STATES)),
+        ])
+        if turns:
+            turns.write({"state": "no_show"})
+
+    def unlink(self):
+        self._cancel_linked_turns()
+        return super().unlink()
+
+    def write(self, vals):
+        # Archivado (active=False) equivale a cancelar la cita
+        if vals.get("active") is False:
+            self._cancel_linked_turns()
+        return super().write(vals)
+
     @api.model_create_multi
     def create(self, vals_list):
         events = super().create(vals_list)

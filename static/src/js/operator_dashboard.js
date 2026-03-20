@@ -12,7 +12,6 @@ export class DgcOperatorDashboard extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
-        this.busService = useService("bus_service");
 
         this.state = useState({
             currentTurn: null,
@@ -22,16 +21,18 @@ export class DgcOperatorDashboard extends Component {
             timerDisplay: "--:--:--",
         });
         this.timerInterval = null;
+        this._onDgcTurnUpdate = () => this.loadData();
 
         onWillStart(async () => {
             await this.loadData();
         });
         onMounted(() => {
             this._startTimer();
-            this.busService.subscribe("dgc_turn_update", () => this.loadData());
+            document.addEventListener("dgc_turn_update", this._onDgcTurnUpdate);
         });
         onWillUnmount(() => {
             this._stopTimer();
+            document.removeEventListener("dgc_turn_update", this._onDgcTurnUpdate);
         });
     }
 

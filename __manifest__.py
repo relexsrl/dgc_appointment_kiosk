@@ -57,6 +57,7 @@
             "dgc_appointment_kiosk/static/src/css/operator_dashboard.scss",
         ],
     },
+    "demo": ["data/demo_data.xml"],
     "installable": True,
     "application": True,
     "auto_install": False,
