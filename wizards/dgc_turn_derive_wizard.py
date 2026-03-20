@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -24,37 +24,43 @@ class DgcTurnDeriveWizard(models.TransientModel):
         turn = self.turn_id
         if not turn:
             raise UserError("No se encontró el turno a derivar.")
-        from_area = turn.area_id
+        if self.to_area_id == turn.area_id:
+            raise UserError("El área destino debe ser diferente al área actual del turno.")
 
+        # 1. Create new turn in destination area (inherits citizen data)
+        new_turn = self.env["dgc.appointment.turn"].create({
+            "citizen_dni": turn.citizen_dni,
+            "citizen_name": turn.citizen_name,
+            "citizen_email": turn.citizen_email,
+            "notes": turn.notes,
+            "partner_id": turn.partner_id.id,
+            "area_id": self.to_area_id.id,
+            "source": turn.source,
+            "date": turn.date,
+        })
+
+        # 2. Record derivation linking original → new
         self.env["dgc.appointment.derivation"].create({
             "turn_id": turn.id,
-            "from_area_id": from_area.id,
+            "new_turn_id": new_turn.id,
+            "from_area_id": turn.area_id.id,
             "to_area_id": self.to_area_id.id,
             "reason": self.reason,
             "user_id": self.env.uid,
         })
 
-        turn.write({
-            "state": "derived",
-        })
+        # 3. Mark original as derived (single write)
+        turn.write({"state": "derived"})
 
-        # Create new turn in destination area
-        turn.write({
-            "area_id": self.to_area_id.id,
-            "state": "waiting",
-        })
-
-        # Notify destination area
-        channel = f"dgc_turn_area_{self.to_area_id.id}"
-        self.env["bus.bus"]._sendone(channel, "dgc_turn_update", {
-            "action": "derived",
-            "turn_id": turn.id,
-            "turn_number": turn.turn_number,
-            "citizen_name": turn.citizen_name or "",
-            "area_id": self.to_area_id.id,
-            "area_name": self.to_area_id.name,
-            "state": "waiting",
-            "from_area": from_area.name,
-        })
+        # 4. Notify destination area
+        new_turn._send_bus_notification("derived")
 
         return {"type": "ir.actions.act_window_close"}
+
+    @api.onchange("to_area_id")
+    def _onchange_to_area_id(self):
+        if self.to_area_id and self.turn_id and self.to_area_id == self.turn_id.area_id:
+            return {"warning": {
+                "title": "Área inválida",
+                "message": "El área destino no puede ser la misma que el área actual del turno.",
+            }}
