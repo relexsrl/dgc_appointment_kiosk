@@ -108,6 +108,7 @@ class KioskController(http.Controller):
             }
 
         # Step 5: explicit duplicate check before partner creation
+        icp = request.env["ir.config_parameter"].sudo()
         allow_multiple = icp.get_param("dgc_appointment_kiosk.allow_multiple_turns", "True")
         allow_multiple_bool = str(allow_multiple).lower() not in ("false", "0", "")
         today = _today_tz(request.env)
