@@ -6,15 +6,27 @@
         <field name="model">dgc.turn.derive.wizard</field>
         <field name="arch" type="xml">
             <form string="Derivar Turno">
-                <group>
-                    <field name="turn_id" readonly="1"/>
-                    <field name="to_area_id" domain="[('is_dgc_area', '=', True), ('active', '=', True)]"/>
-                    <field name="reason"/>
-                </group>
+                <field name="turn_id" invisible="1"/>
+                <sheet>
+                    <group>
+                        <group string="Turno Origen">
+                            <field name="source_turn_number"/>
+                            <field name="source_citizen_dni"/>
+                            <field name="source_citizen_name"/>
+                            <field name="source_area_name"/>
+                        </group>
+                        <group string="Derivar a">
+                            <field name="to_area_id"
+                                   domain="[('is_dgc_area', '=', True), ('active', '=', True), ('id', '!=', turn_id.area_id)]"
+                                   options="{'no_create': True}"/>
+                            <field name="reason" placeholder="Motivo de la derivación..."/>
+                        </group>
+                    </group>
+                </sheet>
                 <footer>
                     <button name="action_derive" type="object" string="Derivar"
                             class="btn-primary"/>
-                    <button string="Cancelar" special="cancel"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>
         </field>

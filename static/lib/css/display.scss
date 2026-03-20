@@ -94,22 +94,64 @@
 
 .calling-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 20px;
-    padding: 10px 30px;
+    gap: 6px;
+    padding: 14px 36px;
     border-radius: 12px;
     margin: 5px 0;
+    text-align: center;
 }
 
+// Legacy calling-number kept for backward compat
 .calling-number {
     font-size: 72px;
     font-weight: bold;
     letter-spacing: 4px;
 }
 
+// DNI as primary identifier — largest element on screen
+.calling-dni {
+    font-size: 4.5rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    color: white;
+    line-height: 1.1;
+}
+
+// Meta row: turn number + area
+.calling-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.calling-turnnum {
+    font-size: 1rem;
+    opacity: 0.75;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
 .calling-area {
-    font-size: 28px;
+    font-size: 1.2rem;
     opacity: 0.9;
+    font-weight: 500;
+}
+
+// Operator box badge — tells citizen where to go
+.calling-box {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: rgba(0, 0, 0, 0.25);
+    color: #FFD600;
+    padding: 6px 24px;
+    border-radius: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 4px;
 }
 
 // Call count color escalation

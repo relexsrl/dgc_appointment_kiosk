@@ -33,10 +33,9 @@
 
                 <!-- Calling Section -->
                 <div class="calling-section" id="calling-section">
-                    <div class="calling-label">TURNO LLAMADO</div>
+                    <div class="calling-label">ATENDIENDO</div>
                     <div class="calling-turn" id="calling-turn">
-                        <span class="calling-number">---</span>
-                        <span class="calling-area"></span>
+                        <div class="calling-dni">---</div>
                     </div>
                 </div>
 
@@ -46,7 +45,7 @@
                     <table class="waiting-list">
                         <thead>
                             <tr>
-                                <th>Turno</th>
+                                <th>DNI / Turno</th>
                                 <th>Área</th>
                             </tr>
                         </thead>

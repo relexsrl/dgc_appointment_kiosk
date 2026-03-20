@@ -57,6 +57,14 @@
                         <field name="max_daily_turns"/>
                         <field name="remaining_turns_today"/>
                     </group>
+                    <group string="Boxes / Ventanillas">
+                        <field name="operator_box_ids" nolabel="1">
+                            <list editable="bottom">
+                                <field name="box_number"/>
+                                <field name="operator_id" domain="[('id', 'in', parent.staff_user_ids)]"/>
+                            </list>
+                        </field>
+                    </group>
                 </page>
             </xpath>
 

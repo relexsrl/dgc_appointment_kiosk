@@ -28,6 +28,11 @@ class AppointmentType(models.Model):
         "area_id",
         string="Turnos",
     )
+    operator_box_ids = fields.One2many(
+        "dgc.operator.box",
+        "area_id",
+        string="Boxes/Ventanillas",
+    )
 
     # --- Computed ---
     pending_turn_count = fields.Integer(

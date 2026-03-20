@@ -11,11 +11,26 @@ class DgcTurnDeriveWizard(models.TransientModel):
         string="Turno",
         required=True,
     )
+
+    # Related fields for source turn display
+    source_turn_number = fields.Char(
+        related="turn_id.turn_number", string="Nro. Turno", readonly=True,
+    )
+    source_citizen_dni = fields.Char(
+        related="turn_id.citizen_dni", string="DNI", readonly=True,
+    )
+    source_citizen_name = fields.Char(
+        related="turn_id.citizen_name", string="Ciudadano", readonly=True,
+    )
+    source_area_name = fields.Char(
+        related="turn_id.area_id.name", string="Área Actual", readonly=True,
+    )
+
     to_area_id = fields.Many2one(
         "appointment.type",
         string="Área destino",
         required=True,
-        domain=[("is_dgc_area", "=", True), ("active", "=", True)],
+        domain="[('is_dgc_area', '=', True), ('active', '=', True), ('id', '!=', turn_id.area_id)]",
     )
     reason = fields.Text(string="Motivo", required=True)
 
@@ -28,7 +43,7 @@ class DgcTurnDeriveWizard(models.TransientModel):
             raise UserError("El área destino debe ser diferente al área actual del turno.")
 
         # 1. Create new turn in destination area (inherits citizen data)
-        new_turn = self.env["dgc.appointment.turn"].create({
+        new_turn = self.env["dgc.appointment.turn"].sudo().create({
             "citizen_dni": turn.citizen_dni,
             "citizen_name": turn.citizen_name,
             "citizen_email": turn.citizen_email,
@@ -40,7 +55,7 @@ class DgcTurnDeriveWizard(models.TransientModel):
         })
 
         # 2. Record derivation linking original → new
-        self.env["dgc.appointment.derivation"].create({
+        self.env["dgc.appointment.derivation"].sudo().create({
             "turn_id": turn.id,
             "new_turn_id": new_turn.id,
             "from_area_id": turn.area_id.id,

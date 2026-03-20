@@ -77,7 +77,7 @@ class DgcDisplay {
         if (!turnEl) return;
 
         if (calling.length === 0) {
-            turnEl.innerHTML = '<span class="calling-number">---</span>';
+            turnEl.innerHTML = '<div class="calling-dni">---</div>';
             section.classList.remove("blink-slow", "blink-normal", "blink-fast");
             return;
         }
@@ -89,10 +89,21 @@ class DgcDisplay {
         let html = "";
         for (const turn of calling) {
             const countClass = `call-count-${Math.min(turn.call_count, 3)}`;
+            // Use citizen_dni as primary identifier; fall back to turn_number
+            const primaryId = turn.citizen_dni
+                ? this._escapeHtml(turn.citizen_dni)
+                : this._escapeHtml(turn.turn_number);
+            const boxHtml = turn.operator_box
+                ? `<div class="calling-box">Ventanilla ${this._escapeHtml(turn.operator_box)}</div>`
+                : "";
             html += `
                 <div class="calling-item ${countClass}">
-                    <span class="calling-number">${this._escapeHtml(turn.turn_number)}</span>
-                    <span class="calling-area">${this._escapeHtml(turn.area_name)}</span>
+                    <div class="calling-dni">${primaryId}</div>
+                    <div class="calling-meta">
+                        <span class="calling-turnnum">${this._escapeHtml(turn.turn_number)}</span>
+                        <span class="calling-area">${this._escapeHtml(turn.area_name)}</span>
+                    </div>
+                    ${boxHtml}
                 </div>
             `;
         }

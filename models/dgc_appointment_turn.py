@@ -114,6 +114,10 @@ class DgcAppointmentTurn(models.Model):
         string="Tiempo transcurrido",
         compute="_compute_elapsed_time_display",
     )
+    operator_box = fields.Char(
+        string="Box",
+        compute="_compute_operator_box",
+    )
 
     call_log_ids = fields.One2many(
         "dgc.appointment.call.log",
@@ -165,6 +169,24 @@ class DgcAppointmentTurn(models.Model):
                 turn.elapsed_time_display = f"{h:02d}:{m:02d}:{s:02d}"
             else:
                 turn.elapsed_time_display = ""
+
+    @api.depends("operator_id", "area_id")
+    def _compute_operator_box(self):
+        # Batch read all relevant boxes to avoid N+1
+        op_ids = [t.operator_id.id for t in self if t.operator_id]
+        area_ids = [t.area_id.id for t in self if t.area_id]
+        if op_ids and area_ids:
+            boxes = self.env["dgc.operator.box"].sudo().search([
+                ("operator_id", "in", op_ids),
+                ("area_id", "in", area_ids),
+            ])
+            box_map = {(b.operator_id.id, b.area_id.id): b.box_number for b in boxes}
+        else:
+            box_map = {}
+        for turn in self:
+            turn.operator_box = box_map.get(
+                (turn.operator_id.id, turn.area_id.id), ""
+            ) if turn.operator_id and turn.area_id else ""
 
     @api.constrains("citizen_dni", "area_id", "date", "state")
     def _check_duplicate_turn(self):
@@ -286,11 +308,13 @@ class DgcAppointmentTurn(models.Model):
             "turn_id": self.id,
             "turn_number": self.turn_number,
             "citizen_name": self.citizen_name or "",
+            "citizen_dni": self.citizen_dni or "",
             "area_id": self.area_id.id,
             "area_name": self.area_id.name,
             "state": self.state,
             "call_count": self.call_count,
             "operator": self.operator_id.name or "",
+            "operator_box": self.operator_box or "",
         }
         self.env["bus.bus"]._sendone(channel, "dgc_turn_update", payload)
 
@@ -361,7 +385,7 @@ class DgcAppointmentTurn(models.Model):
             fields=[
                 "turn_number", "citizen_dni", "citizen_name", "citizen_email",
                 "state", "area_id", "serve_date", "call_date", "call_count",
-                "notes", "elapsed_time_display",
+                "notes", "elapsed_time_display", "operator_box",
             ],
             limit=1,
         )
@@ -373,7 +397,7 @@ class DgcAppointmentTurn(models.Model):
             ],
             fields=[
                 "turn_number", "citizen_dni", "citizen_name", "area_id",
-                "create_date",
+                "create_date", "operator_box",
             ],
             order="create_date asc",
         )
@@ -385,7 +409,7 @@ class DgcAppointmentTurn(models.Model):
             ],
             fields=[
                 "turn_number", "citizen_dni", "citizen_name", "area_id",
-                "duration", "operator_id", "done_date",
+                "duration", "operator_id", "done_date", "operator_box",
             ],
             order="done_date desc",
             limit=50,

@@ -158,7 +158,10 @@ export class DgcOperatorDashboard extends Component {
                 res_model: "dgc.turn.derive.wizard",
                 views: [[false, "form"]],
                 target: "new",
-                context: {default_turn_id: this.state.currentTurn.id},
+                context: {
+                    default_turn_id: this.state.currentTurn.id,
+                    dialog_size: "medium",
+                },
             },
             {onClose: () => this.loadData()},
         );
