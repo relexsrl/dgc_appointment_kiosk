@@ -1,10 +1,19 @@
 import logging
 import re
+from datetime import datetime as _dt
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
+
+
+def _today_tz(env):
+    """Return today's date in the company's timezone."""
+    tz = env.company.partner_id.tz or "America/Argentina/Buenos_Aires"
+    rec = env["dgc.appointment.turn"]
+    local_now = fields.Datetime.context_timestamp(rec, _dt.utcnow())
+    return local_now.date()
 
 TURN_STATES = [
     ("new", "Nuevo"),
@@ -187,10 +196,11 @@ class DgcAppointmentTurn(models.Model):
         if self.state not in ("waiting", "calling"):
             raise UserError("Solo se pueden llamar turnos en espera.")
         now = fields.Datetime.now()
+        new_count = self.call_count + 1
         vals = {
             "state": "calling",
             "operator_id": self.env.uid,
-            "call_count": self.call_count + 1,
+            "call_count": new_count,
         }
         if not self.call_date:
             vals["call_date"] = now
@@ -199,7 +209,7 @@ class DgcAppointmentTurn(models.Model):
             "turn_id": self.id,
             "call_datetime": now,
             "operator_id": self.env.uid,
-            "call_number": self.call_count,
+            "call_number": new_count,
         })
         self._send_bus_notification("call")
 
@@ -207,12 +217,13 @@ class DgcAppointmentTurn(models.Model):
         self.ensure_one()
         if self.state != "calling":
             raise UserError("Solo se pueden re-llamar turnos en estado llamando.")
-        self.write({"call_count": self.call_count + 1})
+        new_count = self.call_count + 1
+        self.write({"call_count": new_count})
         self.env["dgc.appointment.call.log"].create({
             "turn_id": self.id,
             "call_datetime": fields.Datetime.now(),
             "operator_id": self.env.uid,
-            "call_number": self.call_count,
+            "call_number": new_count,
         })
         self._send_bus_notification("recall")
 
@@ -329,7 +340,7 @@ class DgcAppointmentTurn(models.Model):
         """Return all data needed for the operator dashboard in a single RPC call."""
         user = self.env.user
         area_ids = self.env['appointment.type']._get_dgc_areas_for_user(user).ids
-        today = fields.Date.context_today(self)
+        today = _today_tz(self.env)
 
         current = self.search_read(
             [
@@ -378,11 +389,31 @@ class DgcAppointmentTurn(models.Model):
 
     @api.model
     def _cron_close_pending_turns(self):
-        yesterday = fields.Date.subtract(fields.Date.context_today(self), days=1)
+        yesterday = fields.Date.subtract(_today_tz(self.env), days=1)
         pending_turns = self.search([
             ("date", "<=", yesterday),
             ("state", "in", list(PENDING_STATES)),
+            ("call_count", ">", 0),
         ])
         if pending_turns:
             pending_turns.write({"state": "no_show"})
-            _logger.info("Closed %d pending turns from %s or earlier", len(pending_turns), yesterday)
+            _logger.info("Closed %d called-but-no-show turns from %s or earlier", len(pending_turns), yesterday)
+
+    @api.model
+    def _cron_cleanup_rate_limit_keys(self):
+        """Remove expired rate-limit ICP keys (older than 24 hours)."""
+        import json, time
+        cutoff = time.time() - 86400
+        icp = self.env["ir.config_parameter"].sudo()
+        params = icp.search([("key", "like", "dgc_kiosk.rl.%")])
+        expired = self.env["ir.config_parameter"]
+        for param in params:
+            try:
+                state = json.loads(param.value)
+                if state.get("ts", 0) < cutoff:
+                    expired |= param
+            except (ValueError, KeyError):
+                expired |= param
+        if expired:
+            expired.unlink()
+            _logger.info("DGC: cleaned up %d expired rate-limit keys", len(expired))

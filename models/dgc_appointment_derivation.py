@@ -34,3 +34,9 @@ class DgcAppointmentDerivation(models.Model):
         default=fields.Datetime.now,
         required=True,
     )
+    new_turn_id = fields.Many2one(
+        "dgc.appointment.turn",
+        string="Nuevo Turno",
+        readonly=True,
+        ondelete="set null",
+    )
