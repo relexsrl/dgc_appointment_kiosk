@@ -13,11 +13,10 @@
                             <field name="source_turn_number"/>
                             <field name="source_citizen_dni"/>
                             <field name="source_citizen_name"/>
-                            <field name="source_area_name"/>
+                            <field name="source_area_id"/>
                         </group>
                         <group string="Derivar a">
                             <field name="to_area_id"
-                                   domain="[('is_dgc_area', '=', True), ('active', '=', True), ('id', '!=', turn_id.area_id)]"
                                    options="{'no_create': True}"/>
                             <field name="reason" placeholder="Motivo de la derivación..."/>
                         </group>

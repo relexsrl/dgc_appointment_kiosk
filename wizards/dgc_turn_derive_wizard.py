@@ -22,15 +22,15 @@ class DgcTurnDeriveWizard(models.TransientModel):
     source_citizen_name = fields.Char(
         related="turn_id.citizen_name", string="Ciudadano", readonly=True,
     )
-    source_area_name = fields.Char(
-        related="turn_id.area_id.name", string="Área Actual", readonly=True,
+    source_area_id = fields.Many2one(
+        related="turn_id.area_id", string="Área Actual", readonly=True,
     )
 
     to_area_id = fields.Many2one(
         "appointment.type",
         string="Área destino",
         required=True,
-        domain="[('is_dgc_area', '=', True), ('active', '=', True), ('id', '!=', turn_id.area_id)]",
+        domain="[('is_dgc_area', '=', True), ('active', '=', True), ('id', '!=', source_area_id)]",
     )
     reason = fields.Text(string="Motivo", required=True)
 
