@@ -8,7 +8,7 @@
             <form string="Derivar Turno">
                 <group>
                     <field name="turn_id" readonly="1"/>
-                    <field name="to_area_id"/>
+                    <field name="to_area_id" domain="[('is_dgc_area', '=', True), ('active', '=', True)]"/>
                     <field name="reason"/>
                 </group>
                 <footer>
