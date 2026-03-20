@@ -252,6 +252,36 @@ body {
     margin-bottom: 20px;
 }
 
+.turn-queue-info {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin: 1.5rem 0;
+
+    .queue-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: rgba(255,255,255,0.08);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        min-width: 120px;
+    }
+
+    .queue-label {
+        font-size: 0.85rem;
+        opacity: 0.75;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.4rem;
+    }
+
+    .queue-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+}
+
 .countdown-text {
     font-size: 14px;
     color: #999;

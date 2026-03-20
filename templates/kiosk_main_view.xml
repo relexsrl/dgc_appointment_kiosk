@@ -74,6 +74,16 @@
                             <div class="turn-number-display" id="turn-number-display"></div>
                             <div class="turn-area-display" id="turn-area-display"></div>
                             <div class="turn-location" id="turn-location"></div>
+                            <div class="turn-queue-info" id="turn-queue-info">
+                                <div class="queue-stat">
+                                    <span class="queue-label">Turnos en espera</span>
+                                    <span class="queue-value" id="turns-ahead-display">—</span>
+                                </div>
+                                <div class="queue-stat">
+                                    <span class="queue-label">Tiempo estimado</span>
+                                    <span class="queue-value" id="estimated-wait-display">—</span>
+                                </div>
+                            </div>
                             <p class="countdown-text">
                                 Volviendo al inicio en <span id="countdown">10</span> segundos
                             </p>
