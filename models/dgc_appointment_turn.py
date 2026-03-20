@@ -6,6 +6,13 @@ from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
+
+def _today_tz(env):
+    """Return today's date in the company's timezone (or UTC if not set)."""
+    tz = env.company.partner_id.tz or "UTC"
+    return fields.Date.context_today(env["dgc.appointment.turn"].with_context(tz=tz))
+
+
 TURN_STATES = [
     ("new", "Nuevo"),
     ("waiting", "En espera"),
