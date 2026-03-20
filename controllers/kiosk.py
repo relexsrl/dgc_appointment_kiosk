@@ -107,7 +107,24 @@ class KioskController(http.Controller):
                 "message": "No hay más turnos disponibles para esta área hoy.",
             }
 
-        # Check duplicate
+        # Step 5: explicit duplicate check before partner creation
+        allow_multiple = icp.get_param("dgc_appointment_kiosk.allow_multiple_turns", "True")
+        allow_multiple_bool = str(allow_multiple).lower() not in ("false", "0", "")
+        today = _today_tz(request.env)
+        dup_domain = [
+            ("citizen_dni", "=", dni),
+            ("date", "=", today),
+            ("state", "in", ["new", "waiting", "calling"]),
+        ]
+        if allow_multiple_bool:
+            dup_domain.append(("area_id", "=", area.id))
+        if request.env["dgc.appointment.turn"].sudo().search_count(dup_domain):
+            return {
+                "success": False,
+                "error_code": "DUPLICATE_TURN",
+                "message": "Ya existe un turno pendiente para este DNI/CUIT en la misma fecha y área.",
+            }
+
         from odoo.exceptions import ValidationError
         try:
             partner_result = Turn._find_or_create_partner(dni, None, email)

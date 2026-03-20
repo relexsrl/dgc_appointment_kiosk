@@ -59,15 +59,24 @@ class AppointmentType(models.Model):
     @api.depends("turn_ids.state")
     def _compute_pending_turn_count(self):
         today = _today_tz(self.env)
-        for rec in self:
-            if not rec.is_dgc_area:
-                rec.pending_turn_count = 0
-                continue
-            rec.pending_turn_count = self.env["dgc.appointment.turn"].search_count([
-                ("area_id", "=", rec.id),
+        dgc_recs = self.filtered("is_dgc_area")
+        non_dgc = self - dgc_recs
+        non_dgc.pending_turn_count = 0
+        if not dgc_recs:
+            return
+
+        groups = self.env["dgc.appointment.turn"]._read_group(
+            domain=[
+                ("area_id", "in", dgc_recs.ids),
                 ("date", "=", today),
                 ("state", "in", ("new", "waiting", "calling")),
-            ])
+            ],
+            groupby=["area_id"],
+            aggregates=["__count"],
+        )
+        counts = {area.id: count for area, count in groups}
+        for rec in dgc_recs:
+            rec.pending_turn_count = counts.get(rec.id, 0)
 
     def _compute_max_daily_turns(self):
         icp = self.env["ir.config_parameter"].sudo()
@@ -97,16 +106,24 @@ class AppointmentType(models.Model):
 
     def _compute_remaining_turns_today(self):
         today = _today_tz(self.env)
-        for rec in self:
-            if not rec.is_dgc_area:
-                rec.remaining_turns_today = 0
-                continue
-            used = self.env["dgc.appointment.turn"].search_count([
-                ("area_id", "=", rec.id),
+        dgc_recs = self.filtered("is_dgc_area")
+        non_dgc = self - dgc_recs
+        non_dgc.remaining_turns_today = 0
+        if not dgc_recs:
+            return
+
+        groups = self.env["dgc.appointment.turn"]._read_group(
+            domain=[
+                ("area_id", "in", dgc_recs.ids),
                 ("date", "=", today),
                 ("state", "!=", "no_show"),
-            ])
-            rec.remaining_turns_today = max(rec.max_daily_turns - used, 0)
+            ],
+            groupby=["area_id"],
+            aggregates=["__count"],
+        )
+        used = {area.id: count for area, count in groups}
+        for rec in dgc_recs:
+            rec.remaining_turns_today = max(rec.max_daily_turns - used.get(rec.id, 0), 0)
 
     def _get_today_schedule(self):
         """Return (start_hour, end_hour) for today from slots or fallback."""
