@@ -5,6 +5,9 @@ import {registry} from "@web/core/registry";
 import {useService} from "@web/core/utils/hooks";
 import {_t} from "@web/core/l10n/translation";
 
+const BUS_HEARTBEAT_TIMEOUT = 60000; // 60 seconds
+const NEW_TURN_ANIMATION_MS = 3000; // 3 seconds
+
 export class DgcOperatorDashboard extends Component {
     static template = "dgc_appointment_kiosk.OperatorDashboard";
 
@@ -19,9 +22,28 @@ export class DgcOperatorDashboard extends Component {
             doneTurns: [],
             loading: true,
             timerDisplay: "--:--:--",
+            // KPI state
+            kpis: {
+                served_count: 0,
+                avg_duration: 0,
+                pending_count: 0,
+                derivation_count: 0,
+            },
+            // Bus connectivity
+            busConnected: false,
+            // Done section collapsed by default
+            doneExpanded: false,
         });
+
         this.timerInterval = null;
-        this._onDgcTurnUpdate = () => this.loadData();
+        this._busHeartbeatTimer = null;
+        this._previousWaitingIds = new Set();
+        this._newTurnTimers = [];
+
+        this._onDgcTurnUpdate = () => {
+            this._markBusAlive();
+            this.loadData();
+        };
 
         onWillStart(async () => {
             await this.loadData();
@@ -29,9 +51,13 @@ export class DgcOperatorDashboard extends Component {
         onMounted(() => {
             this._startTimer();
             document.addEventListener("dgc_turn_update", this._onDgcTurnUpdate);
+            // Initialize bus heartbeat — assume connected if event arrives within timeout
+            this._startBusHeartbeat();
         });
         onWillUnmount(() => {
             this._stopTimer();
+            this._stopBusHeartbeat();
+            this._clearNewTurnTimers();
             document.removeEventListener("dgc_turn_update", this._onDgcTurnUpdate);
         });
     }
@@ -43,10 +69,37 @@ export class DgcOperatorDashboard extends Component {
                 "get_operator_dashboard_data",
                 [],
             );
+
+            // Detect new turns in the waiting queue for animation
+            const oldIds = this._previousWaitingIds;
+            const newWaiting = data.waiting_turns || [];
+            const newIds = new Set(newWaiting.map((t) => t.id));
+
+            // Mark newly appeared turns
+            for (const turn of newWaiting) {
+                if (!oldIds.has(turn.id)) {
+                    turn.__is_new = true;
+                    // Schedule removal of the animation flag
+                    const timer = setTimeout(() => {
+                        turn.__is_new = false;
+                    }, NEW_TURN_ANIMATION_MS);
+                    this._newTurnTimers.push(timer);
+                }
+            }
+            this._previousWaitingIds = newIds;
+
             this.state.currentTurn = data.current_turn || null;
-            this.state.waitingTurns = data.waiting_turns || [];
+            this.state.waitingTurns = newWaiting;
             this.state.doneTurns = data.done_turns || [];
             this.state.loading = false;
+
+            // Assign KPIs from backend
+            if (data.kpis) {
+                this.state.kpis.served_count = data.kpis.served_count || 0;
+                this.state.kpis.avg_duration = data.kpis.avg_duration || 0;
+                this.state.kpis.pending_count = data.kpis.pending_count || 0;
+                this.state.kpis.derivation_count = data.kpis.derivation_count || 0;
+            }
         } catch {
             this.state.loading = false;
         }
@@ -79,6 +132,44 @@ export class DgcOperatorDashboard extends Component {
         const m = String(Math.floor(Math.abs(diff.minutes))).padStart(2, "0");
         const s = String(Math.floor(Math.abs(diff.seconds))).padStart(2, "0");
         this.state.timerDisplay = `${h}:${m}:${s}`;
+    }
+
+    // --- Bus Heartbeat ---
+
+    _startBusHeartbeat() {
+        // Will be set to connected when first bus event arrives
+        this.state.busConnected = false;
+    }
+
+    _stopBusHeartbeat() {
+        if (this._busHeartbeatTimer) {
+            clearTimeout(this._busHeartbeatTimer);
+            this._busHeartbeatTimer = null;
+        }
+    }
+
+    _markBusAlive() {
+        this.state.busConnected = true;
+        // Reset the heartbeat timeout
+        this._stopBusHeartbeat();
+        this._busHeartbeatTimer = setTimeout(() => {
+            this.state.busConnected = false;
+        }, BUS_HEARTBEAT_TIMEOUT);
+    }
+
+    // --- New Turn Animation Cleanup ---
+
+    _clearNewTurnTimers() {
+        for (const timer of this._newTurnTimers) {
+            clearTimeout(timer);
+        }
+        this._newTurnTimers = [];
+    }
+
+    // --- Toggle Done Section ---
+
+    toggleDoneSection() {
+        this.state.doneExpanded = !this.state.doneExpanded;
     }
 
     // --- Actions ---
@@ -123,7 +214,7 @@ export class DgcOperatorDashboard extends Component {
             await this.orm.call("dgc.appointment.turn", "action_serve", [this.state.currentTurn.id]);
             await this.loadData();
         } catch {
-            this.notification.add(_t("Error al iniciar atención."), {type: "danger"});
+            this.notification.add(_t("Error al iniciar atencion."), {type: "danger"});
         }
     }
 
@@ -191,10 +282,10 @@ export class DgcOperatorDashboard extends Component {
     }
 
     formatDuration(minutes) {
-        if (!minutes) return "00:00";
-        const m = Math.floor(minutes);
-        const s = Math.round((minutes - m) * 60);
-        return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+        if (!minutes) return "0m";
+        return minutes < 60
+            ? `${Math.round(minutes)}m`
+            : `${Math.floor(minutes / 60)}h ${Math.round(minutes % 60)}m`;
     }
 }
 

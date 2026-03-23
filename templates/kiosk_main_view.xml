@@ -31,28 +31,47 @@
                         <p class="kiosk-subtitle">Dirección General de Catastro</p>
                     </div>
 
+                    <!-- Step 0: Welcome / Action Selection -->
+                    <div class="step active" id="step-0">
+                        <div class="welcome-panel">
+                            <div class="welcome-actions">
+                                <button class="btn-welcome btn-welcome-primary" id="btn-new-turn">
+                                    <span class="btn-welcome-icon">&#43;</span>
+                                    <span class="btn-welcome-label">Sacar Nuevo Turno</span>
+                                </button>
+                                <button class="btn-welcome btn-welcome-secondary" id="btn-check-turn">
+                                    <span class="btn-welcome-icon">&#128269;</span>
+                                    <span class="btn-welcome-label">Consultar mi Turno</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Step 1: DNI Input -->
-                    <div class="step active" id="step-1">
+                    <div class="step" id="step-1">
                         <h2>Ingrese su DNI o CUIT</h2>
                         <div class="dni-display">
                             <input type="text" id="dni-input" readonly="readonly"
                                    placeholder="Ingrese su documento"
-                                   class="dni-field" maxlength="11"/>
+                                   class="dni-field" maxlength="11"
+                                   role="status" aria-live="polite" aria-label="Número de documento ingresado"/>
+                            <div id="dni-validation" class="dni-validation neutral"></div>
                         </div>
-                        <div class="numpad">
-                            <button class="numpad-btn" data-value="1">1</button>
-                            <button class="numpad-btn" data-value="2">2</button>
-                            <button class="numpad-btn" data-value="3">3</button>
-                            <button class="numpad-btn" data-value="4">4</button>
-                            <button class="numpad-btn" data-value="5">5</button>
-                            <button class="numpad-btn" data-value="6">6</button>
-                            <button class="numpad-btn" data-value="7">7</button>
-                            <button class="numpad-btn" data-value="8">8</button>
-                            <button class="numpad-btn" data-value="9">9</button>
-                            <button class="numpad-btn numpad-clear" data-value="clear">Borrar</button>
-                            <button class="numpad-btn" data-value="0">0</button>
-                            <button class="numpad-btn numpad-next" data-value="next">Siguiente</button>
+                        <div class="numpad" role="group" aria-label="Teclado numérico">
+                            <button class="numpad-btn" data-value="1" aria-label="Número 1">1</button>
+                            <button class="numpad-btn" data-value="2" aria-label="Número 2">2</button>
+                            <button class="numpad-btn" data-value="3" aria-label="Número 3">3</button>
+                            <button class="numpad-btn" data-value="4" aria-label="Número 4">4</button>
+                            <button class="numpad-btn" data-value="5" aria-label="Número 5">5</button>
+                            <button class="numpad-btn" data-value="6" aria-label="Número 6">6</button>
+                            <button class="numpad-btn" data-value="7" aria-label="Número 7">7</button>
+                            <button class="numpad-btn" data-value="8" aria-label="Número 8">8</button>
+                            <button class="numpad-btn" data-value="9" aria-label="Número 9">9</button>
+                            <button class="numpad-btn numpad-clear" data-value="clear" aria-label="Borrar">Borrar</button>
+                            <button class="numpad-btn" data-value="0" aria-label="Número 0">0</button>
+                            <button class="numpad-btn numpad-next numpad-next-disabled" data-value="next" id="numpad-next-1" disabled="disabled" aria-label="Siguiente">Siguiente</button>
                         </div>
+                        <button class="btn-back" id="btn-back-1" aria-label="Volver">Volver</button>
                         <div class="error-message" id="dni-error" style="display:none;"></div>
                     </div>
 
@@ -62,7 +81,7 @@
                         <div class="area-list" id="area-list">
                             <!-- Areas loaded dynamically -->
                         </div>
-                        <button class="btn-back" id="btn-back-1">Volver</button>
+                        <button class="btn-back" id="btn-back-2">Volver</button>
                         <div class="error-message" id="area-error" style="display:none;"></div>
                     </div>
 
@@ -86,6 +105,48 @@
                             </div>
                             <p class="countdown-text">
                                 Volviendo al inicio en <span id="countdown">10</span> segundos
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Step Check: DNI input for turn lookup -->
+                    <div class="step" id="step-check">
+                        <h2>Consultar mi Turno</h2>
+                        <p class="step-hint">Ingrese su DNI o CUIT para buscar su turno activo</p>
+                        <div class="dni-display">
+                            <input type="text" id="check-dni-input" readonly="readonly"
+                                   placeholder="Ingrese su documento"
+                                   class="dni-field" maxlength="11"
+                                   role="status" aria-live="polite" aria-label="Número de documento ingresado"/>
+                            <div id="check-dni-validation" class="dni-validation neutral"></div>
+                        </div>
+                        <div class="numpad" role="group" aria-label="Teclado numérico">
+                            <button class="numpad-btn" data-value="1" aria-label="Número 1">1</button>
+                            <button class="numpad-btn" data-value="2" aria-label="Número 2">2</button>
+                            <button class="numpad-btn" data-value="3" aria-label="Número 3">3</button>
+                            <button class="numpad-btn" data-value="4" aria-label="Número 4">4</button>
+                            <button class="numpad-btn" data-value="5" aria-label="Número 5">5</button>
+                            <button class="numpad-btn" data-value="6" aria-label="Número 6">6</button>
+                            <button class="numpad-btn" data-value="7" aria-label="Número 7">7</button>
+                            <button class="numpad-btn" data-value="8" aria-label="Número 8">8</button>
+                            <button class="numpad-btn" data-value="9" aria-label="Número 9">9</button>
+                            <button class="numpad-btn numpad-clear" data-value="clear" aria-label="Borrar">Borrar</button>
+                            <button class="numpad-btn" data-value="0" aria-label="Número 0">0</button>
+                            <button class="numpad-btn numpad-next numpad-next-disabled" data-value="next" id="numpad-next-check" disabled="disabled" aria-label="Consultar">Consultar</button>
+                        </div>
+                        <button class="btn-back" id="btn-back-check" aria-label="Volver">Volver</button>
+                        <div class="error-message" id="check-dni-error" style="display:none;"></div>
+                    </div>
+
+                    <!-- Step Check Result: Turn status display -->
+                    <div class="step" id="step-check-result">
+                        <div id="check-result-content">
+                            <!-- Dynamically rendered -->
+                        </div>
+                        <div class="check-result-actions">
+                            <button class="btn-back" id="btn-back-check-result">Volver al inicio</button>
+                            <p class="countdown-text">
+                                Volviendo al inicio en <span id="check-result-countdown">30</span> segundos
                             </p>
                         </div>
                     </div>

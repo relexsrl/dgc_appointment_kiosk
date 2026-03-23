@@ -1,38 +1,197 @@
-// DGC Operator Dashboard Styles
-.dgc-dashboard {
-    background: #f8f9fa;
-    min-height: 100%;
+// DGC Operator Dashboard Styles — 2-column grid layout
+// Design tokens are loaded from _tokens.scss via the asset bundle.
 
-    .dgc-dashboard-header {
+.dgc-dashboard {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: calc(100vh - 50px);
+    background: var(--dgc-bg-secondary);
+
+    // ── Header ──────────────────────────────────────────────────
+    &__header {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: var(--dgc-spacing-md);
+        padding: var(--dgc-spacing-md) var(--dgc-spacing-lg);
+        background: white;
+        border-bottom: 1px solid var(--dgc-border-color);
         position: sticky;
         top: 0;
-        z-index: 10;
+        z-index: var(--dgc-z-sticky);
     }
 
-    .dgc-current-turn {
-        .card-header {
-            h3 {
-                font-size: 1.4rem;
-            }
-        }
-
-        .card-footer {
-            background: #f8f9fa;
-        }
+    &__status {
+        display: flex;
+        align-items: center;
+        gap: var(--dgc-spacing-xs);
     }
 
-    .dgc-waiting-queue,
-    .dgc-done-today {
-        .table {
-            th {
-                font-size: 0.85rem;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
+    // ── 2-Column Body ───────────────────────────────────────────
+    &__body {
+        display: grid;
+        grid-template-columns: 2fr 3fr;
+        gap: var(--dgc-spacing-lg);
+        padding: var(--dgc-spacing-lg);
+        align-items: start;
+
+        @media (max-width: 1024px) {
+            grid-template-columns: 1fr;
         }
     }
 
-    .cursor-pointer {
-        cursor: pointer;
+    // ── Left Column: Current Turn ───────────────────────────────
+    &__current {
+        position: sticky;
+        top: 80px; // Below header
     }
+
+    // ── Right Column ────────────────────────────────────────────
+    &__right {
+        display: flex;
+        flex-direction: column;
+        gap: var(--dgc-spacing-lg);
+    }
+}
+
+// ── KPI Cards Row ───────────────────────────────────────────────
+.dgc-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--dgc-spacing-md);
+
+    @media (max-width: 768px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.dgc-kpi-card {
+    background: white;
+    border-radius: var(--dgc-border-radius-md);
+    padding: var(--dgc-spacing-lg);
+    text-align: center;
+    box-shadow: var(--dgc-shadow-sm);
+    transition: box-shadow var(--dgc-transition-fast);
+
+    &:hover {
+        box-shadow: var(--dgc-shadow-md);
+    }
+
+    &__value {
+        display: block;
+        font-size: var(--dgc-font-size-2xl);
+        font-weight: 700;
+        color: var(--dgc-primary);
+    }
+
+    &__label {
+        display: block;
+        margin-top: var(--dgc-spacing-xs);
+        font-size: var(--dgc-font-size-sm);
+        color: var(--dgc-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+}
+
+// ── Bus Indicator ───────────────────────────────────────────────
+.dgc-bus-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+
+    &.connected {
+        background: var(--dgc-success);
+        box-shadow: 0 0 4px var(--dgc-success);
+    }
+
+    &.disconnected {
+        background: var(--dgc-danger);
+    }
+}
+
+// ── Empty State ─────────────────────────────────────────────────
+.dgc-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--dgc-spacing-2xl);
+    text-align: center;
+    color: var(--dgc-text-secondary);
+    min-height: 300px;
+}
+
+// ── Current Turn Card ───────────────────────────────────────────
+.dgc-current-card {
+    &__header {
+        // inherited from card-header + bg-success/bg-warning
+    }
+
+    &__timer {
+        font-family: monospace;
+        font-size: var(--dgc-font-size-3xl);
+        font-weight: 600;
+        opacity: 0.95;
+    }
+
+    &__dni {
+        text-align: center;
+        padding: var(--dgc-spacing-md);
+        background: var(--dgc-bg-secondary);
+        border-radius: var(--dgc-border-radius-md);
+    }
+
+    &__dni-value {
+        display: block;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dgc-primary);
+        letter-spacing: 1px;
+    }
+
+    &__actions {
+        display: flex;
+        gap: var(--dgc-spacing-sm);
+        flex-wrap: wrap;
+        background: var(--dgc-bg-secondary);
+    }
+}
+
+// ── Waiting Queue & Done Today ──────────────────────────────────
+.dgc-waiting-queue,
+.dgc-done-today {
+    .table {
+        th {
+            font-size: var(--dgc-font-size-display-label);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    }
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+// ── Turn Arrival Animation ──────────────────────────────────────
+@keyframes dgc-slide-in {
+    from {
+        transform: translateX(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.dgc-turn-new {
+    animation: dgc-slide-in 0.3s ease-out;
+}
+
+// ── Loading State ───────────────────────────────────────────────
+.dgc-dashboard-loading {
+    grid-column: 1 / -1;
 }

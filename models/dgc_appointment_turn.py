@@ -10,7 +10,12 @@ _logger = logging.getLogger(__name__)
 
 def _today_tz(env):
     """Return today's date in the company's timezone."""
-    tz = env.company.partner_id.tz or "America/Argentina/Buenos_Aires"
+    try:
+        # Try to get timezone from company, but may fail for public users (no ACL on partner_id)
+        tz = env.company.partner_id.tz or "America/Argentina/Buenos_Aires"
+    except Exception:
+        # Public user or no ACL: use default timezone
+        tz = "America/Argentina/Buenos_Aires"
     rec = env["dgc.appointment.turn"]
     local_now = fields.Datetime.context_timestamp(rec, _dt.utcnow())
     return local_now.date()
@@ -244,6 +249,7 @@ class DgcAppointmentTurn(models.Model):
             "call_number": new_count,
         })
         self._send_bus_notification("call")
+        self._send_display_notification("call")
 
     def action_recall(self):
         self.ensure_one()
@@ -258,6 +264,7 @@ class DgcAppointmentTurn(models.Model):
             "call_number": new_count,
         })
         self._send_bus_notification("recall")
+        self._send_display_notification("recall")
 
     def action_serve(self):
         self.ensure_one()
@@ -269,6 +276,7 @@ class DgcAppointmentTurn(models.Model):
             "operator_id": self.env.uid,
         })
         self._send_bus_notification("serve")
+        self._send_display_notification("serve")
 
     def action_done(self):
         self.ensure_one()
@@ -279,6 +287,7 @@ class DgcAppointmentTurn(models.Model):
             "done_date": fields.Datetime.now(),
         })
         self._send_bus_notification("done")
+        self._send_display_notification("done")
 
     def action_no_show(self):
         self.ensure_one()
@@ -288,6 +297,7 @@ class DgcAppointmentTurn(models.Model):
             raise UserError("Debe llamar al turno al menos una vez antes de marcarlo como no presentado.")
         self.write({"state": "no_show"})
         self._send_bus_notification("no_show")
+        self._send_display_notification("no_show")
 
     def action_derive(self):
         self.ensure_one()
@@ -317,6 +327,22 @@ class DgcAppointmentTurn(models.Model):
             "operator_box": self.operator_box or "",
         }
         self.env["bus.bus"]._sendone(channel, "dgc_turn_update", payload)
+
+    def _send_display_notification(self, action):
+        """Broadcast turn update to the public display channel."""
+        self.ensure_one()
+        payload = {
+            'action': action,
+            'turn_id': self.id,
+            'turn_number': self.turn_number,
+            'area_name': self.area_id.name,
+            'area_code': self.area_id.dgc_code,
+            'area_color': self.area_id._get_display_hex_color(),
+            'state': self.state,
+            'operator_box': self.operator_box or '',
+            'timestamp': fields.Datetime.now().isoformat(),
+        }
+        self.env['bus.bus']._sendone('dgc_turn_display', 'dgc_display_update', payload)
 
     @api.model
     def _find_or_create_partner(self, dni, name, email):
@@ -414,11 +440,53 @@ class DgcAppointmentTurn(models.Model):
             order="done_date desc",
             limit=50,
         )
+        # --- KPIs ---
+        served_count = self.search_count([
+            ('state', '=', 'done'),
+            ('date', '=', today),
+            ('area_id', 'in', area_ids),
+        ])
+
+        avg_duration = 0.0
+        duration_groups = self._read_group(
+            domain=[
+                ('state', '=', 'done'),
+                ('date', '=', today),
+                ('area_id', 'in', area_ids),
+            ],
+            groupby=[],
+            aggregates=['duration:avg'],
+        )
+        if duration_groups and duration_groups[0][0] is not None:
+            avg_duration = round(duration_groups[0][0], 1)
+
+        pending_count = self.search_count([
+            ('state', 'in', ['new', 'waiting', 'calling']),
+            ('date', '=', today),
+            ('area_id', 'in', area_ids),
+        ])
+
+        derivation_count = self.env['dgc.appointment.derivation'].search_count([
+            ('from_area_id', 'in', area_ids),
+            ('derivation_date', '>=', fields.Datetime.to_string(
+                _dt.combine(today, _dt.min.time())
+            )),
+            ('derivation_date', '<', fields.Datetime.to_string(
+                _dt.combine(today, _dt.max.time())
+            )),
+        ])
+
         return {
             "current_turn": current[0] if current else False,
             "waiting_turns": waiting,
             "done_turns": done,
             "area_ids": area_ids,
+            "kpis": {
+                "served_count": served_count,
+                "avg_duration": avg_duration,
+                "pending_count": pending_count,
+                "derivation_count": derivation_count,
+            },
         }
 
     @api.model

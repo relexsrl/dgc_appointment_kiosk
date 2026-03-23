@@ -2,6 +2,12 @@ from odoo import api, fields, models
 
 from .dgc_appointment_turn import _today_tz
 
+DGC_COLOR_MAP = {
+    0: '#F06050', 1: '#F4A460', 2: '#F7CD1F', 3: '#6CC1ED',
+    4: '#814968', 5: '#EB7E7F', 6: '#2C8397', 7: '#475577',
+    8: '#D6145F', 9: '#30C381', 10: '#9365B8', 11: '#1abc9c',
+}
+
 
 class AppointmentType(models.Model):
     _inherit = "appointment.type"
@@ -146,6 +152,11 @@ class AppointmentType(models.Model):
             float(icp.get_param("dgc_appointment_kiosk.hour_start", "8.0")),
             float(icp.get_param("dgc_appointment_kiosk.hour_end", "14.0")),
         )
+
+    def _get_display_hex_color(self):
+        """Map Odoo color index (0-11) to a hex color string."""
+        self.ensure_one()
+        return DGC_COLOR_MAP.get(self.dgc_color, '#3498db')
 
     @api.model
     def _get_dgc_areas_for_user(self, user=None):

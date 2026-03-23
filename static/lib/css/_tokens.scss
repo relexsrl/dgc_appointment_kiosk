@@ -1,0 +1,101 @@
+// DGC Design Tokens — shared across kiosk, display, and dashboard
+// This file is the single source of truth for all visual constants.
+// Keep in sync with static/src/css/_tokens.scss (backend copy).
+
+:root {
+    // ── Colors ──────────────────────────────────────────────────
+    --dgc-primary: #1A237E;
+    --dgc-primary-light: #232fa8;
+    --dgc-success: #00C853;
+    --dgc-success-alt: #4CAF50;
+    --dgc-success-dark: #00953e;
+    --dgc-warning: #FF9800;
+    --dgc-warning-dark: #cc7a00;
+    --dgc-danger: #F44336;
+    --dgc-accent: #FFD600;
+
+    --dgc-text-primary: #212121;
+    --dgc-text-secondary: #666666;
+    --dgc-text-dark: #333333;
+    --dgc-text-muted: #999999;
+
+    --dgc-bg-primary: #F5F5F5;
+    --dgc-bg-secondary: #f8f9fa;
+    --dgc-bg-card: #ffffff;
+    --dgc-bg-display: #1A237E;
+
+    --dgc-border-color: #e0e0e0;
+    --dgc-border-light: #dddddd;
+    --dgc-border-input: #cccccc;
+
+    --dgc-error-bg: #fce4ec;
+
+    // Overlay / alpha colors
+    --dgc-overlay-dark: rgba(0, 0, 0, 0.7);
+    --dgc-overlay-light: rgba(0, 0, 0, 0.2);
+    --dgc-overlay-medium: rgba(0, 0, 0, 0.3);
+    --dgc-overlay-box: rgba(0, 0, 0, 0.25);
+    --dgc-white-overlay-subtle: rgba(255, 255, 255, 0.08);
+    --dgc-white-overlay-light: rgba(255, 255, 255, 0.1);
+    --dgc-white-overlay-medium: rgba(255, 255, 255, 0.2);
+
+    // ── Typography ──────────────────────────────────────────────
+    --dgc-font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    --dgc-font-size-xs: 12px;
+    --dgc-font-size-sm: 14px;
+    --dgc-font-size-md: 16px;
+    --dgc-font-size-lg: 18px;
+    --dgc-font-size-xl: 20px;
+    --dgc-font-size-2xl: 22px;
+    --dgc-font-size-3xl: 24px;
+    --dgc-font-size-4xl: 28px;
+    --dgc-font-size-5xl: 32px;
+    --dgc-font-size-6xl: 48px;
+    --dgc-font-size-7xl: 64px;
+    --dgc-font-size-8xl: 72px;
+
+    --dgc-display-scale: 1;
+    --dgc-font-size-display-dni: calc(5.5rem * var(--dgc-display-scale));
+    --dgc-font-size-display-meta: calc(1.5rem * var(--dgc-display-scale));
+    --dgc-font-size-display-area: calc(2rem * var(--dgc-display-scale));
+    --dgc-font-size-display-box: calc(2rem * var(--dgc-display-scale));
+    --dgc-font-size-display-heading: calc(1.6rem * var(--dgc-display-scale));
+    --dgc-font-size-display-label: calc(1rem * var(--dgc-display-scale));
+    --dgc-font-size-queue-label: 0.85rem;
+    --dgc-font-size-queue-value: 1.6rem;
+
+    // ── Spacing ─────────────────────────────────────────────────
+    --dgc-spacing-xs: 4px;
+    --dgc-spacing-sm: 8px;
+    --dgc-spacing-md: 16px;
+    --dgc-spacing-lg: 24px;
+    --dgc-spacing-xl: 32px;
+    --dgc-spacing-2xl: 48px;
+    --dgc-spacing-10: 10px;
+    --dgc-spacing-12: 12px;
+    --dgc-spacing-15: 15px;
+    --dgc-spacing-20: 20px;
+    --dgc-spacing-40: 40px;
+
+    // ── Shadows ─────────────────────────────────────────────────
+    --dgc-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --dgc-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --dgc-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
+
+    // ── Borders ─────────────────────────────────────────────────
+    --dgc-border-radius-sm: 4px;
+    --dgc-border-radius-md: 8px;
+    --dgc-border-radius-lg: 12px;
+    --dgc-border-radius-xl: 16px;
+
+    // ── Transitions ─────────────────────────────────────────────
+    --dgc-transition-fast: 0.15s;
+    --dgc-transition-normal: 0.2s;
+    --dgc-transition-slow: 0.3s;
+
+    // ── Z-index ─────────────────────────────────────────────────
+    --dgc-z-sticky: 10;
+    --dgc-z-overlay: 1000;
+    --dgc-z-modal: 1050;
+}

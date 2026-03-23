@@ -29,6 +29,11 @@
                         <img t-att-src="brand_logo_url" alt="Logo" class="display-logo"/>
                     </t>
                     <h1>Turnero - Dirección General de Catastro</h1>
+                    <span id="display-clock" class="display-clock"></span>
+                    <div id="connection-status" class="connection-status">
+                        <span class="status-dot"></span>
+                        <span class="status-label">Conectando...</span>
+                    </div>
                 </div>
 
                 <!-- Calling Section -->

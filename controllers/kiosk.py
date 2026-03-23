@@ -69,6 +69,62 @@ class KioskController(http.Controller):
             "max_daily_turns": area.max_daily_turns,
         } for area in areas]
 
+    @http.route("/kiosk/api/turn/status", type="jsonrpc", auth="public")
+    def kiosk_turn_status(self, dni):
+        """Check active turn status for a given DNI."""
+        ip = request.httprequest.remote_addr
+
+        if self._check_rate_limit(ip):
+            return {
+                "found": False,
+                "error_code": "RATE_LIMIT",
+                "message": "Demasiadas solicitudes. Espere unos segundos.",
+            }
+
+        Turn = request.env["dgc.appointment.turn"].sudo()
+
+        # Validate DNI format
+        if not Turn._validate_dni(dni):
+            return {
+                "found": False,
+                "error_code": "INVALID_DNI",
+                "message": "El DNI/CUIT ingresado no es válido.",
+            }
+
+        today = _today_tz(request.env)
+
+        # Search for active turn: today, matching DNI, active states
+        turn = Turn.search([
+            ("citizen_dni", "=", dni),
+            ("date", "=", today),
+            ("state", "in", ["new", "waiting", "calling", "serving"]),
+        ], order="create_date desc", limit=1)
+
+        if not turn:
+            return {"found": False}
+
+        # Calculate position in queue (same area, same day, earlier ID, pending states)
+        position = Turn.search_count([
+            ("area_id", "=", turn.area_id.id),
+            ("date", "=", turn.date),
+            ("state", "in", ["new", "waiting"]),
+            ("id", "<", turn.id),
+        ]) + 1  # +1 for 1-based position
+
+        # Estimate wait time
+        area = turn.area_id
+        service_minutes = int(area.appointment_duration * 60) if area.appointment_duration > 0 else 15
+        estimated_wait_minutes = max(0, (position - 1) * service_minutes)
+
+        return {
+            "found": True,
+            "turn_number": turn.turn_number,
+            "area_name": area.name,
+            "state": turn.state,
+            "position": position,
+            "estimated_wait_minutes": estimated_wait_minutes,
+        }
+
     @http.route("/kiosk/api/turn/create", type="jsonrpc", auth="public")
     def kiosk_create_turn(self, dni, area_id, email=None, notes=None):
         ip = request.httprequest.remote_addr

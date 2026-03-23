@@ -69,6 +69,7 @@ class DgcTurnDeriveWizard(models.TransientModel):
 
         # 4. Notify destination area
         new_turn._send_bus_notification("derived")
+        new_turn._send_display_notification("derived")
 
         return {"type": "ir.actions.act_window_close"}
 

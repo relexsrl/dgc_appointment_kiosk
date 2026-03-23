@@ -52,6 +52,7 @@ class DisplayController(http.Controller):
                 "citizen_dni": t.citizen_dni or "",
                 "area_name": t.area_id.name,
                 "area_code": t.area_id.dgc_code,
+                "area_color": t.area_id._get_display_hex_color(),
                 "operator": t.operator_id.name or "",
                 "operator_box": t.operator_box or "",
                 "call_count": t.call_count,
@@ -60,6 +61,7 @@ class DisplayController(http.Controller):
                 "turn_number": t.turn_number,
                 "area_name": t.area_id.name,
                 "area_code": t.area_id.dgc_code,
+                "area_color": t.area_id._get_display_hex_color(),
             } for t in waiting],
             "scroll_messages": messages,
         }
