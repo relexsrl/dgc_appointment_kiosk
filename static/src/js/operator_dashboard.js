@@ -137,8 +137,9 @@ export class DgcOperatorDashboard extends Component {
     // --- Bus Heartbeat ---
 
     _startBusHeartbeat() {
-        // Will be set to connected when first bus event arrives
-        this.state.busConnected = false;
+        // Assume bus is connected (optimistic approach)
+        // Will be marked as disconnected only if no events arrive for 60s
+        this._markBusAlive();
     }
 
     _stopBusHeartbeat() {
