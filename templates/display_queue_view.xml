@@ -14,7 +14,8 @@
                 </style>
             </head>
             <body class="display-body"
-                  t-att-data-refresh-interval="refresh_interval">
+                  t-att-data-refresh-interval="refresh_interval"
+                  t-att-data-token="token">
 
                 <!-- Sound activation overlay -->
                 <div class="sound-overlay" id="sound-overlay">

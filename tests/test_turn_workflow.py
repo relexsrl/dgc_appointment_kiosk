@@ -140,12 +140,14 @@ class TestTurnWorkflow(TransactionCase):
 
     def test_cron_closes_pending_turns(self):
         """Cron marks yesterday's pending turns as no_show."""
-        yesterday = fields.Date.subtract(fields.Date.context_today(self.env["dgc.appointment.turn"]), days=1)
+        # Use a clearly defined date in the past
+        yesterday = fields.Date.context_today(self.env["dgc.appointment.turn"]) - timedelta(days=1)
         turn = self.Turn.create(
             {
                 "citizen_dni": "11111111",
                 "area_id": self.area.id,
                 "date": yesterday,
+                "call_count": 1,
             }
         )
         self.Turn._cron_close_pending_turns()

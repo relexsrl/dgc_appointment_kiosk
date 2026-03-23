@@ -14,6 +14,12 @@ _logger = logging.getLogger(__name__)
 class KioskController(http.Controller):
 
     @classmethod
+    def _verify_token(cls, token):
+        icp = request.env["ir.config_parameter"].sudo()
+        valid_token = icp.get_param("dgc_appointment_kiosk.kiosk_token")
+        return valid_token and token == valid_token
+
+    @classmethod
     def _check_rate_limit(cls, ip):
         icp = request.env["ir.config_parameter"].sudo()
         window = int(icp.get_param("dgc_appointment_kiosk.rate_limit_seconds", "60"))
@@ -41,10 +47,13 @@ class KioskController(http.Controller):
             pass
         return False
 
-    @http.route("/kiosk/checkin", type="http", auth="public", website=False)
-    def kiosk_main(self):
+    @http.route("/kiosk/<string:token>/checkin", type="http", auth="public", website=False)
+    def kiosk_main(self, token):
+        if not self._verify_token(token):
+            return request.not_found()
         icp = request.env["ir.config_parameter"].sudo()
         values = {
+            "token": token,
             "timeout": int(icp.get_param("dgc_appointment_kiosk.kiosk_timeout", "30")),
             "require_email": icp.get_param("dgc_appointment_kiosk.kiosk_require_email", "False") in ("True", "true", "1"),
             "show_notes": icp.get_param("dgc_appointment_kiosk.kiosk_show_notes", "False") in ("True", "true", "1"),
@@ -53,8 +62,10 @@ class KioskController(http.Controller):
         }
         return request.render("dgc_appointment_kiosk.kiosk_main_view", values)
 
-    @http.route("/kiosk/api/areas", type="jsonrpc", auth="public")
-    def kiosk_areas(self):
+    @http.route("/kiosk/<string:token>/api/areas", type="jsonrpc", auth="public")
+    def kiosk_areas(self, token):
+        if not self._verify_token(token):
+            return {"error": {"message": "Invalid token", "code": 403}}
         areas = request.env["appointment.type"].sudo().search([
             ("is_dgc_area", "=", True),
             ("active", "=", True),
@@ -69,8 +80,10 @@ class KioskController(http.Controller):
             "max_daily_turns": area.max_daily_turns,
         } for area in areas]
 
-    @http.route("/kiosk/api/turn/status", type="jsonrpc", auth="public")
-    def kiosk_turn_status(self, dni):
+    @http.route("/kiosk/<string:token>/api/turn/status", type="jsonrpc", auth="public")
+    def kiosk_turn_status(self, token, dni):
+        if not self._verify_token(token):
+            return {"error": {"message": "Invalid token", "code": 403}}
         """Check active turn status for a given DNI."""
         ip = request.httprequest.remote_addr
 
@@ -125,8 +138,10 @@ class KioskController(http.Controller):
             "estimated_wait_minutes": estimated_wait_minutes,
         }
 
-    @http.route("/kiosk/api/turn/create", type="jsonrpc", auth="public")
-    def kiosk_create_turn(self, dni, area_id, email=None, notes=None):
+    @http.route("/kiosk/<string:token>/api/turn/create", type="jsonrpc", auth="public")
+    def kiosk_create_turn(self, token, dni, area_id, email=None, notes=None):
+        if not self._verify_token(token):
+            return {"error": {"message": "Invalid token", "code": 403}}
         ip = request.httprequest.remote_addr
 
         if self._check_rate_limit(ip):

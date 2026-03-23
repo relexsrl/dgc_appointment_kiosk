@@ -88,7 +88,9 @@ class TestDerivation(TransactionCase):
             )
         )
         wizard.action_derive()
-        self.assertEqual(turn.area_id, self.area_cat)
+        # The derivation creates a new turn.
+        new_turn = turn.derivation_ids[0].new_turn_id
+        self.assertEqual(new_turn.area_id, self.area_cat)
 
     def test_derivation_resets_to_waiting(self):
         """Derived turn goes back to waiting state in new area."""
@@ -111,7 +113,8 @@ class TestDerivation(TransactionCase):
             )
         )
         wizard.action_derive()
-        self.assertEqual(turn.state, "waiting")
+        new_turn = turn.derivation_ids[0].new_turn_id
+        self.assertEqual(new_turn.state, "waiting")
 
     def test_derivation_records_user(self):
         """Derivation records the user who performed it."""
@@ -178,7 +181,8 @@ class TestDerivation(TransactionCase):
             )
         )
         wizard1.action_derive()
-        self.assertEqual(turn.area_id, self.area_cat)
+        new_turn1 = turn.derivation_ids[0].new_turn_id
+        self.assertEqual(new_turn1.area_id, self.area_cat)
 
         # Second derivation back
         wizard2 = (
@@ -186,12 +190,12 @@ class TestDerivation(TransactionCase):
             .with_user(self.operator)
             .create(
                 {
-                    "turn_id": turn.id,
+                    "turn_id": new_turn1.id,
                     "to_area_id": self.area_geo.id,
                     "reason": "Segunda derivación",
                 }
             )
         )
         wizard2.action_derive()
-        self.assertEqual(turn.area_id, self.area_geo)
-        self.assertEqual(len(turn.derivation_ids), 2)
+        new_turn2 = new_turn1.derivation_ids[0].new_turn_id
+        self.assertEqual(new_turn2.area_id, self.area_geo)

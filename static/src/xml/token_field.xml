@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dgc_appointment_kiosk.TokenField" owl="1">
+        <div class="d-flex align-items-center w-100">
+            <!-- Reuse standard CharField input logic if possible or just render input -->
+            <input
+                type="text"
+                class="form-control flex-grow-1"
+                t-att-id="props.id"
+                t-att-placeholder="props.placeholder"
+                t-att-readonly="props.readonly"
+                t-att-value="props.record.data[props.name] || ''"
+                t-on-change="(ev) => props.record.update({ [props.name]: ev.target.value })"
+            />
+            <button
+                class="btn btn-secondary ms-2 text-nowrap"
+                t-on-click="onRegenerate"
+                t-att-disabled="props.readonly"
+            >
+                Regenerar
+            </button>
+        </div>
+    </t>
+</templates>

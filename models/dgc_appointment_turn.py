@@ -312,7 +312,7 @@ class DgcAppointmentTurn(models.Model):
 
     def _send_bus_notification(self, action):
         self.ensure_one()
-        channel = f"dgc_turn_area_{self.area_id.id}"
+        area_channel = f"dgc_turn_area_{self.area_id.id}"
         payload = {
             "action": action,
             "turn_id": self.id,
@@ -326,7 +326,8 @@ class DgcAppointmentTurn(models.Model):
             "operator": self.operator_id.name or "",
             "operator_box": self.operator_box or "",
         }
-        self.env["bus.bus"]._sendone(channel, "dgc_turn_update", payload)
+        self.env["bus.bus"]._sendone(area_channel, "dgc_turn_update", payload)
+        self.env["bus.bus"]._sendone('dgc_turn_display', 'dgc_display_update', payload)
 
     def _send_display_notification(self, action):
         """Broadcast turn update to the public display channel."""

@@ -5,20 +5,15 @@
 class DgcDisplay {
     constructor() {
         this.body = document.body;
+        this.token = this.body.dataset.token;
         this.refreshInterval = parseInt(this.body.dataset.refreshInterval || "30", 10);
         this.audioContext = null;
         this.soundEnabled = false;
         this.pollTimer = null;
 
-        // Bus state
-        this.busLastId = 0;
-        this.busFailures = 0;
-        this.busActive = false;
-        this.busRetryTimer = null;
-
         this._initSoundButton();
         this.startClock();
-        this._startBus();
+        this._startPolling();
     }
 
     // ---------------------------------------------------------------
@@ -84,7 +79,7 @@ class DgcDisplay {
     }
 
     // ---------------------------------------------------------------
-    // Bus (primary) — longpolling on public channel
+    // Polling
     // ---------------------------------------------------------------
     _updateConnectionStatus(status) {
         // status: 'bus', 'polling', 'disconnected'
@@ -97,87 +92,15 @@ class DgcDisplay {
         }
         if (label) {
             const labels = {
-                bus: 'En vivo',
-                polling: 'Actualización cada 30s',
+                polling: 'Conectado',
                 disconnected: 'Sin conexión',
             };
             label.textContent = labels[status] || status;
         }
     }
 
-    _startBus() {
-        this.busFailures = 0;
-        this.busActive = true;
-        if (this.pollTimer) {
-            clearInterval(this.pollTimer);
-            this.pollTimer = null;
-        }
-        console.info("[DgcDisplay] Starting bus longpolling");
-        this._updateConnectionStatus('bus');
-        // Do an initial data load, then start listening
-        this._loadTurns();
-        this._pollBus();
-    }
-
-    async _pollBus() {
-        if (!this.busActive) return;
-        try {
-            const response = await fetch("/bus/longpolling/poll", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    jsonrpc: "2.0",
-                    method: "call",
-                    params: {
-                        channels: ["dgc_turn_display"],
-                        last: this.busLastId,
-                    },
-                }),
-            });
-            const data = await response.json();
-            if (data.error) {
-                throw new Error(data.error.message || "Bus error");
-            }
-            if (data.result && data.result.length > 0) {
-                this.busLastId = Math.max(...data.result.map((m) => m.id));
-                // Bus message is a signal — refresh data from API
-                this._loadTurns();
-            }
-            this.busFailures = 0;
-            // Continue listening immediately
-            this._pollBus();
-        } catch (e) {
-            this.busFailures++;
-            console.warn(
-                `[DgcDisplay] Bus poll failed (${this.busFailures}/3):`,
-                e.message || e
-            );
-            if (this.busFailures >= 3) {
-                console.warn(
-                    "[DgcDisplay] Bus failed 3 times, falling back to polling"
-                );
-                this.busActive = false;
-                this._updateConnectionStatus('disconnected');
-                this._startPolling();
-                // Try bus again after 5 minutes
-                this.busRetryTimer = setTimeout(() => this._tryBusAgain(), 300000);
-            } else {
-                // Retry bus after a short delay
-                setTimeout(() => this._pollBus(), 2000);
-            }
-        }
-    }
-
-    _tryBusAgain() {
-        console.info("[DgcDisplay] Retrying bus connection...");
-        this._startBus();
-    }
-
-    // ---------------------------------------------------------------
-    // Polling (fallback)
-    // ---------------------------------------------------------------
     _startPolling() {
-        if (this.pollTimer) return; // already polling
+        if (this.pollTimer) return;
         console.info("[DgcDisplay] Starting interval polling");
         this._updateConnectionStatus('polling');
         this._loadTurns();
@@ -187,24 +110,23 @@ class DgcDisplay {
         );
     }
 
-    _stopPolling() {
-        if (this.pollTimer) {
-            clearInterval(this.pollTimer);
-            this.pollTimer = null;
-        }
-    }
-
     // ---------------------------------------------------------------
     // Data loading
     // ---------------------------------------------------------------
     async _loadTurns() {
         try {
-            const data = await this._jsonRpc("/display/api/turns");
+            if (!this.token) {
+                console.error("No token found in body data-token attribute");
+                return;
+            }
+            const data = await this._jsonRpc(`/display/${this.token}/api/turns`);
             this.updateCallingTurns(data.calling || []);
             this.updateWaitingList(data.waiting || []);
             this.updateMessages(data.scroll_messages || []);
-        } catch {
-            // Silent fail - will retry on next poll/bus cycle
+            this._updateConnectionStatus('polling');
+        } catch (e) {
+            console.warn("Polling error:", e);
+            this._updateConnectionStatus('disconnected');
         }
     }
 
@@ -296,6 +218,10 @@ class DgcDisplay {
                 params: params || {},
             }),
         });
+        // Check for HTTP errors (like 404) before parsing JSON
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         if (data.error) {
             throw new Error(data.error.message || "Server error");

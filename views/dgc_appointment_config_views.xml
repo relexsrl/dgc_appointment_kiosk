@@ -11,6 +11,30 @@
                      string="DGC Turnero"
                      name="dgc_appointment_kiosk"
                      groups="dgc_appointment_kiosk.group_dgc_area_manager">
+                    <block title="Seguridad">
+                        <setting string="Token del Kiosk" help="Token para acceso a la URL del Kiosco">
+                            <div class="d-flex flex-column">
+                                <div class="d-flex align-items-center mb-2">
+                                    <field name="dgc_kiosk_token" widget="dgc_token_regenerator"/>
+                                </div>
+                                <div class="d-flex align-items-center text-muted" invisible="not dgc_kiosk_full_url">
+                                    <span class="me-2">URL:</span>
+                                    <field name="dgc_kiosk_full_url" widget="CopyClipboardChar" readonly="1" class="fw-bold text-primary"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Token del Display" help="Token para acceso a la URL del Display">
+                            <div class="d-flex flex-column">
+                                <div class="d-flex align-items-center mb-2">
+                                    <field name="dgc_display_token" widget="dgc_token_regenerator"/>
+                                </div>
+                                <div class="d-flex align-items-center text-muted" invisible="not dgc_display_full_url">
+                                    <span class="me-2">URL:</span>
+                                    <field name="dgc_display_full_url" widget="CopyClipboardChar" readonly="1" class="fw-bold text-primary"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                     <block title="Kiosco">
                         <setting help="Permite que un mismo DNI saque más de un turno en distintas áreas">
                             <field name="dgc_allow_multiple_turns"/>

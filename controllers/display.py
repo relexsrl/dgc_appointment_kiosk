@@ -4,18 +4,29 @@ from odoo.http import request
 
 class DisplayController(http.Controller):
 
-    @http.route("/display/queue", type="http", auth="public", website=False)
-    def display_queue(self):
+    @classmethod
+    def _verify_token(cls, token):
+        icp = request.env["ir.config_parameter"].sudo()
+        valid_token = icp.get_param("dgc_appointment_kiosk.display_token")
+        return valid_token and token == valid_token
+
+    @http.route("/display/<string:token>/queue", type="http", auth="public", website=False)
+    def display_queue(self, token):
+        if not self._verify_token(token):
+            return request.not_found()
         icp = request.env["ir.config_parameter"].sudo()
         values = {
+            "token": token,
             "refresh_interval": int(icp.get_param("dgc_appointment_kiosk.display_refresh_interval", "30")),
             "brand_primary_color": icp.get_param("dgc_appointment_kiosk.brand_primary_color", "#1A237E"),
             "brand_logo_url": icp.get_param("dgc_appointment_kiosk.brand_logo_url", ""),
         }
         return request.render("dgc_appointment_kiosk.display_queue_view", values)
 
-    @http.route("/display/api/turns", type="jsonrpc", auth="public")
-    def display_turns(self, area_id=None):
+    @http.route("/display/<string:token>/api/turns", type="jsonrpc", auth="public")
+    def display_turns(self, token, area_id=None):
+        if not self._verify_token(token):
+            return {"error": {"message": "Invalid token", "code": 403}}
         icp = request.env["ir.config_parameter"].sudo()
         calling_count = int(icp.get_param("dgc_appointment_kiosk.display_calling_count", "3"))
         waiting_count = int(icp.get_param("dgc_appointment_kiosk.display_waiting_count", "10"))

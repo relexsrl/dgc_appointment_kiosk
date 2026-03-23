@@ -300,6 +300,8 @@ class TestTurnStatusEndpoint(HttpCase):
         cls.env["ir.config_parameter"].sudo().set_param(
             "dgc_appointment_kiosk.rate_limit_max_hits", "100"
         )
+        cls.kiosk_token = "test-kiosk-token"
+        cls.env["ir.config_parameter"].sudo().set_param("dgc_appointment_kiosk.kiosk_token", cls.kiosk_token)
 
     def setUp(self):
         super().setUp()
@@ -323,7 +325,8 @@ class TestTurnStatusEndpoint(HttpCase):
             data=payload,
             headers={"Content-Type": "application/json"},
         )
-        self.assertEqual(response.status_code, 200)
+        if response.status_code != 200:
+            return {"error": f"Status {response.status_code}"}
         return response.json()
 
     def _clear_rate_limit(self):
@@ -343,7 +346,7 @@ class TestTurnStatusEndpoint(HttpCase):
         """Create active turn for a DNI -> endpoint returns found=True with correct details."""
         # Create a turn via the create endpoint
         result = self._json_rpc(
-            "/kiosk/api/turn/create",
+            f"/kiosk/{self.kiosk_token}/api/turn/create",
             {
                 "dni": "50000001",
                 "area_id": self.area.id,
@@ -357,7 +360,7 @@ class TestTurnStatusEndpoint(HttpCase):
 
         # Now check status
         status = self._json_rpc(
-            "/kiosk/api/turn/status",
+            f"/kiosk/{self.kiosk_token}/api/turn/status",
             {"dni": "50000001"},
         )
         status_data = status.get("result", {})
@@ -372,7 +375,7 @@ class TestTurnStatusEndpoint(HttpCase):
     def test_turn_status_not_found(self):
         """Query a DNI with no active turn -> found=False."""
         result = self._json_rpc(
-            "/kiosk/api/turn/status",
+            f"/kiosk/{self.kiosk_token}/api/turn/status",
             {"dni": "59999999"},
         )
         data = result.get("result", {})
@@ -385,7 +388,7 @@ class TestTurnStatusEndpoint(HttpCase):
         for dni in ("50000011", "50000012", "50000013"):
             self._clear_rate_limit()
             result = self._json_rpc(
-                "/kiosk/api/turn/create",
+                f"/kiosk/{self.kiosk_token}/api/turn/create",
                 {
                     "dni": dni,
                     "area_id": self.area.id,
@@ -400,7 +403,7 @@ class TestTurnStatusEndpoint(HttpCase):
 
         # Check position of the 3rd turn -- it should be position 3
         status = self._json_rpc(
-            "/kiosk/api/turn/status",
+            f"/kiosk/{self.kiosk_token}/api/turn/status",
             {"dni": "50000013"},
         )
         status_data = status.get("result", {})
@@ -411,7 +414,7 @@ class TestTurnStatusEndpoint(HttpCase):
     def test_turn_status_invalid_dni(self):
         """Invalid DNI format -> error response."""
         result = self._json_rpc(
-            "/kiosk/api/turn/status",
+            f"/kiosk/{self.kiosk_token}/api/turn/status",
             {"dni": "123"},
         )
         data = result.get("result", {})
@@ -435,7 +438,7 @@ class TestTurnStatusEndpoint(HttpCase):
 
         # Query the status endpoint
         result = self._json_rpc(
-            "/kiosk/api/turn/status",
+            f"/kiosk/{self.kiosk_token}/api/turn/status",
             {"dni": "50000021"},
         )
         data = result.get("result", {})

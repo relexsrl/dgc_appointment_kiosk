@@ -39,12 +39,10 @@ class TestBusNotifications(TransactionCase):
         )
         with patch.object(type(self.env["bus.bus"]), "_sendone") as mock_send:
             turn.with_user(self.operator).action_call()
-            mock_send.assert_called_once()
-            args = mock_send.call_args
-            channel = args[0][0]
-            notification_type = args[0][1]
-            self.assertEqual(channel, f"dgc_turn_area_{self.area.id}")
-            self.assertEqual(notification_type, "dgc_turn_update")
+            # Check if any call was to the correct area channel
+            calls = [call for call in mock_send.call_args_list if call[0][0] == f"dgc_turn_area_{self.area.id}"]
+            self.assertTrue(calls, f"Notification not sent to dgc_turn_area_{self.area.id}")
+            self.assertEqual(calls[0][0][1], "dgc_turn_update")
 
     def test_notification_payload_structure(self):
         """Bus notification payload has expected fields."""

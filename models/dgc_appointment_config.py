@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class DgcAppointmentConfig(models.TransientModel):
@@ -70,3 +70,43 @@ class DgcAppointmentConfig(models.TransientModel):
         config_parameter="dgc_appointment_kiosk.max_call_count",
         default=3,
     )
+    dgc_kiosk_token = fields.Char(
+        string="Token del Kiosk",
+        config_parameter="dgc_appointment_kiosk.kiosk_token",
+    )
+    dgc_display_token = fields.Char(
+        string="Token del Display",
+        config_parameter="dgc_appointment_kiosk.display_token",
+    )
+    dgc_kiosk_full_url = fields.Char(
+        string="URL del Kiosco",
+        compute="_compute_kiosk_urls",
+    )
+    dgc_display_full_url = fields.Char(
+        string="URL del Display",
+        compute="_compute_kiosk_urls",
+    )
+
+    @api.depends("dgc_kiosk_token", "dgc_display_token")
+    def _compute_kiosk_urls(self):
+        base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
+        for rec in self:
+            rec.dgc_kiosk_full_url = f"{base_url}/kiosk/{rec.dgc_kiosk_token}/checkin" if rec.dgc_kiosk_token else False
+            rec.dgc_display_full_url = f"{base_url}/display/{rec.dgc_display_token}/queue" if rec.dgc_display_token else False
+
+    def action_regenerate_kiosk_token(self):
+        import uuid
+        token = str(uuid.uuid4())
+        self.env['ir.config_parameter'].sudo().set_param("dgc_appointment_kiosk.kiosk_token", token)
+        self.env.registry.clear_cache()
+        # Actualizamos el registro actual para que el compute se dispare si es necesario en el servidor
+        self.dgc_kiosk_token = token
+        return token
+
+    def action_regenerate_display_token(self):
+        import uuid
+        token = str(uuid.uuid4())
+        self.env['ir.config_parameter'].sudo().set_param("dgc_appointment_kiosk.display_token", token)
+        self.env.registry.clear_cache()
+        self.dgc_display_token = token
+        return token
