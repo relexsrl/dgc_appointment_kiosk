@@ -40,7 +40,7 @@
                                     <span class="btn-welcome-label">Sacar Nuevo Turno</span>
                                 </button>
                                 <button class="btn-welcome btn-welcome-secondary" id="btn-check-turn">
-                                    <span class="btn-welcome-icon">&#128269;</span>
+                                    <span class="btn-welcome-icon">&#63;</span>
                                     <span class="btn-welcome-label">Consultar mi Turno</span>
                                 </button>
                             </div>
@@ -88,7 +88,7 @@
                     <!-- Step 3: Confirmation -->
                     <div class="step" id="step-3">
                         <div class="confirmation-panel">
-                            <div class="confirmation-icon">&#10003;</div>
+                            <div class="confirmation-icon"></div>
                             <h2>¡Turno generado!</h2>
                             <div class="turn-number-display" id="turn-number-display"></div>
                             <div class="turn-area-display" id="turn-area-display"></div>
@@ -154,7 +154,7 @@
                     <!-- Error Step -->
                     <div class="step" id="step-error">
                         <div class="error-panel">
-                            <div class="error-icon">&#10007;</div>
+                            <div class="error-icon"></div>
                             <h2 id="error-title">Error</h2>
                             <p id="error-detail"></p>
                             <button class="btn-primary" id="btn-retry">Reintentar</button>

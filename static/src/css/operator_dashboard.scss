@@ -1,24 +1,61 @@
-// DGC Operator Dashboard Styles — 2-column grid layout
+// DGC Operator Dashboard Styles — Odoo 19 Enterprise aligned
 // Design tokens are loaded from _tokens.scss via the asset bundle.
 
+// ── Animations ────────────────────────────────────────────────────
+@keyframes dgc-slide-in {
+    from {
+        transform: translateX(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes dgc-pulse-btn {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(29, 76, 138, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(29, 76, 138, 0);
+    }
+}
+
+@keyframes dgc-calling-flash {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+// ── Dashboard Layout ──────────────────────────────────────────────
 .dgc-dashboard {
     display: grid;
     grid-template-rows: auto 1fr;
     min-height: calc(100vh - 50px);
     background: var(--dgc-bg-secondary);
 
-    // ── Header ──────────────────────────────────────────────────
+    // ── Header ────────────────────────────────────────────────
     &__header {
         grid-column: 1 / -1;
         display: flex;
         align-items: center;
         gap: var(--dgc-spacing-md);
-        padding: var(--dgc-spacing-md) var(--dgc-spacing-lg);
+        padding: var(--dgc-spacing-sm) var(--dgc-spacing-lg);
         background: white;
         border-bottom: 1px solid var(--dgc-border-color);
         position: sticky;
         top: 0;
         z-index: var(--dgc-z-sticky);
+
+        h2 {
+            font-size: var(--dgc-font-size-xl);
+            font-weight: 600;
+            color: var(--dgc-text-primary);
+        }
     }
 
     &__status {
@@ -27,7 +64,7 @@
         gap: var(--dgc-spacing-xs);
     }
 
-    // ── 2-Column Body ───────────────────────────────────────────
+    // ── 2-Column Body ─────────────────────────────────────────
     &__body {
         display: grid;
         grid-template-columns: 2fr 3fr;
@@ -40,13 +77,13 @@
         }
     }
 
-    // ── Left Column: Current Turn ───────────────────────────────
+    // ── Left Column: Current Turn ─────────────────────────────
     &__current {
         position: sticky;
-        top: 80px; // Below header
+        top: 80px;
     }
 
-    // ── Right Column ────────────────────────────────────────────
+    // ── Right Column ──────────────────────────────────────────
     &__right {
         display: flex;
         flex-direction: column;
@@ -54,7 +91,7 @@
     }
 }
 
-// ── KPI Cards Row ───────────────────────────────────────────────
+// ── KPI Cards Row ─────────────────────────────────────────────────
 .dgc-kpi-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -67,21 +104,45 @@
 
 .dgc-kpi-card {
     background: white;
-    border-radius: var(--dgc-border-radius-md);
-    padding: var(--dgc-spacing-lg);
+    border-radius: 12px;
+    padding: var(--dgc-spacing-lg) var(--dgc-spacing-md);
     text-align: center;
     box-shadow: var(--dgc-shadow-sm);
-    transition: box-shadow var(--dgc-transition-fast);
+    border-top: 3px solid transparent;
+    transition: box-shadow var(--dgc-transition-fast), transform var(--dgc-transition-fast);
+
+    // Colored top-border per KPI type via :nth-child
+    &:nth-child(1) {
+        // Atendidos (served) → green
+        border-top-color: var(--dgc-success);
+    }
+
+    &:nth-child(2) {
+        // En Espera (pending) → orange
+        border-top-color: var(--dgc-warning);
+    }
+
+    &:nth-child(3) {
+        // Tiempo Prom → blue
+        border-top-color: var(--dgc-primary);
+    }
+
+    &:nth-child(4) {
+        // Derivaciones → yellow/accent
+        border-top-color: var(--dgc-accent);
+    }
 
     &:hover {
         box-shadow: var(--dgc-shadow-md);
+        transform: translateY(-1px);
     }
 
     &__value {
         display: block;
-        font-size: var(--dgc-font-size-2xl);
+        font-size: var(--dgc-font-size-4xl);
         font-weight: 700;
-        color: var(--dgc-primary);
+        color: var(--dgc-text-primary);
+        line-height: 1.2;
     }
 
     &__label {
@@ -91,19 +152,21 @@
         color: var(--dgc-text-secondary);
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        font-weight: 500;
     }
 }
 
-// ── Bus Indicator ───────────────────────────────────────────────
+// ── Bus Indicator ─────────────────────────────────────────────────
 .dgc-bus-indicator {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     display: inline-block;
+    transition: background var(--dgc-transition-fast), box-shadow var(--dgc-transition-fast);
 
     &.connected {
         background: var(--dgc-success);
-        box-shadow: 0 0 4px var(--dgc-success);
+        box-shadow: 0 0 6px rgba(74, 155, 50, 0.5), 0 0 12px rgba(74, 155, 50, 0.2);
     }
 
     &.disconnected {
@@ -111,63 +174,258 @@
     }
 }
 
-// ── Empty State ─────────────────────────────────────────────────
+// ── Empty State ───────────────────────────────────────────────────
 .dgc-empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: var(--dgc-spacing-2xl);
+    padding: var(--dgc-spacing-2xl) var(--dgc-spacing-lg);
     text-align: center;
     color: var(--dgc-text-secondary);
-    min-height: 300px;
+    min-height: 360px;
+    border-radius: 12px;
+
+    .fa-inbox {
+        font-size: 3.5rem;
+        color: var(--dgc-text-muted);
+        margin-bottom: var(--dgc-spacing-sm);
+    }
+
+    .fa-coffee {
+        color: var(--dgc-text-muted);
+    }
+
+    .btn-primary.btn-lg {
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-weight: 600;
+    }
+
+    // Pulse animation on CTA button when turns are waiting
+    .dgc-pulse-cta {
+        animation: dgc-pulse-btn 2s ease-in-out infinite;
+    }
 }
 
-// ── Current Turn Card ───────────────────────────────────────────
+// ── Current Turn Card ─────────────────────────────────────────────
 .dgc-current-card {
+    border-radius: 12px;
+    overflow: hidden;
+    border: none;
+    box-shadow: var(--dgc-shadow-sm);
+
+    // Header states — custom classes instead of Bootstrap bg-*
+    .dgc-header-calling {
+        background: var(--dgc-primary) !important;
+        color: white !important;
+    }
+
+    .dgc-header-serving {
+        background: var(--dgc-success) !important;
+        color: white !important;
+    }
+
     &__header {
-        // inherited from card-header + bg-success/bg-warning
+        padding: var(--dgc-spacing-md) var(--dgc-spacing-lg);
+        border-bottom: none;
     }
 
     &__timer {
-        font-family: monospace;
+        font-family: "SF Mono", "Cascadia Code", "Fira Code", monospace;
         font-size: var(--dgc-font-size-3xl);
         font-weight: 600;
-        opacity: 0.95;
+        color: white;
+        letter-spacing: 1px;
     }
 
     &__dni {
         text-align: center;
-        padding: var(--dgc-spacing-md);
-        background: var(--dgc-bg-secondary);
-        border-radius: var(--dgc-border-radius-md);
+        padding: var(--dgc-spacing-md) var(--dgc-spacing-lg);
+        background: var(--dgc-bg-primary);
+        border-radius: 8px;
+        margin: 0 0 var(--dgc-spacing-sm);
     }
 
     &__dni-value {
         display: block;
-        font-size: 2rem;
+        font-size: 2.5rem;
         font-weight: 700;
         color: var(--dgc-primary);
-        letter-spacing: 1px;
+        letter-spacing: 2px;
+        font-family: "SF Mono", "Cascadia Code", "Fira Code", monospace;
+    }
+
+    .card-body {
+        padding: var(--dgc-spacing-lg);
+
+        .table {
+            td {
+                padding: var(--dgc-spacing-sm) var(--dgc-spacing-sm);
+                border-color: var(--dgc-border-color);
+                vertical-align: middle;
+            }
+
+            .fw-bold.text-muted {
+                color: var(--dgc-text-secondary) !important;
+                font-size: var(--dgc-font-size-sm);
+                font-weight: 500 !important;
+            }
+        }
     }
 
     &__actions {
         display: flex;
         gap: var(--dgc-spacing-sm);
         flex-wrap: wrap;
-        background: var(--dgc-bg-secondary);
+        background: var(--dgc-bg-primary);
+        padding: var(--dgc-spacing-md) var(--dgc-spacing-lg);
+        border-top: 1px solid var(--dgc-border-color);
+
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 8px 16px;
+            transition: all var(--dgc-transition-fast);
+
+            &.btn-lg {
+                padding: 10px 24px;
+                font-weight: 600;
+            }
+        }
+
+        .btn-primary {
+            background: var(--dgc-primary);
+            border-color: var(--dgc-primary);
+
+            &:hover {
+                background: var(--dgc-primary-dark, #153a6a);
+                border-color: var(--dgc-primary-dark, #153a6a);
+            }
+        }
+
+        .btn-success {
+            background: var(--dgc-success);
+            border-color: var(--dgc-success);
+
+            &:hover {
+                background: var(--dgc-success-dark);
+                border-color: var(--dgc-success-dark);
+            }
+        }
+
+        .btn-warning {
+            background: var(--dgc-warning);
+            border-color: var(--dgc-warning);
+            color: white;
+
+            &:hover {
+                background: var(--dgc-warning-dark);
+                border-color: var(--dgc-warning-dark);
+            }
+        }
+
+        .btn-danger {
+            background: var(--dgc-danger);
+            border-color: var(--dgc-danger);
+
+            &:hover {
+                background: var(--dgc-danger-dark, #a51d22);
+                border-color: var(--dgc-danger-dark, #a51d22);
+            }
+        }
+
+        .btn-info {
+            background: var(--dgc-primary-light, #2861a8);
+            border-color: var(--dgc-primary-light, #2861a8);
+            color: white;
+
+            &:hover {
+                background: var(--dgc-primary);
+                border-color: var(--dgc-primary);
+            }
+        }
+    }
+
+    // "LLAMANDO" badge animation
+    .dgc-badge-calling {
+        animation: dgc-calling-flash 1.5s ease-in-out infinite;
+        font-size: var(--dgc-font-size-lg) !important;
+        padding: 6px 14px;
     }
 }
 
-// ── Waiting Queue & Done Today ──────────────────────────────────
+// ── Section Headers (Queue cards) ─────────────────────────────────
+.dgc-section-header {
+    background: white !important;
+    border-left: 3px solid var(--dgc-primary);
+    border-bottom: 1px solid var(--dgc-border-color);
+    padding: var(--dgc-spacing-sm) var(--dgc-spacing-md);
+
+    h5 {
+        font-size: var(--dgc-font-size-md);
+        font-weight: 600;
+        color: var(--dgc-text-primary);
+    }
+
+    .badge {
+        font-weight: 600;
+    }
+}
+
+// ── Waiting Queue & Done Today ────────────────────────────────────
 .dgc-waiting-queue,
 .dgc-done-today {
+    .card {
+        border-radius: 12px;
+        border: 1px solid var(--dgc-border-color);
+        overflow: hidden;
+        box-shadow: var(--dgc-shadow-sm);
+    }
+
     .table {
-        th {
-            font-size: var(--dgc-font-size-display-label);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        margin-bottom: 0;
+
+        thead {
+            background: var(--dgc-bg-primary);
+
+            th {
+                font-size: var(--dgc-font-size-display-label);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                color: var(--dgc-text-secondary);
+                font-weight: 600;
+                border-bottom: 1px solid var(--dgc-border-color);
+                padding: var(--dgc-spacing-sm) var(--dgc-spacing-md);
+            }
         }
+
+        tbody {
+            td {
+                padding: var(--dgc-spacing-sm) var(--dgc-spacing-md);
+                border-color: var(--dgc-border-color);
+                vertical-align: middle;
+                color: var(--dgc-text-primary);
+            }
+
+            tr:last-child td {
+                border-bottom: none;
+            }
+        }
+
+        // Subtle badge style
+        .badge.text-bg-secondary {
+            background: var(--dgc-bg-secondary) !important;
+            color: var(--dgc-text-primary) !important;
+            font-weight: 600;
+            border: 1px solid var(--dgc-border-color);
+        }
+    }
+}
+
+.dgc-done-today {
+    .card-header.cursor-pointer:hover {
+        background: var(--dgc-bg-primary) !important;
     }
 }
 
@@ -175,23 +433,22 @@
     cursor: pointer;
 }
 
-// ── Turn Arrival Animation ──────────────────────────────────────
-@keyframes dgc-slide-in {
-    from {
-        transform: translateX(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
+// ── Turn Arrival Animation ────────────────────────────────────────
 .dgc-turn-new {
     animation: dgc-slide-in 0.3s ease-out;
 }
 
-// ── Loading State ───────────────────────────────────────────────
+// ── Loading State ─────────────────────────────────────────────────
 .dgc-dashboard-loading {
     grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    color: var(--dgc-text-secondary);
+
+    .fa-spinner {
+        color: var(--dgc-primary);
+    }
 }

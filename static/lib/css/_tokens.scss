@@ -3,41 +3,48 @@
 // Keep in sync with static/src/css/_tokens.scss (backend copy).
 
 :root {
-    // ── Colors ──────────────────────────────────────────────────
-    --dgc-primary: #1A237E;
-    --dgc-primary-light: #232fa8;
-    --dgc-success: #00C853;
-    --dgc-success-alt: #4CAF50;
-    --dgc-success-dark: #00953e;
-    --dgc-warning: #FF9800;
-    --dgc-warning-dark: #cc7a00;
-    --dgc-danger: #F44336;
-    --dgc-accent: #FFD600;
+    // ── Brand Colors (institutional palette) ──────────────────
+    --dgc-primary: #1d4c8a;
+    --dgc-primary-light: #2861a8;
+    --dgc-primary-dark: #153a6a;
+    --dgc-primary-bg: #e8f0fa;
+    --dgc-success: #4a9b32;
+    --dgc-success-alt: #4a9b32;
+    --dgc-success-dark: #3a7d28;
+    --dgc-success-bg: #edf7ea;
+    --dgc-warning: #e77817;
+    --dgc-warning-dark: #c96514;
+    --dgc-warning-bg: #fef3e8;
+    --dgc-danger: #c9242a;
+    --dgc-danger-dark: #a51d22;
+    --dgc-danger-bg: #fce8e9;
+    --dgc-accent: #f0c419;
+    --dgc-accent-dark: #d4ab0e;
 
-    --dgc-text-primary: #212121;
-    --dgc-text-secondary: #666666;
-    --dgc-text-dark: #333333;
-    --dgc-text-muted: #999999;
+    --dgc-text-primary: #1e293b;
+    --dgc-text-secondary: #64748b;
+    --dgc-text-dark: #0f172a;
+    --dgc-text-muted: #94a3b8;
 
-    --dgc-bg-primary: #F5F5F5;
-    --dgc-bg-secondary: #f8f9fa;
+    --dgc-bg-primary: #f8fafc;
+    --dgc-bg-secondary: #f1f5f9;
     --dgc-bg-card: #ffffff;
-    --dgc-bg-display: #1A237E;
+    --dgc-bg-display: #0f1b33;
 
-    --dgc-border-color: #e0e0e0;
-    --dgc-border-light: #dddddd;
-    --dgc-border-input: #cccccc;
+    --dgc-border-color: #e2e8f0;
+    --dgc-border-light: #e2e8f0;
+    --dgc-border-input: #cbd5e1;
 
-    --dgc-error-bg: #fce4ec;
+    --dgc-error-bg: #fce8e9;
 
     // Overlay / alpha colors
-    --dgc-overlay-dark: rgba(0, 0, 0, 0.7);
-    --dgc-overlay-light: rgba(0, 0, 0, 0.2);
-    --dgc-overlay-medium: rgba(0, 0, 0, 0.3);
-    --dgc-overlay-box: rgba(0, 0, 0, 0.25);
-    --dgc-white-overlay-subtle: rgba(255, 255, 255, 0.08);
+    --dgc-overlay-dark: rgba(15, 27, 51, 0.85);
+    --dgc-overlay-light: rgba(15, 27, 51, 0.4);
+    --dgc-overlay-medium: rgba(15, 27, 51, 0.6);
+    --dgc-overlay-box: rgba(255, 255, 255, 0.15);
+    --dgc-white-overlay-subtle: rgba(255, 255, 255, 0.06);
     --dgc-white-overlay-light: rgba(255, 255, 255, 0.1);
-    --dgc-white-overlay-medium: rgba(255, 255, 255, 0.2);
+    --dgc-white-overlay-medium: rgba(255, 255, 255, 0.18);
 
     // ── Typography ──────────────────────────────────────────────
     --dgc-font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;

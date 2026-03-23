@@ -1,4 +1,5 @@
 // DGC Display Styles - Waiting Room Queue Screen
+// Modern institutional design for large TV displays
 // Design tokens are loaded from _tokens.scss via the asset bundle.
 
 * {
@@ -18,7 +19,7 @@
     flex-direction: column;
 }
 
-// Sound overlay
+// ── Sound Activation Overlay ──────────────────────────────────
 .sound-overlay {
     position: fixed;
     top: 0;
@@ -30,91 +31,144 @@
     align-items: center;
     justify-content: center;
     z-index: var(--dgc-z-overlay);
+    backdrop-filter: blur(8px);
 }
 
 .sound-btn {
-    background: var(--dgc-success);
+    background: var(--dgc-primary);
     color: white;
-    border: none;
+    border: 2px solid var(--dgc-primary-light);
     padding: 30px 60px;
     font-size: var(--dgc-font-size-5xl);
     border-radius: var(--dgc-border-radius-xl);
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 700;
+    letter-spacing: 1px;
+    transition: background var(--dgc-transition-normal) ease,
+                transform var(--dgc-transition-fast) ease;
 
     &:hover {
-        background: var(--dgc-success-dark);
+        background: var(--dgc-primary-light);
+        transform: scale(1.02);
+    }
+
+    &:active {
+        transform: scale(0.98);
     }
 }
 
-// Header
+// ── Header ────────────────────────────────────────────────────
 .display-header {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--dgc-spacing-15) var(--dgc-spacing-20);
-    background: var(--dgc-overlay-light);
+    padding: var(--dgc-spacing-md) var(--dgc-spacing-lg);
+    background: var(--dgc-overlay-dark);
+    border-bottom: 3px solid var(--dgc-accent);
+    position: relative;
+    z-index: 2;
 
     .display-logo {
         max-height: 50px;
         margin-right: var(--dgc-spacing-15);
+        filter: brightness(1.1);
     }
 
     h1 {
         font-size: var(--dgc-font-size-3xl);
         font-weight: 600;
+        letter-spacing: 0.5px;
+        color: rgba(255, 255, 255, 0.95);
     }
 }
 
-// Clock
+// ── Clock ─────────────────────────────────────────────────────
 .display-clock {
     font-size: var(--dgc-font-size-2xl);
     font-family: "Courier New", Courier, monospace;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.85);
     margin-left: auto;
     white-space: nowrap;
+    font-weight: 600;
 }
 
-// Connection status indicator
+// ── Connection Status ─────────────────────────────────────────
 .connection-status {
     display: flex;
     align-items: center;
-    gap: var(--dgc-spacing-xs);
-    padding: 0 var(--dgc-spacing-md);
-    font-size: var(--dgc-font-size-xs);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-left: var(--dgc-spacing-lg);
-}
+    gap: 6px;
+    margin-left: var(--dgc-spacing-15);
+    white-space: nowrap;
 
-.status-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-    animation: pulse 2s ease-in-out infinite;
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: var(--dgc-text-muted);
+        transition: background var(--dgc-transition-normal);
 
-    &.connected {
-        background: var(--dgc-success);
+        &.connected,
+        &.bus {
+            background: var(--dgc-success);
+        }
+
+        &.polling {
+            background: var(--dgc-warning);
+        }
+
+        &.disconnected {
+            background: var(--dgc-danger);
+        }
     }
 
-    &.polling {
-        background: var(--dgc-warning);
-    }
-
-    &.disconnected {
-        background: var(--dgc-danger);
+    .status-label {
+        font-size: var(--dgc-font-size-xs);
+        opacity: 0.7;
     }
 }
 
 @keyframes pulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    50% { opacity: 0.6; }
 }
 
-// Calling section
+// ── Calling Section ───────────────────────────────────────────
 .calling-section {
-    background: var(--dgc-success);
+    background: linear-gradient(135deg, var(--dgc-primary), var(--dgc-primary-dark));
+    border-bottom: 1px solid var(--dgc-white-overlay-light);
+    position: relative;
+    overflow: hidden;
+
+    // Frosted glass edge effect
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border: 1px solid var(--dgc-white-overlay-light);
+        pointer-events: none;
+    }
+
+    // Subtle radial glow behind the main content
+    &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 70%;
+        height: 120%;
+        background: radial-gradient(
+            ellipse at center,
+            var(--dgc-white-overlay-subtle) 0%,
+            transparent 70%
+        );
+        pointer-events: none;
+    }
+
     // Font scaling for large rooms
     --dgc-display-scale: 1;
 
@@ -126,39 +180,53 @@
     .calling-area {
         font-size: calc(2rem * var(--dgc-display-scale));
     }
+
     min-height: 30vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: var(--dgc-spacing-20);
+    padding: var(--dgc-spacing-xl) var(--dgc-spacing-20);
 }
 
 .calling-label {
     font-size: calc(var(--dgc-font-size-3xl) * var(--dgc-display-scale, 1));
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 4px;
-    margin-bottom: var(--dgc-spacing-10);
-    opacity: 0.9;
+    letter-spacing: 6px;
+    margin-bottom: var(--dgc-spacing-12);
+    position: relative;
+    z-index: 1;
+
+    .calling-label-text {
+        color: var(--dgc-accent);
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
 }
 
 .calling-turn {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--dgc-spacing-10);
+    gap: var(--dgc-spacing-12);
+    position: relative;
+    z-index: 1;
 }
 
 .calling-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    padding: 14px 36px;
+    gap: 8px;
+    padding: 18px 40px;
     border-radius: var(--dgc-border-radius-lg);
-    margin: 5px 0;
+    margin: 6px 0;
     text-align: center;
+    background: var(--dgc-white-overlay-subtle);
+    border: 1px solid var(--dgc-white-overlay-light);
+    border-left: 6px solid var(--dgc-success);
+    backdrop-filter: blur(4px);
+    transition: background var(--dgc-transition-normal) ease;
 }
 
 // Legacy calling-number kept for backward compat
@@ -175,6 +243,7 @@
     letter-spacing: 4px;
     color: white;
     line-height: 1.1;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 // Meta row: turn number + area
@@ -188,7 +257,7 @@
 
 .calling-turnnum {
     font-size: var(--dgc-font-size-display-meta);
-    opacity: 0.75;
+    opacity: 0.7;
     font-weight: 500;
     letter-spacing: 1px;
 }
@@ -205,30 +274,36 @@
     font-weight: 700;
     background: var(--dgc-overlay-box);
     color: var(--dgc-accent);
-    padding: 6px var(--dgc-spacing-lg);
+    padding: 8px var(--dgc-spacing-lg);
     border-radius: var(--dgc-border-radius-md);
     letter-spacing: 1px;
     text-transform: uppercase;
-    margin-top: var(--dgc-spacing-xs);
+    margin-top: var(--dgc-spacing-sm);
+    border: 1px solid var(--dgc-white-overlay-light);
 }
 
-// Call count color escalation
+// ── Call Count Color Escalation ───────────────────────────────
 .call-count-1 {
-    background: var(--dgc-success);
+    border-left-color: var(--dgc-success);
 }
 
 .call-count-2 {
-    background: var(--dgc-warning);
+    border-left-color: var(--dgc-warning);
+    background: rgba(231, 120, 23, 0.12);
 }
 
 .call-count-3 {
-    background: var(--dgc-danger);
+    border-left-color: var(--dgc-danger);
+    background: rgba(201, 36, 42, 0.15);
 }
 
-// Blink animations
+// ── Blink Animations (subtle) ─────────────────────────────────
 @keyframes blink {
+    0%, 100% {
+        opacity: 1;
+    }
     50% {
-        opacity: 0.3;
+        opacity: 0.7;
     }
 }
 
@@ -244,47 +319,60 @@
     animation: blink 0.5s ease-in-out infinite;
 }
 
-// Waiting section
+// ── Waiting Section ───────────────────────────────────────────
 .waiting-section {
     flex: 1;
-    padding: var(--dgc-spacing-20);
+    padding: var(--dgc-spacing-lg) var(--dgc-spacing-xl);
     overflow: hidden;
+    background: linear-gradient(180deg, var(--dgc-bg-display) 0%, rgba(15, 27, 51, 0.95) 100%);
 
     h2 {
         font-size: calc(var(--dgc-font-size-2xl) * var(--dgc-display-scale, 1));
-        margin-bottom: var(--dgc-spacing-15);
+        margin-bottom: var(--dgc-spacing-md);
         text-align: center;
         text-transform: uppercase;
-        letter-spacing: 2px;
-        opacity: 0.8;
+        letter-spacing: 3px;
+        opacity: 0.6;
+        font-weight: 500;
     }
 }
 
 .waiting-list {
     width: 100%;
-    font-size: calc(1.25rem * var(--dgc-display-scale, 1));
+    font-size: calc(1.3rem * var(--dgc-display-scale, 1));
     border-collapse: collapse;
 
     th {
         font-size: calc(var(--dgc-font-size-lg) * var(--dgc-display-scale, 1));
         text-transform: uppercase;
         letter-spacing: 2px;
-        opacity: 0.7;
-        padding: var(--dgc-spacing-sm) var(--dgc-spacing-15);
+        opacity: 0.5;
+        padding: var(--dgc-spacing-sm) var(--dgc-spacing-md);
         text-align: left;
-        border-bottom: 1px solid var(--dgc-white-overlay-medium);
+        border-bottom: 2px solid var(--dgc-white-overlay-medium);
+        font-weight: 600;
     }
 
     td {
-        padding: var(--dgc-spacing-10) var(--dgc-spacing-15);
-        border-bottom: 1px solid var(--dgc-white-overlay-light);
+        padding: var(--dgc-spacing-12) var(--dgc-spacing-md);
+        border-bottom: 1px solid var(--dgc-white-overlay-subtle);
+        font-weight: 400;
+    }
+
+    tr {
+        transition: background var(--dgc-transition-fast) ease;
+
+        &:hover {
+            background: var(--dgc-white-overlay-subtle);
+        }
     }
 
     .no-waiting {
         text-align: center;
         font-size: calc(var(--dgc-font-size-xl) * var(--dgc-display-scale, 1));
-        opacity: 0.5;
-        padding: 30px;
+        opacity: 0.4;
+        padding: 40px;
+        font-style: italic;
     }
 }
 
@@ -296,19 +384,29 @@
     border-radius: 50%;
     margin-right: 8px;
     vertical-align: middle;
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.15);
 }
 
-// Message bar
+// ── Message Bar ───────────────────────────────────────────────
 .message-bar {
-    background: var(--dgc-overlay-medium);
-    padding: var(--dgc-spacing-12) var(--dgc-spacing-20);
+    background: linear-gradient(
+        90deg,
+        var(--dgc-overlay-medium),
+        rgba(240, 196, 25, 0.08),
+        var(--dgc-overlay-medium)
+    );
+    padding: var(--dgc-spacing-12) var(--dgc-spacing-xl);
     overflow: hidden;
     white-space: nowrap;
+    border-top: 1px solid var(--dgc-white-overlay-subtle);
 }
 
 .message-content {
     display: inline-block;
     font-size: var(--dgc-font-size-lg);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
     animation: scroll 20s linear infinite;
 }
 
@@ -316,35 +414,7 @@
     0% {
         transform: translateX(100%);
     }
-
     100% {
         transform: translateX(-100%);
-    }
-}
-
-// Connection status indicator (T-22)
-.connection-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-left: var(--dgc-spacing-15);
-    white-space: nowrap;
-
-    .status-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        background: var(--dgc-text-muted);
-        transition: background var(--dgc-transition-normal);
-
-        &.bus { background: var(--dgc-success); }
-        &.polling { background: var(--dgc-warning); }
-        &.disconnected { background: var(--dgc-danger); }
-    }
-
-    .status-label {
-        font-size: var(--dgc-font-size-xs);
-        opacity: 0.7;
     }
 }

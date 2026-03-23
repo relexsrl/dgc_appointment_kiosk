@@ -9,7 +9,7 @@
                 <t t-call-assets="dgc_appointment_kiosk.assets_display"/>
                 <style>
                     :root {
-                        --dgc-primary: <t t-out="brand_primary_color or '#1A237E'"/>;
+                        --dgc-primary: <t t-out="brand_primary_color or '#1d4c8a'"/>;
                     }
                 </style>
             </head>
@@ -38,7 +38,7 @@
 
                 <!-- Calling Section -->
                 <div class="calling-section" id="calling-section">
-                    <div class="calling-label">ATENDIENDO</div>
+                    <div class="calling-label"><span class="calling-label-text">ATENDIENDO</span></div>
                     <div class="calling-turn" id="calling-turn">
                         <div class="calling-dni">---</div>
                     </div>
