@@ -52,13 +52,14 @@ class KioskController(http.Controller):
         if not self._verify_token(token):
             return request.not_found()
         icp = request.env["ir.config_parameter"].sudo()
+        company = request.env.company
         values = {
             "token": token,
             "timeout": int(icp.get_param("dgc_appointment_kiosk.kiosk_timeout", "30")),
             "require_email": icp.get_param("dgc_appointment_kiosk.kiosk_require_email", "False") in ("True", "true", "1"),
             "show_notes": icp.get_param("dgc_appointment_kiosk.kiosk_show_notes", "False") in ("True", "true", "1"),
             "brand_primary_color": icp.get_param("dgc_appointment_kiosk.brand_primary_color", "#1A237E"),
-            "brand_logo_url": icp.get_param("dgc_appointment_kiosk.brand_logo_url", ""),
+            "brand_logo_url": f"/web/image/res.company/{company.id}/logo",
         }
         return request.render("dgc_appointment_kiosk.kiosk_main_view", values)
 

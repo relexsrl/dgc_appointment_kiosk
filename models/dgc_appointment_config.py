@@ -56,10 +56,6 @@ class DgcAppointmentConfig(models.TransientModel):
         config_parameter="dgc_appointment_kiosk.brand_primary_color",
         default="#1A237E",
     )
-    dgc_brand_logo_url = fields.Char(
-        string="URL del logo",
-        config_parameter="dgc_appointment_kiosk.brand_logo_url",
-    )
     dgc_rate_limit_seconds = fields.Integer(
         string="Rate limit (seg)",
         config_parameter="dgc_appointment_kiosk.rate_limit_seconds",

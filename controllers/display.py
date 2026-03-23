@@ -15,11 +15,12 @@ class DisplayController(http.Controller):
         if not self._verify_token(token):
             return request.not_found()
         icp = request.env["ir.config_parameter"].sudo()
+        company = request.env.company
         values = {
             "token": token,
             "refresh_interval": int(icp.get_param("dgc_appointment_kiosk.display_refresh_interval", "30")),
             "brand_primary_color": icp.get_param("dgc_appointment_kiosk.brand_primary_color", "#1A237E"),
-            "brand_logo_url": icp.get_param("dgc_appointment_kiosk.brand_logo_url", ""),
+            "brand_logo_url": f"/web/image/res.company/{company.id}/logo",
         }
         return request.render("dgc_appointment_kiosk.display_queue_view", values)
 

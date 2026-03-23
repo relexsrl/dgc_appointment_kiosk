@@ -79,10 +79,7 @@
                     </block>
                     <block title="Branding">
                         <setting string="Color primario" help="Color principal del tema (hex)">
-                            <field name="dgc_brand_primary_color"/>
-                        </setting>
-                        <setting string="URL del logo" help="URL absoluta o relativa del logotipo">
-                            <field name="dgc_brand_logo_url"/>
+                            <field name="dgc_brand_primary_color" widget="color"/>
                         </setting>
                     </block>
                 </app>
