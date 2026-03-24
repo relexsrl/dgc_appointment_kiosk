@@ -30,6 +30,7 @@ class DgcAppointmentDerivation(models.Model):
         string="Derivado por",
         default=lambda self: self.env.uid,
         required=True,
+        ondelete="restrict",
     )
     derivation_date = fields.Datetime(
         string="Fecha de derivación",

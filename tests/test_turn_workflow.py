@@ -4,9 +4,11 @@ from datetime import timedelta
 
 from odoo import fields
 from odoo.exceptions import UserError
+from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
 
+@tagged('standard', 'at_install')
 class TestTurnWorkflow(TransactionCase):
     @classmethod
     def setUpClass(cls):
@@ -157,32 +159,20 @@ class TestTurnWorkflow(TransactionCase):
         self.assertEqual(turn.state, "no_show")
 
     def test_cron_cleanup_rate_limit_keys(self):
-        """Cron removes expired ICP rate-limit keys (legacy cleanup).
+        """Legacy cron removes ALL dgc_kiosk.rl.* ICP keys in a single batch.
 
-        Note: The primary rate limiter was migrated to an in-memory dict in
-        controllers/kiosk.py (Phase 3).  However, _cron_cleanup_rate_limit_keys
-        still exists in the model to clean up any leftover ICP keys matching
-        ``dgc_kiosk.rl.*`` that were created before the migration.
+        Rate limiting was migrated to an in-memory dict.  This cron is a
+        one-time cleanup for leftover ICP keys from the old implementation.
         """
         ICP = self.env["ir.config_parameter"].sudo()
 
-        # Create an expired rate-limit key (timestamp older than 24 h)
-        expired_ts = time.time() - 90000  # ~25 hours ago
-        ICP.set_param("dgc_kiosk.rl.expired_ip", json.dumps({"ts": expired_ts, "count": 3}))
-
-        # Create a fresh rate-limit key (should survive cleanup)
-        fresh_ts = time.time()
-        ICP.set_param("dgc_kiosk.rl.fresh_ip", json.dumps({"ts": fresh_ts, "count": 1}))
+        # Create two leftover rate-limit keys (both should be removed)
+        ICP.set_param("dgc_kiosk.rl.ip_one", json.dumps({"ts": time.time() - 90000, "count": 3}))
+        ICP.set_param("dgc_kiosk.rl.ip_two", json.dumps({"ts": time.time(), "count": 1}))
 
         self.Turn._cron_cleanup_rate_limit_keys()
 
-        # The expired key should have been removed
         self.assertFalse(
-            ICP.search([("key", "=", "dgc_kiosk.rl.expired_ip")]),
-            "Expired rate-limit key should be cleaned up",
-        )
-        # The fresh key should still exist
-        self.assertTrue(
-            ICP.search([("key", "=", "dgc_kiosk.rl.fresh_ip")]),
-            "Fresh rate-limit key should not be cleaned up",
+            ICP.search([("key", "like", "dgc_kiosk.rl.%")]),
+            "All legacy rate-limit ICP keys should be removed",
         )

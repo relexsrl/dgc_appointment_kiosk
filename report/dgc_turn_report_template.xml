@@ -3,6 +3,8 @@
 
     <template id="report_dgc_turn">
         <t t-call="web.html_container">
+            <!-- brand_primary_color is pre-validated by _check_brand_primary_color
+                 constraint in res.config.settings (dgc_appointment_config.py) -->
             <t t-set="brand_primary_color"
                t-value="docs.env['ir.config_parameter'].sudo().get_param('dgc_appointment_kiosk.brand_primary_color', '#1d4c8a')"/>
             <t t-foreach="docs" t-as="turn">

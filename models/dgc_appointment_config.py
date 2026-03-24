@@ -1,6 +1,8 @@
+import re
 import uuid
 
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class DgcAppointmentConfig(models.TransientModel):
@@ -84,6 +86,15 @@ class DgcAppointmentConfig(models.TransientModel):
         string="URL del Display",
         compute="_compute_kiosk_urls",
     )
+
+    @api.constrains("dgc_brand_primary_color")
+    def _check_brand_primary_color(self):
+        for rec in self:
+            val = rec.dgc_brand_primary_color
+            if val and not re.match(r'^#[0-9a-fA-F]{3,8}$', val):
+                raise ValidationError(
+                    "El color primario debe ser un color hexadecimal válido (ej: #1A237E)."
+                )
 
     @api.depends("dgc_kiosk_token", "dgc_display_token")
     def _compute_kiosk_urls(self):

@@ -2,9 +2,11 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 from odoo import fields
+from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
 
+@tagged('standard', 'at_install')
 class TestAppointmentIntegration(TransactionCase):
     """Tests for the portal booking -> DGC turn bridge."""
 

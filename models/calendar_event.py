@@ -9,6 +9,7 @@ class CalendarEvent(models.Model):
         "dgc.appointment.turn",
         string="Turno DGC",
         copy=False,
+        ondelete="set null",
     )
 
     def _cancel_linked_turns(self):

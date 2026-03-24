@@ -67,7 +67,7 @@ class DgcAppointmentTurn(models.Model):
     citizen_name = fields.Char(string="Nombre")
     citizen_email = fields.Char(string="Email")
     notes = fields.Text(string="Notas")
-    partner_id = fields.Many2one("res.partner", string="Contacto")
+    partner_id = fields.Many2one("res.partner", string="Contacto", ondelete="set null")
     calendar_event_id = fields.Many2one(
         "calendar.event",
         string="Cita",
@@ -94,11 +94,13 @@ class DgcAppointmentTurn(models.Model):
         required=True,
         tracking=True,
         domain="[('is_dgc_area', '=', True)]",
+        ondelete="restrict",
     )
     operator_id = fields.Many2one(
         "res.users",
         string="Operador",
         tracking=True,
+        ondelete="set null",
     )
 
     date = fields.Date(
@@ -152,6 +154,7 @@ class DgcAppointmentTurn(models.Model):
         "res.company",
         string="Compañía",
         default=lambda self: self.env.company,
+        ondelete="set null",
     )
 
     @api.depends("calendar_event_id.start")
@@ -528,19 +531,16 @@ class DgcAppointmentTurn(models.Model):
 
     @api.model
     def _cron_cleanup_rate_limit_keys(self):
-        """Remove expired rate-limit ICP keys (older than 24 hours)."""
-        import json, time
-        cutoff = time.time() - 86400
+        """Legacy cleanup: remove ALL leftover dgc_kiosk.rl.* ICP keys.
+
+        Rate limiting was migrated to an in-memory dict in controllers/kiosk.py.
+        This cron performs a one-time batch delete of any remaining ICP keys
+        from the old implementation.  The cron is shipped with active=False;
+        enable it once after upgrading to clean up, then disable or delete it.
+        """
         icp = self.env["ir.config_parameter"].sudo()
         params = icp.search([("key", "like", "dgc_kiosk.rl.%")])
-        expired = self.env["ir.config_parameter"]
-        for param in params:
-            try:
-                state = json.loads(param.value)
-                if state.get("ts", 0) < cutoff:
-                    expired |= param
-            except (ValueError, KeyError):
-                expired |= param
-        if expired:
-            expired.unlink()
-            _logger.info("DGC: cleaned up %d expired rate-limit keys", len(expired))
+        if params:
+            count = len(params)
+            params.unlink()
+            _logger.info("DGC: legacy cleanup — removed %d rate-limit ICP keys", count)

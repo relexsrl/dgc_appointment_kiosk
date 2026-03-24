@@ -1,6 +1,5 @@
 import hashlib
 import logging
-import re
 import threading
 import time
 
@@ -8,17 +7,12 @@ from odoo import _, http
 from odoo.http import request
 
 from ..models.dgc_appointment_turn import _today_tz
+from ..utils import sanitize_hex_color
 
 _logger = logging.getLogger(__name__)
 
 _rate_limit_store = {}
 _rate_limit_lock = threading.Lock()
-
-
-def _sanitize_hex_color(value, default="#1A237E"):
-    if value and re.match(r'^#[0-9a-fA-F]{3,8}$', value):
-        return value
-    return default
 
 
 class KioskController(http.Controller):
@@ -60,7 +54,7 @@ class KioskController(http.Controller):
             "timeout": int(icp.get_param("dgc_appointment_kiosk.kiosk_timeout", "30")),
             "require_email": icp.get_param("dgc_appointment_kiosk.kiosk_require_email", "False") in ("True", "true", "1"),
             "show_notes": icp.get_param("dgc_appointment_kiosk.kiosk_show_notes", "False") in ("True", "true", "1"),
-            "brand_primary_color": _sanitize_hex_color(icp.get_param("dgc_appointment_kiosk.brand_primary_color", "#1A237E")),
+            "brand_primary_color": sanitize_hex_color(icp.get_param("dgc_appointment_kiosk.brand_primary_color", "#1A237E")),
             "brand_logo_url": f"/web/image/res.company/{company.id}/logo",
         }
         return request.render("dgc_appointment_kiosk.kiosk_main_view", values)
@@ -85,9 +79,9 @@ class KioskController(http.Controller):
 
     @http.route("/kiosk/<string:token>/api/turn/status", type="jsonrpc", auth="public")
     def kiosk_turn_status(self, token, dni):
+        """Check active turn status for a given DNI."""
         if not self._verify_token(token):
             return {"error": {"message": "Invalid token", "code": 403}}
-        """Check active turn status for a given DNI."""
         ip = request.httprequest.remote_addr
         icp = request.env["ir.config_parameter"].sudo()
         window = int(icp.get_param("dgc_appointment_kiosk.rate_limit_seconds", "60"))

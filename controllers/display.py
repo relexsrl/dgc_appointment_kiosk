@@ -1,13 +1,7 @@
-import re
-
 from odoo import http
 from odoo.http import request
 
-
-def _sanitize_hex_color(value, default="#1A237E"):
-    if value and re.match(r'^#[0-9a-fA-F]{3,8}$', value):
-        return value
-    return default
+from ..utils import sanitize_hex_color
 
 
 class DisplayController(http.Controller):
@@ -27,7 +21,7 @@ class DisplayController(http.Controller):
         values = {
             "token": token,
             "refresh_interval": int(icp.get_param("dgc_appointment_kiosk.display_refresh_interval", "30")),
-            "brand_primary_color": _sanitize_hex_color(icp.get_param("dgc_appointment_kiosk.brand_primary_color", "#1A237E")),
+            "brand_primary_color": sanitize_hex_color(icp.get_param("dgc_appointment_kiosk.brand_primary_color", "#1A237E")),
             "brand_logo_url": f"/web/image/res.company/{company.id}/logo",
         }
         return request.render("dgc_appointment_kiosk.display_queue_view", values)

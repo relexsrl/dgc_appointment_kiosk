@@ -1,7 +1,9 @@
 from odoo.exceptions import ValidationError
+from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
 
+@tagged('standard', 'at_install')
 class TestTurnCreation(TransactionCase):
     @classmethod
     def setUpClass(cls):
