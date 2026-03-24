@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="display_queue_view" name="Display de Turnos DGC">
-        <html>
+        <html lang="es">
             <head>
                 <title>Turnero DGC - Display</title>
                 <meta charset="utf-8"/>
@@ -19,7 +19,7 @@
 
                 <!-- Sound activation overlay -->
                 <div class="sound-overlay" id="sound-overlay">
-                    <button class="sound-btn" id="btn-activate-sound">
+                    <button class="sound-btn" id="btn-activate-sound" aria-label="Activar sonido">
                         &#128266; Activar Sonido
                     </button>
                 </div>
@@ -38,7 +38,7 @@
                 </div>
 
                 <!-- Calling Section -->
-                <div class="calling-section" id="calling-section">
+                <div class="calling-section" id="calling-section" role="region" aria-label="Turno en atención">
                     <div class="calling-label"><span class="calling-label-text">ATENDIENDO</span></div>
                     <div class="calling-turn" id="calling-turn">
                         <div class="calling-dni">---</div>
@@ -46,7 +46,7 @@
                 </div>
 
                 <!-- Waiting List -->
-                <div class="waiting-section" id="waiting-section">
+                <div class="waiting-section" id="waiting-section" role="region" aria-label="Turnos en espera">
                     <h2>En Espera</h2>
                     <table class="waiting-list">
                         <thead>
@@ -62,7 +62,7 @@
                 </div>
 
                 <!-- Message Bar -->
-                <div class="message-bar" id="message-bar">
+                <div class="message-bar" id="message-bar" role="marquee" aria-label="Mensajes informativos">
                     <div class="message-content" id="message-content">
                         Bienvenido a la Dirección General de Catastro
                     </div>

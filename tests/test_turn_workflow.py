@@ -1,3 +1,5 @@
+import json
+import time
 from datetime import timedelta
 
 from odoo import fields
@@ -153,3 +155,34 @@ class TestTurnWorkflow(TransactionCase):
         self.Turn._cron_close_pending_turns()
         turn.invalidate_recordset()
         self.assertEqual(turn.state, "no_show")
+
+    def test_cron_cleanup_rate_limit_keys(self):
+        """Cron removes expired ICP rate-limit keys (legacy cleanup).
+
+        Note: The primary rate limiter was migrated to an in-memory dict in
+        controllers/kiosk.py (Phase 3).  However, _cron_cleanup_rate_limit_keys
+        still exists in the model to clean up any leftover ICP keys matching
+        ``dgc_kiosk.rl.*`` that were created before the migration.
+        """
+        ICP = self.env["ir.config_parameter"].sudo()
+
+        # Create an expired rate-limit key (timestamp older than 24 h)
+        expired_ts = time.time() - 90000  # ~25 hours ago
+        ICP.set_param("dgc_kiosk.rl.expired_ip", json.dumps({"ts": expired_ts, "count": 3}))
+
+        # Create a fresh rate-limit key (should survive cleanup)
+        fresh_ts = time.time()
+        ICP.set_param("dgc_kiosk.rl.fresh_ip", json.dumps({"ts": fresh_ts, "count": 1}))
+
+        self.Turn._cron_cleanup_rate_limit_keys()
+
+        # The expired key should have been removed
+        self.assertFalse(
+            ICP.search([("key", "=", "dgc_kiosk.rl.expired_ip")]),
+            "Expired rate-limit key should be cleaned up",
+        )
+        # The fresh key should still exist
+        self.assertTrue(
+            ICP.search([("key", "=", "dgc_kiosk.rl.fresh_ip")]),
+            "Fresh rate-limit key should not be cleaned up",
+        )

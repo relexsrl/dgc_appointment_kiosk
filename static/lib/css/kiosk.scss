@@ -305,6 +305,11 @@ body {
     flex-direction: column;
     gap: var(--dgc-spacing-12);
     margin-bottom: var(--dgc-spacing-20);
+
+    &.submitting {
+        pointer-events: none;
+        opacity: 0.6;
+    }
 }
 
 .area-card {

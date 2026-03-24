@@ -230,3 +230,73 @@ class TestTurnCreation(TransactionCase):
         """Short email local part masking."""
         masked = self.Turn._mask_email("ab@example.com")
         self.assertEqual(masked, "a***@example.com")
+
+    def test_duplicate_across_states_allowed(self):
+        """A completed (done) turn does not block creating a new turn for same DNI+area."""
+        turn1 = self.Turn.create(
+            {
+                "citizen_dni": "33333333",
+                "area_id": self.area_geo.id,
+            }
+        )
+        # Complete the turn through the full workflow
+        turn1.action_call()
+        turn1.action_serve()
+        turn1.action_done()
+        self.assertEqual(turn1.state, "done")
+
+        # Creating another turn for the same DNI+area should succeed
+        turn2 = self.Turn.create(
+            {
+                "citizen_dni": "33333333",
+                "area_id": self.area_geo.id,
+            }
+        )
+        self.assertTrue(turn2.exists())
+        self.assertEqual(turn2.state, "waiting")
+
+    def test_duplicate_derived_turn_allowed(self):
+        """A derived turn does not block creating a new turn for same DNI+area."""
+        operator = self.env["res.users"].create(
+            {
+                "name": "Operador Dup Test",
+                "login": "op_dup_test",
+                "group_ids": [
+                    (4, self.env.ref("base.group_user").id),
+                    (4, self.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
+                ],
+            }
+        )
+        self.area_geo.staff_user_ids = [(4, operator.id)]
+        self.area_cat.staff_user_ids = [(4, operator.id)]
+
+        turn1 = self.Turn.create(
+            {
+                "citizen_dni": "44444444",
+                "area_id": self.area_geo.id,
+            }
+        )
+        # Derive the turn to another area
+        wizard = (
+            self.env["dgc.turn.derive.wizard"]
+            .with_user(operator)
+            .create(
+                {
+                    "turn_id": turn1.id,
+                    "to_area_id": self.area_cat.id,
+                    "reason": "Derivado para test de duplicados",
+                }
+            )
+        )
+        wizard.action_derive()
+        self.assertEqual(turn1.state, "derived")
+
+        # Creating another turn for the same DNI+area should succeed
+        turn2 = self.Turn.create(
+            {
+                "citizen_dni": "44444444",
+                "area_id": self.area_geo.id,
+            }
+        )
+        self.assertTrue(turn2.exists())
+        self.assertEqual(turn2.state, "waiting")

@@ -1,3 +1,5 @@
+import uuid
+
 from odoo import api, fields, models
 
 
@@ -90,19 +92,14 @@ class DgcAppointmentConfig(models.TransientModel):
             rec.dgc_kiosk_full_url = f"{base_url}/kiosk/{rec.dgc_kiosk_token}/checkin" if rec.dgc_kiosk_token else False
             rec.dgc_display_full_url = f"{base_url}/display/{rec.dgc_display_token}/queue" if rec.dgc_display_token else False
 
-    def action_regenerate_kiosk_token(self):
-        import uuid
+    def _regenerate_token(self, param_key, field_name):
         token = str(uuid.uuid4())
-        self.env['ir.config_parameter'].sudo().set_param("dgc_appointment_kiosk.kiosk_token", token)
+        self.env['ir.config_parameter'].sudo().set_param(param_key, token)
         self.env.registry.clear_cache()
-        # Actualizamos el registro actual para que el compute se dispare si es necesario en el servidor
-        self.dgc_kiosk_token = token
-        return token
+        setattr(self, field_name, token)
+
+    def action_regenerate_kiosk_token(self):
+        self._regenerate_token("dgc_appointment_kiosk.kiosk_token", "dgc_kiosk_token")
 
     def action_regenerate_display_token(self):
-        import uuid
-        token = str(uuid.uuid4())
-        self.env['ir.config_parameter'].sudo().set_param("dgc_appointment_kiosk.display_token", token)
-        self.env.registry.clear_cache()
-        self.dgc_display_token = token
-        return token
+        self._regenerate_token("dgc_appointment_kiosk.display_token", "dgc_display_token")

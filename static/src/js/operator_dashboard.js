@@ -39,6 +39,7 @@ export class DgcOperatorDashboard extends Component {
         this._busHeartbeatTimer = null;
         this._previousWaitingIds = new Set();
         this._newTurnTimers = [];
+        this._newTurnIds = new Set();
 
         this._onDgcTurnUpdate = () => {
             this._markBusAlive();
@@ -78,10 +79,13 @@ export class DgcOperatorDashboard extends Component {
             // Mark newly appeared turns
             for (const turn of newWaiting) {
                 if (!oldIds.has(turn.id)) {
-                    turn.__is_new = true;
+                    const turnId = turn.id;
+                    this._newTurnIds.add(turnId);
                     // Schedule removal of the animation flag
                     const timer = setTimeout(() => {
-                        turn.__is_new = false;
+                        this._newTurnIds.delete(turnId);
+                        // Trigger re-render by replacing the array reference
+                        this.state.waitingTurns = [...this.state.waitingTurns];
                     }, NEW_TURN_ANIMATION_MS);
                     this._newTurnTimers.push(timer);
                 }
@@ -137,9 +141,8 @@ export class DgcOperatorDashboard extends Component {
     // --- Bus Heartbeat ---
 
     _startBusHeartbeat() {
-        // Assume bus is connected (optimistic approach)
-        // Will be marked as disconnected only if no events arrive for 60s
-        this._markBusAlive();
+        // Start with busConnected = false (honest approach)
+        // Will be marked as connected only when a real bus event arrives
     }
 
     _stopBusHeartbeat() {
@@ -165,6 +168,11 @@ export class DgcOperatorDashboard extends Component {
             clearTimeout(timer);
         }
         this._newTurnTimers = [];
+        this._newTurnIds = new Set();
+    }
+
+    isNewTurn(turnId) {
+        return this._newTurnIds.has(turnId);
     }
 
     // --- Toggle Done Section ---

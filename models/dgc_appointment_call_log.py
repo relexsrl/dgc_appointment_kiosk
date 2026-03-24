@@ -20,6 +20,6 @@ class DgcAppointmentCallLog(models.Model):
     operator_id = fields.Many2one(
         "res.users",
         string="Operador",
-        required=True,
+        ondelete="set null",
     )
     call_number = fields.Integer(string="Llamada N°")

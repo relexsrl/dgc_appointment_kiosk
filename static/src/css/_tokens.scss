@@ -1,6 +1,4 @@
-// DGC Design Tokens — shared across kiosk, display, and dashboard
-// This file is the single source of truth for all visual constants.
-// Keep in sync with static/lib/css/_tokens.scss (frontend copy).
+// DGC Design Tokens — single source of truth for kiosk, display, and dashboard.
 
 :root {
     // ── Brand Colors (institutional palette) ──────────────────
@@ -62,12 +60,13 @@
     --dgc-font-size-7xl: 64px;
     --dgc-font-size-8xl: 72px;
 
-    --dgc-font-size-display-dni: 4.5rem;
-    --dgc-font-size-display-meta: 1rem;
-    --dgc-font-size-display-area: 1.2rem;
-    --dgc-font-size-display-box: 1.5rem;
-    --dgc-font-size-display-heading: 1.4rem;
-    --dgc-font-size-display-label: 0.85rem;
+    --dgc-display-scale: 1;
+    --dgc-font-size-display-dni: calc(5.5rem * var(--dgc-display-scale));
+    --dgc-font-size-display-meta: calc(1.5rem * var(--dgc-display-scale));
+    --dgc-font-size-display-area: calc(2rem * var(--dgc-display-scale));
+    --dgc-font-size-display-box: calc(2rem * var(--dgc-display-scale));
+    --dgc-font-size-display-heading: calc(1.6rem * var(--dgc-display-scale));
+    --dgc-font-size-display-label: calc(1rem * var(--dgc-display-scale));
     --dgc-font-size-queue-label: 0.85rem;
     --dgc-font-size-queue-value: 1.6rem;
 
@@ -85,9 +84,9 @@
     --dgc-spacing-40: 40px;
 
     // ── Shadows ─────────────────────────────────────────────────
-    --dgc-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
-    --dgc-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.06);
-    --dgc-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.04), 0 4px 6px rgba(0, 0, 0, 0.06);
+    --dgc-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --dgc-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --dgc-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
 
     // ── Borders ─────────────────────────────────────────────────
     --dgc-border-radius-sm: 4px;

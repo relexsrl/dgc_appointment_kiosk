@@ -1,14 +1,24 @@
 import hashlib
-import json
 import logging
+import re
+import threading
 import time
 
-from odoo import http
+from odoo import _, http
 from odoo.http import request
 
 from ..models.dgc_appointment_turn import _today_tz
 
 _logger = logging.getLogger(__name__)
+
+_rate_limit_store = {}
+_rate_limit_lock = threading.Lock()
+
+
+def _sanitize_hex_color(value, default="#1A237E"):
+    if value and re.match(r'^#[0-9a-fA-F]{3,8}$', value):
+        return value
+    return default
 
 
 class KioskController(http.Controller):
@@ -20,31 +30,23 @@ class KioskController(http.Controller):
         return valid_token and token == valid_token
 
     @classmethod
-    def _check_rate_limit(cls, ip):
-        icp = request.env["ir.config_parameter"].sudo()
-        window = int(icp.get_param("dgc_appointment_kiosk.rate_limit_seconds", "60"))
-        max_hits = int(icp.get_param("dgc_appointment_kiosk.rate_limit_max_hits", "5"))
+    def _check_rate_limit(cls, ip, window=60, max_hits=5):
         ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:16]
-        key = f"dgc_kiosk.rl.{ip_hash}"
         now = time.time()
-        raw = icp.get_param(key, "")
-        if raw:
-            try:
-                state = json.loads(raw)
-                if now - state["ts"] < window:
-                    if state["count"] >= max_hits:
-                        return True  # rate-limited
-                    state["count"] += 1
-                else:
-                    state = {"ts": now, "count": 1}
-            except (ValueError, KeyError):
-                state = {"ts": now, "count": 1}
-        else:
-            state = {"ts": now, "count": 1}
-        try:
-            icp.set_param(key, json.dumps(state))
-        except Exception:
-            pass
+        with _rate_limit_lock:
+            state = _rate_limit_store.get(ip_hash)
+            if state and now - state["ts"] < window:
+                if state["count"] >= max_hits:
+                    return True
+                state["count"] += 1
+            else:
+                _rate_limit_store[ip_hash] = {"ts": now, "count": 1}
+            # Cleanup if store grows too large
+            if len(_rate_limit_store) > 1000:
+                cutoff = now - (window * 2)
+                expired = [k for k, v in _rate_limit_store.items() if v["ts"] < cutoff]
+                for k in expired:
+                    del _rate_limit_store[k]
         return False
 
     @http.route("/kiosk/<string:token>/checkin", type="http", auth="public", website=False)
@@ -58,7 +60,7 @@ class KioskController(http.Controller):
             "timeout": int(icp.get_param("dgc_appointment_kiosk.kiosk_timeout", "30")),
             "require_email": icp.get_param("dgc_appointment_kiosk.kiosk_require_email", "False") in ("True", "true", "1"),
             "show_notes": icp.get_param("dgc_appointment_kiosk.kiosk_show_notes", "False") in ("True", "true", "1"),
-            "brand_primary_color": icp.get_param("dgc_appointment_kiosk.brand_primary_color", "#1A237E"),
+            "brand_primary_color": _sanitize_hex_color(icp.get_param("dgc_appointment_kiosk.brand_primary_color", "#1A237E")),
             "brand_logo_url": f"/web/image/res.company/{company.id}/logo",
         }
         return request.render("dgc_appointment_kiosk.kiosk_main_view", values)
@@ -87,12 +89,15 @@ class KioskController(http.Controller):
             return {"error": {"message": "Invalid token", "code": 403}}
         """Check active turn status for a given DNI."""
         ip = request.httprequest.remote_addr
+        icp = request.env["ir.config_parameter"].sudo()
+        window = int(icp.get_param("dgc_appointment_kiosk.rate_limit_seconds", "60"))
+        max_hits = int(icp.get_param("dgc_appointment_kiosk.rate_limit_max_hits", "5"))
 
-        if self._check_rate_limit(ip):
+        if self._check_rate_limit(ip, window=window, max_hits=max_hits):
             return {
                 "found": False,
                 "error_code": "RATE_LIMIT",
-                "message": "Demasiadas solicitudes. Espere unos segundos.",
+                "message": _("Demasiadas solicitudes. Espere unos segundos."),
             }
 
         Turn = request.env["dgc.appointment.turn"].sudo()
@@ -102,7 +107,7 @@ class KioskController(http.Controller):
             return {
                 "found": False,
                 "error_code": "INVALID_DNI",
-                "message": "El DNI/CUIT ingresado no es válido.",
+                "message": _("El DNI/CUIT ingresado no es válido."),
             }
 
         today = _today_tz(request.env)
@@ -144,12 +149,15 @@ class KioskController(http.Controller):
         if not self._verify_token(token):
             return {"error": {"message": "Invalid token", "code": 403}}
         ip = request.httprequest.remote_addr
+        icp = request.env["ir.config_parameter"].sudo()
+        window = int(icp.get_param("dgc_appointment_kiosk.rate_limit_seconds", "60"))
+        max_hits = int(icp.get_param("dgc_appointment_kiosk.rate_limit_max_hits", "5"))
 
-        if self._check_rate_limit(ip):
+        if self._check_rate_limit(ip, window=window, max_hits=max_hits):
             return {
                 "success": False,
                 "error_code": "RATE_LIMIT",
-                "message": "Demasiadas solicitudes. Espere unos segundos.",
+                "message": _("Demasiadas solicitudes. Espere unos segundos."),
             }
 
         Turn = request.env["dgc.appointment.turn"].sudo()
@@ -159,7 +167,7 @@ class KioskController(http.Controller):
             return {
                 "success": False,
                 "error_code": "INVALID_DNI",
-                "message": "El DNI/CUIT ingresado no es válido.",
+                "message": _("El DNI/CUIT ingresado no es válido."),
             }
 
         # Validate area
@@ -168,7 +176,7 @@ class KioskController(http.Controller):
             return {
                 "success": False,
                 "error_code": "INVALID_AREA",
-                "message": "El área seleccionada no está disponible.",
+                "message": _("El área seleccionada no está disponible."),
             }
 
         # Check capacity
@@ -176,18 +184,17 @@ class KioskController(http.Controller):
             return {
                 "success": False,
                 "error_code": "CAPACITY_FULL",
-                "message": "No hay más turnos disponibles para esta área hoy.",
+                "message": _("No hay más turnos disponibles para esta área hoy."),
             }
 
         # Step 5: explicit duplicate check before partner creation
-        icp = request.env["ir.config_parameter"].sudo()
         allow_multiple = icp.get_param("dgc_appointment_kiosk.allow_multiple_turns", "True")
         allow_multiple_bool = str(allow_multiple).lower() not in ("false", "0", "")
         today = _today_tz(request.env)
         dup_domain = [
             ("citizen_dni", "=", dni),
             ("date", "=", today),
-            ("state", "in", ["new", "waiting", "calling"]),
+            ("state", "in", ["new", "waiting", "calling", "serving"]),
         ]
         if allow_multiple_bool:
             dup_domain.append(("area_id", "=", area.id))
@@ -195,7 +202,7 @@ class KioskController(http.Controller):
             return {
                 "success": False,
                 "error_code": "DUPLICATE_TURN",
-                "message": "Ya existe un turno pendiente para este DNI/CUIT en la misma fecha y área.",
+                "message": _("Ya existe un turno pendiente para este DNI/CUIT en la misma fecha y área."),
             }
 
         from odoo.exceptions import ValidationError
@@ -223,7 +230,7 @@ class KioskController(http.Controller):
             return {
                 "success": False,
                 "error_code": "SERVER_ERROR",
-                "message": "Error interno. Intente nuevamente.",
+                "message": _("Error interno. Intente nuevamente."),
             }
 
         # Count turns ahead in queue (same area, same day, earlier ID, pending states)

@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -52,16 +52,16 @@ class DgcTurnCreateWizard(models.TransientModel):
 
         # Validate DNI
         if not Turn._validate_dni(self.citizen_dni):
-            raise UserError("El DNI/CUIT ingresado no es válido.")
+            raise UserError(_("El DNI/CUIT ingresado no es válido."))
 
         # Validate area belongs to operator
         user_area_ids = self.env['appointment.type']._get_dgc_areas_for_user().ids
         if self.area_id.id not in user_area_ids:
-            raise UserError("No tiene permisos para crear turnos en esta área.")
+            raise UserError(_("No tiene permisos para crear turnos en esta área."))
 
         # Check capacity (sudo to bypass appointment record rules)
         if self.area_id.sudo().remaining_turns_today <= 0:
-            raise UserError("No hay más turnos disponibles para esta área hoy.")
+            raise UserError(_("No hay más turnos disponibles para esta área hoy."))
 
         # Find or create partner
         partner_result = Turn._find_or_create_partner(

@@ -173,7 +173,7 @@
                                             </thead>
                                             <tbody>
                                                 <tr t-foreach="state.waitingTurns" t-as="turn" t-key="turn.id"
-                                                    t-attf-class="#{turn.__is_new ? 'dgc-turn-new' : ''}">
+                                                    t-attf-class="#{isNewTurn(turn.id) ? 'dgc-turn-new' : ''}">
                                                     <td class="fw-bold" t-out="turn.citizen_dni || '-'"/>
                                                     <td><span class="badge text-bg-secondary" t-out="turn.turn_number"/></td>
                                                     <td t-out="turn.citizen_name || '-'"/>

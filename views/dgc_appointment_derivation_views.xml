@@ -17,6 +17,33 @@
         </field>
     </record>
 
+    <!-- Form View -->
+    <record id="view_dgc_appointment_derivation_form" model="ir.ui.view">
+        <field name="name">dgc.appointment.derivation.form</field>
+        <field name="model">dgc.appointment.derivation</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="turn_id"/>
+                            <field name="from_area_id"/>
+                            <field name="to_area_id"/>
+                        </group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="derivation_date"/>
+                            <field name="new_turn_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="reason"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <!-- Search View -->
     <record id="dgc_appointment_derivation_view_search" model="ir.ui.view">
         <field name="name">dgc.appointment.derivation.search</field>
@@ -43,8 +70,9 @@
     <record id="action_dgc_appointment_derivation" model="ir.actions.act_window">
         <field name="name">Derivaciones</field>
         <field name="res_model">dgc.appointment.derivation</field>
-        <field name="view_mode">list</field>
+        <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="dgc_appointment_derivation_view_search"/>
+        <field name="context">{'search_default_today': 1}</field>
     </record>
 
 </odoo>

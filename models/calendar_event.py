@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import AccessError
 
 
 class CalendarEvent(models.Model):
@@ -12,6 +13,11 @@ class CalendarEvent(models.Model):
 
     def _cancel_linked_turns(self):
         """Cancela los turnos DGC pendientes vinculados a estos eventos."""
+        if not self.env.is_superuser():
+            try:
+                self.env["dgc.appointment.turn"].check_access_rights("write")
+            except AccessError:
+                return
         from .dgc_appointment_turn import PENDING_STATES
         turns = self.env["dgc.appointment.turn"].sudo().search([
             ("calendar_event_id", "in", self.ids),
@@ -40,6 +46,12 @@ class CalendarEvent(models.Model):
         """Auto-create DGC turns for calendar events linked to DGC appointment types."""
         if self.env.context.get("dgc_skip_turn_creation"):
             return
+
+        if not self.env.is_superuser():
+            try:
+                self.env["dgc.appointment.turn"].check_access_rights("create")
+            except AccessError:
+                return
 
         Turn = self.env["dgc.appointment.turn"].sudo()
 

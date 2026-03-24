@@ -3,13 +3,15 @@
 
     <template id="report_dgc_turn">
         <t t-call="web.html_container">
+            <t t-set="brand_primary_color"
+               t-value="docs.env['ir.config_parameter'].sudo().get_param('dgc_appointment_kiosk.brand_primary_color', '#1d4c8a')"/>
             <t t-foreach="docs" t-as="turn">
                 <t t-call="web.external_layout">
                     <div class="page">
                         <h2>Comprobante de Turno</h2>
 
                         <div style="text-align: center; margin: 30px 0;">
-                            <h1 style="font-size: 48px; color: #1A237E;">
+                            <h1 t-attf-style="font-size: 48px; color: #{brand_primary_color or '#1d4c8a'};">
                                 <t t-out="turn.turn_number"/>
                             </h1>
                         </div>

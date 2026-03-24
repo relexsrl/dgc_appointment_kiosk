@@ -14,9 +14,27 @@ class DgcKiosk {
         this.areaCache = null;
         this.areaCacheTime = 0;
         this.CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+        this._isSubmitting = false;
 
         this._bindEvents();
         this._bindKeyboard();
+    }
+
+    /**
+     * Extract the kiosk token from the current page URL.
+     * URL pattern: /kiosk/<token>/checkin
+     */
+    _getToken() {
+        const parts = window.location.pathname.split('/');
+        const kioskIdx = parts.indexOf('kiosk');
+        return parts[kioskIdx + 1];
+    }
+
+    /**
+     * Return the base API path including the kiosk token.
+     */
+    _getBasePath() {
+        return `/kiosk/${this._getToken()}`;
     }
 
     _bindEvents() {
@@ -163,10 +181,17 @@ class DgcKiosk {
         const target = document.getElementById(`step-${step}`);
         if (target) {
             target.classList.add("active");
+            // Focus management: move focus to heading for screen readers
+            const heading = target.querySelector('h2, h1');
+            if (heading) {
+                heading.setAttribute('tabindex', '-1');
+                heading.focus();
+            }
         }
         this.currentStep = step;
 
         if (step === 0) {
+            this._isSubmitting = false;
             this.dniInput.value = "";
             if (this.checkDniInput) this.checkDniInput.value = "";
             this._hideError("dni-error");
@@ -302,6 +327,7 @@ class DgcKiosk {
     // --- Check Turn flow (T-18/T-19) ---
 
     async _onCheckTurnSubmit() {
+        if (this._isSubmitting) return;
         const dni = this.checkDniInput.value.trim();
         this._hideError("check-dni-error");
 
@@ -310,13 +336,16 @@ class DgcKiosk {
             return;
         }
 
+        this._isSubmitting = true;
         try {
-            const result = await this._jsonRpc("/kiosk/api/turn/status", { dni: dni });
+            const result = await this._jsonRpc(`${this._getBasePath()}/api/turn/status`, { dni: dni });
             this._renderCheckResult(result);
             this.showStep("check-result");
             this.startCountdown(this.timeout, "check-result-countdown", 0);
         } catch {
             this._showError("check-dni-error", "Error de conexión. Intente nuevamente.");
+        } finally {
+            this._isSubmitting = false;
         }
     }
 
@@ -349,7 +378,7 @@ class DgcKiosk {
                         </div>
                         <div class="queue-stat">
                             <span class="queue-label">Posición</span>
-                            <span class="queue-value">${result.position ?? "—"}</span>
+                            <span class="queue-value">${this._escapeHtml(String(result.position ?? "—"))}</span>
                         </div>
                         <div class="queue-stat">
                             <span class="queue-label">Espera est.</span>
@@ -377,7 +406,7 @@ class DgcKiosk {
         }
 
         try {
-            const result = await this._jsonRpc("/kiosk/api/areas");
+            const result = await this._jsonRpc(`${this._getBasePath()}/api/areas`);
             this.areaCache = result;
             this.areaCacheTime = now;
             this._renderAreas(result);
@@ -432,6 +461,7 @@ class DgcKiosk {
     }
 
     async _onAreaSelected(areaId) {
+        if (this._isSubmitting) return;
         const dni = this.dniInput.value.trim();
         this._hideError("area-error");
 
@@ -440,6 +470,10 @@ class DgcKiosk {
             this._showError("area-error", "No hay turnos disponibles para esta área.");
             return;
         }
+
+        this._isSubmitting = true;
+        const areaList = document.getElementById("area-list");
+        if (areaList) areaList.classList.add("submitting");
 
         try {
             const result = await this.createTurn(dni, areaId);
@@ -466,11 +500,14 @@ class DgcKiosk {
             }
         } catch {
             this._showError("area-error", "Error de conexión. Intente nuevamente.");
+        } finally {
+            this._isSubmitting = false;
+            if (areaList) areaList.classList.remove("submitting");
         }
     }
 
     async createTurn(dni, areaId, email, notes) {
-        return this._jsonRpc("/kiosk/api/turn/create", {
+        return this._jsonRpc(`${this._getBasePath()}/api/turn/create`, {
             dni: dni,
             area_id: areaId,
             email: email || null,
@@ -521,48 +558,6 @@ class DgcKiosk {
             throw new Error(data.error.message || "Error del servidor");
         }
         return data.result;
-    }
-
-    _bindKeyboard() {
-        // Keyboard support for DNI input steps
-        document.addEventListener("keydown", (e) => {
-            // Only handle numeric keys and backspace
-            if (!this.isOnDniStep()) return;
-
-            if (e.key >= "0" && e.key <= "9") {
-                // Add digit
-                const input = this.currentStep === "check" ? this.checkDniInput : this.dniInput;
-                if (input && input.value.length < 11) {
-                    input.value += e.key;
-                    const valId = this.currentStep === "check" ? "check-dni-validation" : "dni-validation";
-                    const btnId = this.currentStep === "check" ? "numpad-next-check" : "numpad-next-1";
-                    this._updateDniValidation(input, valId, btnId);
-                }
-                e.preventDefault();
-            } else if (e.key === "Backspace") {
-                // Delete last digit
-                const input = this.currentStep === "check" ? this.checkDniInput : this.dniInput;
-                if (input) {
-                    input.value = input.value.slice(0, -1);
-                    const valId = this.currentStep === "check" ? "check-dni-validation" : "dni-validation";
-                    const btnId = this.currentStep === "check" ? "numpad-next-check" : "numpad-next-1";
-                    this._updateDniValidation(input, valId, btnId);
-                }
-                e.preventDefault();
-            } else if (e.key === "Enter") {
-                // Submit
-                if (this.currentStep === 1) {
-                    this._onNextStep1();
-                } else if (this.currentStep === "check") {
-                    this._onCheckTurnSubmit();
-                }
-                e.preventDefault();
-            }
-        });
-    }
-
-    isOnDniStep() {
-        return this.currentStep === 1 || this.currentStep === "check";
     }
 
     _escapeHtml(str) {

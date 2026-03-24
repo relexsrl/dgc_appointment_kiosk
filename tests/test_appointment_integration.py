@@ -255,3 +255,44 @@ class TestAppointmentIntegration(TransactionCase):
             }
         )
         self.assertFalse(event.dgc_turn_id, "Turn creation should be skipped with context flag")
+
+    def test_calendar_event_delete_cancels_turn(self):
+        """Deleting a calendar event linked to a DGC turn cancels the turn (no_show)."""
+        event = self._create_calendar_event(appointment_type=self.appt_type)
+        turn = event.dgc_turn_id
+        self.assertTrue(turn, "A turn should have been created")
+        self.assertIn(turn.state, ("waiting", "calling", "new"), "Turn should be in a pending state")
+
+        # Delete the event
+        event.unlink()
+        turn.invalidate_recordset()
+        self.assertEqual(turn.state, "no_show", "Turn state should become no_show after event deletion")
+
+    def test_calendar_event_archive_cancels_turn(self):
+        """Archiving a calendar event (active=False) cancels the linked DGC turn."""
+        event = self._create_calendar_event(appointment_type=self.appt_type)
+        turn = event.dgc_turn_id
+        self.assertTrue(turn, "A turn should have been created")
+        self.assertIn(turn.state, ("waiting", "calling", "new"), "Turn should be in a pending state")
+
+        # Archive the event
+        event.write({"active": False})
+        turn.invalidate_recordset()
+        self.assertEqual(turn.state, "no_show", "Turn state should become no_show after event archival")
+
+    def test_done_turn_not_affected_by_event_delete(self):
+        """A completed turn is not affected by deleting its calendar event."""
+        event = self._create_calendar_event(appointment_type=self.appt_type)
+        turn = event.dgc_turn_id
+        self.assertTrue(turn, "A turn should have been created")
+
+        # Complete the turn through the full workflow
+        turn.action_call()
+        turn.action_serve()
+        turn.action_done()
+        self.assertEqual(turn.state, "done")
+
+        # Delete the event — turn should remain done
+        event.unlink()
+        turn.invalidate_recordset()
+        self.assertEqual(turn.state, "done", "Completed turn state should remain done after event deletion")

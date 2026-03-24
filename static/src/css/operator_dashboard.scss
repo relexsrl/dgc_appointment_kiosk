@@ -216,14 +216,14 @@
     box-shadow: var(--dgc-shadow-sm);
 
     // Header states — custom classes instead of Bootstrap bg-*
-    .dgc-header-calling {
-        background: var(--dgc-primary) !important;
-        color: white !important;
+    .card-header.dgc-header-calling {
+        background: var(--dgc-primary);
+        color: white;
     }
 
-    .dgc-header-serving {
-        background: var(--dgc-success) !important;
-        color: white !important;
+    .card-header.dgc-header-serving {
+        background: var(--dgc-success);
+        color: white;
     }
 
     &__header {
@@ -266,10 +266,10 @@
                 vertical-align: middle;
             }
 
-            .fw-bold.text-muted {
-                color: var(--dgc-text-secondary) !important;
+            td.fw-bold.text-muted {
+                color: var(--dgc-text-secondary);
                 font-size: var(--dgc-font-size-sm);
-                font-weight: 500 !important;
+                font-weight: 500;
             }
         }
     }
@@ -348,16 +348,17 @@
     }
 
     // "LLAMANDO" badge animation
-    .dgc-badge-calling {
+    .badge.dgc-badge-calling {
         animation: dgc-calling-flash 1.5s ease-in-out infinite;
-        font-size: var(--dgc-font-size-lg) !important;
+        font-size: var(--dgc-font-size-lg);
         padding: 6px 14px;
     }
 }
 
 // ── Section Headers (Queue cards) ─────────────────────────────────
-.dgc-section-header {
-    background: white !important;
+.dgc-waiting-queue .card-header.dgc-section-header,
+.dgc-done-today .card-header.dgc-section-header {
+    background: white;
     border-left: 3px solid var(--dgc-primary);
     border-bottom: 1px solid var(--dgc-border-color);
     padding: var(--dgc-spacing-sm) var(--dgc-spacing-md);
@@ -414,9 +415,9 @@
         }
 
         // Subtle badge style
-        .badge.text-bg-secondary {
-            background: var(--dgc-bg-secondary) !important;
-            color: var(--dgc-text-primary) !important;
+        td .badge.text-bg-secondary {
+            background: var(--dgc-bg-secondary);
+            color: var(--dgc-text-primary);
             font-weight: 600;
             border: 1px solid var(--dgc-border-color);
         }
@@ -424,8 +425,8 @@
 }
 
 .dgc-done-today {
-    .card-header.cursor-pointer:hover {
-        background: var(--dgc-bg-primary) !important;
+    .card-header.dgc-section-header.cursor-pointer:hover {
+        background: var(--dgc-bg-primary);
     }
 }
 

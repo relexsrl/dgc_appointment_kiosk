@@ -12,7 +12,7 @@
                      name="dgc_appointment_kiosk"
                      groups="dgc_appointment_kiosk.group_dgc_area_manager">
                     <block title="Seguridad">
-                        <setting string="Token del Kiosk" help="Token para acceso a la URL del Kiosco">
+                        <setting string="Token del Kiosk" help="Token para acceso a la URL del Kiosco" groups="dgc_appointment_kiosk.group_dgc_admin">
                             <div class="d-flex flex-column">
                                 <div class="d-flex align-items-center mb-2">
                                     <field name="dgc_kiosk_token" widget="dgc_token_regenerator"/>
@@ -23,7 +23,7 @@
                                 </div>
                             </div>
                         </setting>
-                        <setting string="Token del Display" help="Token para acceso a la URL del Display">
+                        <setting string="Token del Display" help="Token para acceso a la URL del Display" groups="dgc_appointment_kiosk.group_dgc_admin">
                             <div class="d-flex flex-column">
                                 <div class="d-flex align-items-center mb-2">
                                     <field name="dgc_display_token" widget="dgc_token_regenerator"/>

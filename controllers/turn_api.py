@@ -1,6 +1,6 @@
 import logging
 
-from odoo import http
+from odoo import _, http
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
@@ -18,51 +18,55 @@ class TurnAPIController(http.Controller):
     def turn_call(self, turn_id):
         turn = self._get_turn(turn_id)
         if not turn:
-            return {"success": False, "message": "Turno no encontrado."}
+            return {"success": False, "message": _("Turno no encontrado.")}
         try:
             turn.action_call()
             return {"success": True, "turn_number": turn.turn_number, "state": turn.state}
         except Exception as e:
-            return {"success": False, "message": str(e)}
+            _logger.exception("Error in turn_call: %s", e)
+            return {"success": False, "message": _("Error interno del servidor")}
 
     @http.route("/api/turn/serve", type="jsonrpc", auth="user")
     def turn_serve(self, turn_id):
         turn = self._get_turn(turn_id)
         if not turn:
-            return {"success": False, "message": "Turno no encontrado."}
+            return {"success": False, "message": _("Turno no encontrado.")}
         try:
             turn.action_serve()
             return {"success": True, "turn_number": turn.turn_number, "state": turn.state}
         except Exception as e:
-            return {"success": False, "message": str(e)}
+            _logger.exception("Error in turn_serve: %s", e)
+            return {"success": False, "message": _("Error interno del servidor")}
 
     @http.route("/api/turn/done", type="jsonrpc", auth="user")
     def turn_done(self, turn_id):
         turn = self._get_turn(turn_id)
         if not turn:
-            return {"success": False, "message": "Turno no encontrado."}
+            return {"success": False, "message": _("Turno no encontrado.")}
         try:
             turn.action_done()
             return {"success": True, "turn_number": turn.turn_number, "state": turn.state}
         except Exception as e:
-            return {"success": False, "message": str(e)}
+            _logger.exception("Error in turn_done: %s", e)
+            return {"success": False, "message": _("Error interno del servidor")}
 
     @http.route("/api/turn/noshow", type="jsonrpc", auth="user")
     def turn_noshow(self, turn_id):
         turn = self._get_turn(turn_id)
         if not turn:
-            return {"success": False, "message": "Turno no encontrado."}
+            return {"success": False, "message": _("Turno no encontrado.")}
         try:
             turn.action_no_show()
             return {"success": True, "turn_number": turn.turn_number, "state": turn.state}
         except Exception as e:
-            return {"success": False, "message": str(e)}
+            _logger.exception("Error in turn_noshow: %s", e)
+            return {"success": False, "message": _("Error interno del servidor")}
 
     @http.route("/api/turn/derive", type="jsonrpc", auth="user")
     def turn_derive(self, turn_id, to_area_id, reason):
         turn = self._get_turn(turn_id)
         if not turn:
-            return {"success": False, "message": "Turno no encontrado."}
+            return {"success": False, "message": _("Turno no encontrado.")}
         try:
             wizard = request.env["dgc.turn.derive.wizard"].create({
                 "turn_id": turn.id,
@@ -72,5 +76,5 @@ class TurnAPIController(http.Controller):
             wizard.action_derive()
             return {"success": True, "turn_number": turn.turn_number, "state": turn.state}
         except Exception as e:
-            _logger.exception("Error deriving turn %s", turn_id)
-            return {"success": False, "message": str(e)}
+            _logger.exception("Error in turn_derive: %s", e)
+            return {"success": False, "message": _("Error interno del servidor")}

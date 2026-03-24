@@ -16,11 +16,13 @@ class DgcAppointmentDerivation(models.Model):
         "appointment.type",
         string="Área origen",
         required=True,
+        ondelete="restrict",
     )
     to_area_id = fields.Many2one(
         "appointment.type",
         string="Área destino",
         required=True,
+        ondelete="restrict",
     )
     reason = fields.Text(string="Motivo", required=True)
     user_id = fields.Many2one(

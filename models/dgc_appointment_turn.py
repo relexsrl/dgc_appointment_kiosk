@@ -2,8 +2,10 @@ import logging
 import re
 from datetime import datetime as _dt
 
-from odoo import api, fields, models
-from odoo.exceptions import UserError, ValidationError
+import psycopg2
+
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -13,24 +15,27 @@ def _today_tz(env):
     try:
         # Try to get timezone from company, but may fail for public users (no ACL on partner_id)
         tz = env.company.partner_id.tz or "America/Argentina/Buenos_Aires"
-    except Exception:
+    except AccessError:
         # Public user or no ACL: use default timezone
         tz = "America/Argentina/Buenos_Aires"
     rec = env["dgc.appointment.turn"]
-    local_now = fields.Datetime.context_timestamp(rec, _dt.utcnow())
+    local_now = fields.Datetime.context_timestamp(rec, fields.Datetime.now())
     return local_now.date()
 
 TURN_STATES = [
-    ("new", "Nuevo"),
-    ("waiting", "En espera"),
-    ("calling", "Llamando"),
-    ("serving", "Atendiendo"),
-    ("done", "Finalizado"),
-    ("derived", "Derivado"),
-    ("no_show", "No se presentó"),
+    ("new", _("Nuevo")),
+    ("waiting", _("En espera")),
+    ("calling", _("Llamando")),
+    ("serving", _("Atendiendo")),
+    ("done", _("Finalizado")),
+    ("derived", _("Derivado")),
+    ("no_show", _("No se presentó")),
 ]
 
 PENDING_STATES = ("new", "waiting", "calling")
+# States where a citizen is actively occupying a slot (used for duplicate checking).
+# Matches the partial unique index dgc_turn_unique_dni_area_date_pending.
+ACTIVE_STATES = ("new", "waiting", "calling", "serving")
 
 
 class DgcAppointmentTurn(models.Model):
@@ -38,6 +43,14 @@ class DgcAppointmentTurn(models.Model):
     _description = "Turno DGC"
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "create_date asc"
+
+    def init(self):
+        self.env.cr.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS
+                dgc_turn_unique_dni_area_date_pending
+            ON dgc_appointment_turn (citizen_dni, area_id, date)
+            WHERE state IN ('new', 'waiting', 'calling', 'serving')
+        """)
 
     turn_number = fields.Char(
         string="Número de turno",
@@ -48,6 +61,7 @@ class DgcAppointmentTurn(models.Model):
     citizen_dni = fields.Char(
         string="DNI/CUIT",
         required=True,
+        index=True,
         tracking=True,
     )
     citizen_name = fields.Char(string="Nombre")
@@ -200,20 +214,20 @@ class DgcAppointmentTurn(models.Model):
             "dgc_appointment_kiosk.allow_multiple_turns", "True"
         )
         for turn in self:
-            if turn.state in ("done", "no_show", "derived"):
+            if turn.state not in ACTIVE_STATES:
                 continue
             domain = [
                 ("citizen_dni", "=", turn.citizen_dni),
                 ("date", "=", turn.date),
-                ("state", "in", list(PENDING_STATES)),
+                ("state", "in", list(ACTIVE_STATES)),
                 ("id", "!=", turn.id),
             ]
             if str(allow_multiple).lower() not in ("false", "0", ""):
                 domain.append(("area_id", "=", turn.area_id.id))
             if self.search_count(domain):
                 raise ValidationError(
-                    "Ya existe un turno pendiente para este DNI/CUIT "
-                    "en la misma fecha y área."
+                    _("Ya existe un turno pendiente para este DNI/CUIT "
+                      "en la misma fecha y área.")
                 )
 
     @api.model_create_multi
@@ -226,12 +240,21 @@ class DgcAppointmentTurn(models.Model):
                 vals["turn_number"] = f"{area.dgc_code or 'GEN'}-{counter}"
             if vals.get("state", "new") == "new":
                 vals["state"] = "waiting"
-        return super().create(vals_list)
+        try:
+            with self.env.cr.savepoint():
+                return super().create(vals_list)
+        except psycopg2.IntegrityError as e:
+            if "dgc_turn_unique_dni_area_date_pending" in str(e):
+                raise ValidationError(
+                    _("Ya existe un turno pendiente para este DNI/CUIT "
+                      "en la misma fecha y área.")
+                ) from None
+            raise
 
     def action_call(self):
         self.ensure_one()
         if self.state not in ("waiting", "calling"):
-            raise UserError("Solo se pueden llamar turnos en espera.")
+            raise UserError(_("Solo se pueden llamar turnos en espera."))
         now = fields.Datetime.now()
         new_count = self.call_count + 1
         vals = {
@@ -254,7 +277,7 @@ class DgcAppointmentTurn(models.Model):
     def action_recall(self):
         self.ensure_one()
         if self.state != "calling":
-            raise UserError("Solo se pueden re-llamar turnos en estado llamando.")
+            raise UserError(_("Solo se pueden re-llamar turnos en estado llamando."))
         new_count = self.call_count + 1
         self.write({"call_count": new_count})
         self.env["dgc.appointment.call.log"].create({
@@ -269,7 +292,7 @@ class DgcAppointmentTurn(models.Model):
     def action_serve(self):
         self.ensure_one()
         if self.state != "calling":
-            raise UserError("Solo se pueden atender turnos que están siendo llamados.")
+            raise UserError(_("Solo se pueden atender turnos que están siendo llamados."))
         self.write({
             "state": "serving",
             "serve_date": fields.Datetime.now(),
@@ -281,7 +304,7 @@ class DgcAppointmentTurn(models.Model):
     def action_done(self):
         self.ensure_one()
         if self.state != "serving":
-            raise UserError("Solo se pueden finalizar turnos en atención.")
+            raise UserError(_("Solo se pueden finalizar turnos en atención."))
         self.write({
             "state": "done",
             "done_date": fields.Datetime.now(),
@@ -292,9 +315,9 @@ class DgcAppointmentTurn(models.Model):
     def action_no_show(self):
         self.ensure_one()
         if self.state != "calling":
-            raise UserError("Solo se puede marcar 'No se presentó' a turnos llamados.")
+            raise UserError(_("Solo se puede marcar 'No se presentó' a turnos llamados."))
         if self.call_count < 1:
-            raise UserError("Debe llamar al turno al menos una vez antes de marcarlo como no presentado.")
+            raise UserError(_("Debe llamar al turno al menos una vez antes de marcarlo como no presentado."))
         self.write({"state": "no_show"})
         self._send_bus_notification("no_show")
         self._send_display_notification("no_show")
@@ -327,7 +350,6 @@ class DgcAppointmentTurn(models.Model):
             "operator_box": self.operator_box or "",
         }
         self.env["bus.bus"]._sendone(area_channel, "dgc_turn_update", payload)
-        self.env["bus.bus"]._sendone('dgc_turn_display', 'dgc_display_update', payload)
 
     def _send_display_notification(self, action):
         """Broadcast turn update to the public display channel."""
@@ -370,6 +392,12 @@ class DgcAppointmentTurn(models.Model):
         local, domain = email.split("@", 1)
         masked = local[:3] + "***" if len(local) > 3 else local[0] + "***"
         return f"{masked}@{domain}"
+
+    @staticmethod
+    def _mask_dni(dni):
+        if not dni or len(dni) <= 3:
+            return dni or ""
+        return "*" * (len(dni) - 3) + dni[-3:]
 
     @api.model
     def _validate_dni(self, dni):
@@ -416,18 +444,22 @@ class DgcAppointmentTurn(models.Model):
             ],
             limit=1,
         )
-        waiting = self.search_read(
+        # --- Single query for all pending turns (new, waiting, calling) ---
+        # Replaces separate search_read(waiting) + search_count(pending)
+        pending_all = self.search_read(
             [
                 ("area_id", "in", area_ids),
-                ("state", "=", "waiting"),
+                ("state", "in", ["new", "waiting", "calling"]),
                 ("date", "=", today),
             ],
             fields=[
                 "turn_number", "citizen_dni", "citizen_name", "area_id",
-                "create_date", "operator_box",
+                "create_date", "operator_box", "state",
             ],
             order="create_date asc",
         )
+        pending_count = len(pending_all)
+        waiting = [t for t in pending_all if t["state"] == "waiting"]
         done = self.search_read(
             [
                 ("area_id", "in", area_ids),
@@ -441,14 +473,9 @@ class DgcAppointmentTurn(models.Model):
             order="done_date desc",
             limit=50,
         )
-        # --- KPIs ---
-        served_count = self.search_count([
-            ('state', '=', 'done'),
-            ('date', '=', today),
-            ('area_id', 'in', area_ids),
-        ])
-
+        # --- KPIs: served_count + avg_duration in one _read_group ---
         avg_duration = 0.0
+        served_count = 0
         duration_groups = self._read_group(
             domain=[
                 ('state', '=', 'done'),
@@ -456,16 +483,13 @@ class DgcAppointmentTurn(models.Model):
                 ('area_id', 'in', area_ids),
             ],
             groupby=[],
-            aggregates=['duration:avg'],
+            aggregates=['duration:avg', '__count'],
         )
-        if duration_groups and duration_groups[0][0] is not None:
-            avg_duration = round(duration_groups[0][0], 1)
-
-        pending_count = self.search_count([
-            ('state', 'in', ['new', 'waiting', 'calling']),
-            ('date', '=', today),
-            ('area_id', 'in', area_ids),
-        ])
+        if duration_groups:
+            avg_val, count_val = duration_groups[0]
+            if avg_val is not None:
+                avg_duration = round(avg_val, 1)
+            served_count = count_val or 0
 
         derivation_count = self.env['dgc.appointment.derivation'].search_count([
             ('from_area_id', 'in', area_ids),

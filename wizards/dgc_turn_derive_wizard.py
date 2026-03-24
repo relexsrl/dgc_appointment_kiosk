@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -38,9 +38,9 @@ class DgcTurnDeriveWizard(models.TransientModel):
         self.ensure_one()
         turn = self.turn_id
         if not turn:
-            raise UserError("No se encontró el turno a derivar.")
+            raise UserError(_("No se encontró el turno a derivar."))
         if self.to_area_id == turn.area_id:
-            raise UserError("El área destino debe ser diferente al área actual del turno.")
+            raise UserError(_("El área destino debe ser diferente al área actual del turno."))
 
         # 1. Create new turn in destination area (inherits citizen data)
         new_turn = self.env["dgc.appointment.turn"].sudo().create({
@@ -77,6 +77,6 @@ class DgcTurnDeriveWizard(models.TransientModel):
     def _onchange_to_area_id(self):
         if self.to_area_id and self.turn_id and self.to_area_id == self.turn_id.area_id:
             return {"warning": {
-                "title": "Área inválida",
-                "message": "El área destino no puede ser la misma que el área actual del turno.",
+                "title": _("Área inválida"),
+                "message": _("El área destino no puede ser la misma que el área actual del turno."),
             }}

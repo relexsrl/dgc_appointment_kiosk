@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="kiosk_main_view" name="Kiosco DGC - Turnos">
-        <html>
+        <html lang="es">
             <head>
                 <title>Turnero DGC - Kiosco</title>
                 <meta charset="utf-8"/>
@@ -35,11 +35,11 @@
                     <div class="step active" id="step-0">
                         <div class="welcome-panel">
                             <div class="welcome-actions">
-                                <button class="btn-welcome btn-welcome-primary" id="btn-new-turn">
+                                <button class="btn-welcome btn-welcome-primary" id="btn-new-turn" aria-label="Sacar nuevo turno">
                                     <span class="btn-welcome-icon">&#43;</span>
                                     <span class="btn-welcome-label">Sacar Nuevo Turno</span>
                                 </button>
-                                <button class="btn-welcome btn-welcome-secondary" id="btn-check-turn">
+                                <button class="btn-welcome btn-welcome-secondary" id="btn-check-turn" aria-label="Consultar mi turno">
                                     <span class="btn-welcome-icon">&#63;</span>
                                     <span class="btn-welcome-label">Consultar mi Turno</span>
                                 </button>
@@ -49,7 +49,7 @@
 
                     <!-- Step 1: DNI Input -->
                     <div class="step" id="step-1">
-                        <h2>Ingrese su DNI o CUIT</h2>
+                        <h2 tabindex="-1">Ingrese su DNI o CUIT</h2>
                         <div class="dni-display">
                             <input type="text" id="dni-input" readonly="readonly"
                                    placeholder="Ingrese su documento"
@@ -72,25 +72,25 @@
                             <button class="numpad-btn numpad-next numpad-next-disabled" data-value="next" id="numpad-next-1" disabled="disabled" aria-label="Siguiente">Siguiente</button>
                         </div>
                         <button class="btn-back" id="btn-back-1" aria-label="Volver">Volver</button>
-                        <div class="error-message" id="dni-error" style="display:none;"></div>
+                        <div class="error-message" id="dni-error" style="display:none;" aria-live="polite"></div>
                     </div>
 
                     <!-- Step 2: Area Selection -->
                     <div class="step" id="step-2">
-                        <h2>Seleccione el área</h2>
+                        <h2 tabindex="-1">Seleccione el área</h2>
                         <div class="area-list" id="area-list">
                             <!-- Areas loaded dynamically -->
                         </div>
-                        <button class="btn-back" id="btn-back-2">Volver</button>
-                        <div class="error-message" id="area-error" style="display:none;"></div>
+                        <button class="btn-back" id="btn-back-2" aria-label="Volver">Volver</button>
+                        <div class="error-message" id="area-error" style="display:none;" aria-live="polite"></div>
                     </div>
 
                     <!-- Step 3: Confirmation -->
                     <div class="step" id="step-3">
                         <div class="confirmation-panel">
                             <div class="confirmation-icon"></div>
-                            <h2>¡Turno generado!</h2>
-                            <div class="turn-number-display" id="turn-number-display"></div>
+                            <h2 tabindex="-1">¡Turno generado!</h2>
+                            <div class="turn-number-display" id="turn-number-display" aria-live="polite"></div>
                             <div class="turn-area-display" id="turn-area-display"></div>
                             <div class="turn-location" id="turn-location"></div>
                             <div class="turn-queue-info" id="turn-queue-info">
@@ -111,7 +111,7 @@
 
                     <!-- Step Check: DNI input for turn lookup -->
                     <div class="step" id="step-check">
-                        <h2>Consultar mi Turno</h2>
+                        <h2 tabindex="-1">Consultar mi Turno</h2>
                         <p class="step-hint">Ingrese su DNI o CUIT para buscar su turno activo</p>
                         <div class="dni-display">
                             <input type="text" id="check-dni-input" readonly="readonly"
@@ -135,7 +135,7 @@
                             <button class="numpad-btn numpad-next numpad-next-disabled" data-value="next" id="numpad-next-check" disabled="disabled" aria-label="Consultar">Consultar</button>
                         </div>
                         <button class="btn-back" id="btn-back-check" aria-label="Volver">Volver</button>
-                        <div class="error-message" id="check-dni-error" style="display:none;"></div>
+                        <div class="error-message" id="check-dni-error" style="display:none;" aria-live="polite"></div>
                     </div>
 
                     <!-- Step Check Result: Turn status display -->
@@ -144,7 +144,7 @@
                             <!-- Dynamically rendered -->
                         </div>
                         <div class="check-result-actions">
-                            <button class="btn-back" id="btn-back-check-result">Volver al inicio</button>
+                            <button class="btn-back" id="btn-back-check-result" aria-label="Volver al inicio">Volver al inicio</button>
                             <p class="countdown-text">
                                 Volviendo al inicio en <span id="check-result-countdown">30</span> segundos
                             </p>
@@ -155,9 +155,9 @@
                     <div class="step" id="step-error">
                         <div class="error-panel">
                             <div class="error-icon"></div>
-                            <h2 id="error-title">Error</h2>
+                            <h2 id="error-title" tabindex="-1">Error</h2>
                             <p id="error-detail"></p>
-                            <button class="btn-primary" id="btn-retry">Reintentar</button>
+                            <button class="btn-primary" id="btn-retry" aria-label="Reintentar">Reintentar</button>
                         </div>
                     </div>
 
