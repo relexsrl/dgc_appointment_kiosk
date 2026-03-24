@@ -437,6 +437,19 @@ class DgcKiosk {
             // T-16: Show description (welcome_message) below area name
             const description = area.welcome_message || "";
 
+            // Estimated wait time display
+            const wait = area.estimated_wait_minutes || 0;
+            let waitText;
+            if (wait <= 0) {
+                waitText = "Atenci\u00f3n inmediata";
+            } else if (wait < 60) {
+                waitText = `~${wait} min de espera`;
+            } else {
+                const hours = Math.floor(wait / 60);
+                const mins = wait % 60;
+                waitText = mins > 0 ? `~${hours}h ${mins}min de espera` : `~${hours}h de espera`;
+            }
+
             card.innerHTML = `
                 <div class="area-info">
                     <div class="area-name">${this._escapeHtml(area.name)}</div>
@@ -449,6 +462,10 @@ class DgcKiosk {
                              style="width: ${pct}%"></div>
                     </div>
                     <div class="capacity-text">${remaining} turnos disponibles</div>
+                    <div class="area-wait">
+                        <span class="wait-icon">\u23F1</span>
+                        <span class="wait-text">${this._escapeHtml(waitText)}</span>
+                    </div>
                 </div>
             `;
 

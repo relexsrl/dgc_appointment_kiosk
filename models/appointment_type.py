@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import AccessError
 
 from .dgc_appointment_turn import _today_tz
 
@@ -115,6 +116,17 @@ class AppointmentType(models.Model):
             minutes = (fallback_end - fallback_start) * 60
             rec.max_daily_turns = int(minutes / service_minutes * counters)
 
+    @staticmethod
+    def _now_float_tz(env):
+        """Return current local time as a float (e.g. 13.75 for 13:45)."""
+        try:
+            tz = env.company.partner_id.tz or "America/Argentina/Buenos_Aires"
+        except AccessError:
+            tz = "America/Argentina/Buenos_Aires"
+        rec = env["dgc.appointment.turn"]
+        local_now = fields.Datetime.context_timestamp(rec, fields.Datetime.now())
+        return local_now.hour + local_now.minute / 60.0
+
     def _compute_remaining_turns_today(self):
         today = _today_tz(self.env)
         dgc_recs = self.filtered("is_dgc_area")
@@ -123,18 +135,60 @@ class AppointmentType(models.Model):
         if not dgc_recs:
             return
 
+        now_float = self._now_float_tz(self.env)
+
+        # Count turns still pending (active states that consume future capacity)
+        ACTIVE_STATES = ("new", "waiting", "calling", "serving")
         groups = self.env["dgc.appointment.turn"]._read_group(
             domain=[
                 ("area_id", "in", dgc_recs.ids),
                 ("date", "=", today),
-                ("state", "!=", "no_show"),
+                ("state", "in", ACTIVE_STATES),
             ],
             groupby=["area_id"],
             aggregates=["__count"],
         )
-        used = {area.id: count for area, count in groups}
+        pending = {area.id: count for area, count in groups}
+
+        icp = self.env["ir.config_parameter"].sudo()
+        fallback_start = float(icp.get_param("dgc_appointment_kiosk.hour_start", "8.0"))
+        fallback_end = float(icp.get_param("dgc_appointment_kiosk.hour_end", "14.0"))
+
         for rec in dgc_recs:
-            rec.remaining_turns_today = max(rec.max_daily_turns - used.get(rec.id, 0), 0)
+            service_minutes = rec.appointment_duration * 60 if rec.appointment_duration > 0 else 0
+            if service_minutes <= 0:
+                rec.remaining_turns_today = 0
+                continue
+
+            counters = rec.dgc_max_counters or 1
+
+            # Calculate remaining minutes from now until closing
+            remaining_minutes = 0.0
+            if rec.slot_ids:
+                today_weekday = str(today.weekday() + 1)
+                today_slots = rec.slot_ids.filtered(lambda s, wd=today_weekday: s.weekday == wd)
+                for slot in today_slots:
+                    if now_float >= slot.end_hour:
+                        # Slot already passed
+                        continue
+                    elif now_float <= slot.start_hour:
+                        # Slot hasn't started yet — full slot
+                        remaining_minutes += (slot.end_hour - slot.start_hour) * 60
+                    else:
+                        # Currently inside this slot — partial
+                        remaining_minutes += (slot.end_hour - now_float) * 60
+            else:
+                # Fallback global hours
+                if now_float >= fallback_end:
+                    remaining_minutes = 0.0
+                elif now_float <= fallback_start:
+                    remaining_minutes = (fallback_end - fallback_start) * 60
+                else:
+                    remaining_minutes = (fallback_end - now_float) * 60
+
+            max_remaining_from_now = int(remaining_minutes / service_minutes * counters)
+            turns_still_pending = pending.get(rec.id, 0)
+            rec.remaining_turns_today = max(max_remaining_from_now - turns_still_pending, 0)
 
     def _get_today_schedule(self):
         """Return (start_hour, end_hour) for today from slots or fallback."""

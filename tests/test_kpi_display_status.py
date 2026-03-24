@@ -300,6 +300,13 @@ class TestTurnStatusEndpoint(HttpCase):
         cls.env["ir.config_parameter"].sudo().set_param(
             "dgc_appointment_kiosk.rate_limit_max_hits", "100"
         )
+        # Ensure capacity is available regardless of what time the tests run
+        cls.env["ir.config_parameter"].sudo().set_param(
+            "dgc_appointment_kiosk.hour_start", "0.0"
+        )
+        cls.env["ir.config_parameter"].sudo().set_param(
+            "dgc_appointment_kiosk.hour_end", "24.0"
+        )
         cls.kiosk_token = "test-kiosk-token"
         cls.env["ir.config_parameter"].sudo().set_param("dgc_appointment_kiosk.kiosk_token", cls.kiosk_token)
 

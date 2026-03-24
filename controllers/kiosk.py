@@ -67,15 +67,35 @@ class KioskController(http.Controller):
             ("is_dgc_area", "=", True),
             ("active", "=", True),
         ])
-        return [{
-            "id": area.id,
-            "name": area.name,
-            "code": area.dgc_code,
-            "location": area.dgc_location or "",
-            "welcome_message": area.dgc_welcome_message or "",
-            "remaining_turns_today": area.remaining_turns_today,
-            "max_daily_turns": area.max_daily_turns,
-        } for area in areas]
+
+        # Single query to get queue counts per area
+        today = _today_tz(request.env)
+        Turn = request.env["dgc.appointment.turn"].sudo()
+        area_ids = areas.ids
+        queue_data = Turn._read_group(
+            [("date", "=", today), ("state", "in", ["new", "waiting", "calling"]), ("area_id", "in", area_ids)],
+            groupby=["area_id"],
+            aggregates=["__count"],
+        )
+        queue_counts = {area.id: count for area, count in queue_data}
+
+        result = []
+        for area in areas:
+            turns_in_queue = queue_counts.get(area.id, 0)
+            service_minutes = int(area.appointment_duration * 60) if area.appointment_duration > 0 else 15
+            estimated_wait_minutes = turns_in_queue * service_minutes
+            result.append({
+                "id": area.id,
+                "name": area.name,
+                "code": area.dgc_code,
+                "location": area.dgc_location or "",
+                "welcome_message": area.dgc_welcome_message or "",
+                "remaining_turns_today": area.remaining_turns_today,
+                "max_daily_turns": area.max_daily_turns,
+                "estimated_wait_minutes": estimated_wait_minutes,
+                "turns_in_queue": turns_in_queue,
+            })
+        return result
 
     @http.route("/kiosk/<string:token>/api/turn/status", type="jsonrpc", auth="public")
     def kiosk_turn_status(self, token, dni):

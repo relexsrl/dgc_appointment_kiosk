@@ -410,6 +410,16 @@ body {
     color: var(--dgc-text-secondary);
 }
 
+.area-wait {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--dgc-text-secondary, #666);
+
+    .wait-icon {
+        margin-right: 0.25rem;
+    }
+}
+
 // ── Confirmation Panel (Step 3) ───────────────────────────────────
 
 .confirmation-panel {

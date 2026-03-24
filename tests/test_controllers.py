@@ -27,6 +27,9 @@ class TestControllers(HttpCase):
         self.display_token = "test-display-token"
         self.env["ir.config_parameter"].sudo().set_param("dgc_appointment_kiosk.kiosk_token", self.kiosk_token)
         self.env["ir.config_parameter"].sudo().set_param("dgc_appointment_kiosk.display_token", self.display_token)
+        # Ensure capacity is available regardless of what time the tests run
+        self.env["ir.config_parameter"].sudo().set_param("dgc_appointment_kiosk.hour_start", "0.0")
+        self.env["ir.config_parameter"].sudo().set_param("dgc_appointment_kiosk.hour_end", "24.0")
 
     def _json_rpc(self, url, params=None):
         """Helper to make JSON-RPC calls."""
