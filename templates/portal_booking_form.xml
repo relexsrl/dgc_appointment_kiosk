@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_booking_dni_field"
+              name="DGC: DNI/CUIT field on appointment form"
+              inherit_id="appointment.appointment_form">
+        <!--
+            Inject DNI/CUIT toggle + input field before the name row,
+            only for DGC area appointment types.
+        -->
+        <xpath expr="//form[hasclass('appointment_submit_form')]//div[hasclass('row','mb-4')][1]"
+               position="before">
+            <t t-if="appointment_type.is_dgc_area">
+                <!-- Hidden doc_type field submitted with the form -->
+                <input type="hidden" name="doc_type" id="dgc_doc_type" value="dni"/>
+
+                <div class="row mb-4" id="dgc_dni_row" data-dgc-area="1">
+                    <label class="col-sm-3 col-form-label fw-normal" for="citizen_dni">
+                        DNI/CUIT*
+                    </label>
+                    <div class="col-sm-9">
+                        <!-- Document type toggle (DNI / CUIT) -->
+                        <div class="dgc-portal-doc-type-switch mb-2">
+                            <span class="dgc-portal-doc-type-label active" data-type="dni">DNI</span>
+                            <label class="dgc-portal-switch">
+                                <input type="checkbox" id="dgc_portal_doc_toggle"/>
+                                <span class="dgc-portal-slider round"></span>
+                            </label>
+                            <span class="dgc-portal-doc-type-label" data-type="cuit">CUIT</span>
+                        </div>
+                        <!-- DNI/CUIT input -->
+                        <input type="text"
+                               class="form-control"
+                               name="citizen_dni"
+                               id="dgc_citizen_dni"
+                               required="1"
+                               maxlength="8"
+                               placeholder="Ingrese su DNI"
+                               autocomplete="off"
+                               inputmode="numeric"
+                               pattern="\d{7,8}|(\d{2}-\d{8}-\d{1})"/>
+                        <div class="dgc-portal-dni-validation neutral" id="dgc_dni_validation"></div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>
