@@ -150,6 +150,87 @@ body {
     font-weight: 600;
 }
 
+// ── Document Type Toggle (DNI / CUIT) ────────────────────────────
+
+.doc-type-switch {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: var(--dgc-spacing-20);
+}
+
+.doc-type-label {
+    font-size: var(--dgc-font-size-xl);
+    font-weight: 600;
+    color: var(--dgc-text-muted);
+    transition: color 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+    min-width: 60px;
+    text-align: center;
+
+    &.active {
+        color: var(--dgc-primary);
+    }
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 72px;
+    height: 40px;
+    flex-shrink: 0;
+
+    input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: var(--dgc-primary);
+    transition: background-color 0.3s ease;
+    touch-action: manipulation;
+
+    &::before {
+        content: "";
+        position: absolute;
+        height: 32px;
+        width: 32px;
+        left: 4px;
+        bottom: 4px;
+        background-color: #ffffff;
+        transition: transform 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    &.round {
+        border-radius: 40px;
+
+        &::before {
+            border-radius: 50%;
+        }
+    }
+}
+
+.switch input:checked + .slider {
+    background-color: var(--dgc-primary);
+}
+
+.switch input:checked + .slider::before {
+    transform: translateX(32px);
+}
+
+.switch input:focus-visible + .slider {
+    outline: 3px solid var(--dgc-primary);
+    outline-offset: 2px;
+}
+
 // ── DNI Input ─────────────────────────────────────────────────────
 
 .dni-display {

@@ -16,8 +16,83 @@ class DgcKiosk {
         this.CACHE_TTL = 5 * 60 * 1000; // 5 minutes
         this._isSubmitting = false;
 
+        // Document type: "dni" or "cuit" — separate state per flow
+        this.docType = "dni";
+        this.checkDocType = "dni";
+
         this._bindEvents();
         this._bindKeyboard();
+        this._bindDocTypeToggles();
+    }
+
+    // --- Document type toggle (DNI / CUIT) ---
+
+    _bindDocTypeToggles() {
+        // Step 1 toggle
+        const toggle1 = document.getElementById("doc-type-toggle-1");
+        if (toggle1) {
+            toggle1.addEventListener("change", () => {
+                this.docType = toggle1.checked ? "cuit" : "dni";
+                this._applyDocTypeState(this.dniInput, "dni-validation", "numpad-next-1", "doc-type-switch-1", this.docType);
+            });
+        }
+        // Step Check toggle
+        const toggleCheck = document.getElementById("doc-type-toggle-check");
+        if (toggleCheck) {
+            toggleCheck.addEventListener("change", () => {
+                this.checkDocType = toggleCheck.checked ? "cuit" : "dni";
+                this._applyDocTypeState(this.checkDniInput, "check-dni-validation", "numpad-next-check", "doc-type-switch-check", this.checkDocType);
+            });
+        }
+    }
+
+    /**
+     * Apply doc-type state to input field after toggle change:
+     * update maxlength, placeholder, clear input, reset validation, update label highlights.
+     */
+    _applyDocTypeState(inputEl, validationElId, nextBtnId, switchContainerId, docType) {
+        if (!inputEl) return;
+        inputEl.value = "";
+        inputEl.classList.remove("valid", "invalid");
+        if (docType === "cuit") {
+            inputEl.setAttribute("maxlength", "13");
+            inputEl.setAttribute("placeholder", "XX-XXXXXXXX-X");
+        } else {
+            inputEl.setAttribute("maxlength", "8");
+            inputEl.setAttribute("placeholder", "Ingrese su DNI");
+        }
+        this._resetDniValidation(validationElId, nextBtnId);
+
+        // Update active label highlight
+        const switchEl = document.getElementById(switchContainerId);
+        if (switchEl) {
+            switchEl.querySelectorAll(".doc-type-label").forEach((lbl) => {
+                lbl.classList.toggle("active", lbl.dataset.type === docType);
+            });
+        }
+    }
+
+    /**
+     * Auto-format a raw digit string as CUIT: XX-XXXXXXXX-X
+     */
+    _formatCuit(digits) {
+        if (digits.length <= 2) return digits;
+        if (digits.length <= 10) return digits.slice(0, 2) + "-" + digits.slice(2);
+        return digits.slice(0, 2) + "-" + digits.slice(2, 10) + "-" + digits.slice(10, 11);
+    }
+
+    /**
+     * Strip non-digit characters from a string.
+     */
+    _stripNonDigits(value) {
+        return value.replace(/\D/g, "");
+    }
+
+    /**
+     * Return the current doc type for the active step.
+     */
+    _currentDocType() {
+        return this.currentStep === 1 ? this.docType : this.checkDocType;
     }
 
     /**
@@ -61,9 +136,7 @@ class DgcKiosk {
                 } else if (value === "next") {
                     this._onNextStep1();
                 } else {
-                    if (this.dniInput.value.length < 11) {
-                        this.dniInput.value += value;
-                    }
+                    this._appendDigit(this.dniInput, value, this.docType);
                     this._updateDniValidation(this.dniInput, "dni-validation", "numpad-next-1");
                 }
             });
@@ -82,9 +155,7 @@ class DgcKiosk {
                 } else if (value === "next") {
                     this._onCheckTurnSubmit();
                 } else {
-                    if (this.checkDniInput.value.length < 11) {
-                        this.checkDniInput.value += value;
-                    }
+                    this._appendDigit(this.checkDniInput, value, this.checkDocType);
                     this._updateDniValidation(this.checkDniInput, "check-dni-validation", "numpad-next-check");
                 }
             });
@@ -151,16 +222,15 @@ class DgcKiosk {
         const inputEl = this.currentStep === 1 ? this.dniInput : this.checkDniInput;
         const validationElId = this.currentStep === 1 ? "dni-validation" : "check-dni-validation";
         const nextBtnId = this.currentStep === 1 ? "numpad-next-1" : "numpad-next-check";
+        const docType = this._currentDocType();
 
         if (e.key >= "0" && e.key <= "9") {
             e.preventDefault();
-            if (inputEl.value.length < 11) {
-                inputEl.value += e.key;
-            }
+            this._appendDigit(inputEl, e.key, docType);
             this._updateDniValidation(inputEl, validationElId, nextBtnId);
         } else if (e.key === "Backspace") {
             e.preventDefault();
-            inputEl.value = inputEl.value.slice(0, -1);
+            this._removeLastDigit(inputEl, docType);
             this._updateDniValidation(inputEl, validationElId, nextBtnId);
         } else if (e.key === "Delete") {
             e.preventDefault();
@@ -173,6 +243,35 @@ class DgcKiosk {
             } else {
                 this._onCheckTurnSubmit();
             }
+        }
+    }
+
+    /**
+     * Append a digit to the input, with auto-formatting for CUIT mode.
+     */
+    _appendDigit(inputEl, digit, docType) {
+        if (docType === "cuit") {
+            const digits = this._stripNonDigits(inputEl.value);
+            if (digits.length >= 11) return;
+            const newDigits = digits + digit;
+            inputEl.value = this._formatCuit(newDigits);
+        } else {
+            if (inputEl.value.length < 8) {
+                inputEl.value += digit;
+            }
+        }
+    }
+
+    /**
+     * Remove the last digit from the input, with re-formatting for CUIT mode.
+     */
+    _removeLastDigit(inputEl, docType) {
+        if (docType === "cuit") {
+            const digits = this._stripNonDigits(inputEl.value);
+            const newDigits = digits.slice(0, -1);
+            inputEl.value = newDigits.length > 0 ? this._formatCuit(newDigits) : "";
+        } else {
+            inputEl.value = inputEl.value.slice(0, -1);
         }
     }
 
@@ -203,6 +302,11 @@ class DgcKiosk {
             // Reset DNI field visual state
             this.dniInput.classList.remove("valid", "invalid");
             if (this.checkDniInput) this.checkDniInput.classList.remove("valid", "invalid");
+            // Reset doc type toggles to DNI
+            this._resetDocTypeToggle("doc-type-toggle-1", "doc-type-switch-1", this.dniInput, "dni-validation", "numpad-next-1");
+            this.docType = "dni";
+            this._resetDocTypeToggle("doc-type-toggle-check", "doc-type-switch-check", this.checkDniInput, "check-dni-validation", "numpad-next-check");
+            this.checkDocType = "dni";
         }
 
         if (step === 1) {
@@ -212,6 +316,9 @@ class DgcKiosk {
             this._clearCountdown();
             this._resetDniValidation("dni-validation", "numpad-next-1");
             this.dniInput.classList.remove("valid", "invalid");
+            // Reset doc type toggle to DNI
+            this._resetDocTypeToggle("doc-type-toggle-1", "doc-type-switch-1", this.dniInput, "dni-validation", "numpad-next-1");
+            this.docType = "dni";
         }
 
         if (step === "check") {
@@ -220,6 +327,9 @@ class DgcKiosk {
             this._clearCountdown();
             this._resetDniValidation("check-dni-validation", "numpad-next-check");
             if (this.checkDniInput) this.checkDniInput.classList.remove("valid", "invalid");
+            // Reset doc type toggle to DNI
+            this._resetDocTypeToggle("doc-type-toggle-check", "doc-type-switch-check", this.checkDniInput, "check-dni-validation", "numpad-next-check");
+            this.checkDocType = "dni";
         }
     }
 
@@ -240,40 +350,53 @@ class DgcKiosk {
 
     // --- DNI validation (real-time) ---
 
-    validateDni(value) {
-        if (!value || !/^\d+$/.test(value)) return false;
-        const len = value.length;
-        return len === 7 || len === 8 || len === 11;
+    validateDni(value, docType) {
+        const digits = this._stripNonDigits(value || "");
+        if (!digits || !/^\d+$/.test(digits)) return false;
+        if (docType === "cuit") {
+            return digits.length === 11;
+        }
+        // DNI mode
+        return digits.length === 7 || digits.length === 8;
     }
 
     /**
-     * Returns validation state for a given DNI string.
+     * Returns validation state for a given input value.
+     * @param {string} value - Raw input value (may include hyphens in CUIT mode)
+     * @param {string} docType - "dni" or "cuit"
      * @returns {{ state: 'neutral'|'valid'|'invalid', message: string }}
      */
-    _getDniValidationState(value) {
-        if (!value || value.length === 0) {
+    _getDniValidationState(value, docType) {
+        const digits = this._stripNonDigits(value || "");
+        if (!digits || digits.length === 0) {
             return { state: "neutral", message: "" };
         }
-        const len = value.length;
+        const len = digits.length;
+
+        if (docType === "cuit") {
+            if (len < 11) {
+                return { state: "neutral", message: `${len}/11 dígitos` };
+            }
+            if (len === 11) {
+                return { state: "valid", message: "CUIT válido ✓" };
+            }
+            return { state: "invalid", message: "Máximo 11 dígitos" };
+        }
+
+        // DNI mode
         if (len < 7) {
             return { state: "neutral", message: `${len}/8 dígitos` };
         }
         if (len === 7 || len === 8) {
-            return { state: "valid", message: `${len === 7 ? "7" : "8"} dígitos — DNI válido ✓` };
+            return { state: "valid", message: `${len} dígitos — DNI válido ✓` };
         }
-        if (len >= 9 && len <= 10) {
-            return { state: "invalid", message: "DNI: 7-8 dígitos / CUIT: 11 dígitos" };
-        }
-        if (len === 11) {
-            return { state: "valid", message: "11 dígitos — CUIT válido ✓" };
-        }
-        // len > 11 should not happen (maxlength=11), but just in case
-        return { state: "invalid", message: "Máximo 11 dígitos" };
+        return { state: "invalid", message: "DNI: 7-8 dígitos" };
     }
 
     _updateDniValidation(inputEl, validationElId, nextBtnId) {
         const value = inputEl.value.trim();
-        const { state, message } = this._getDniValidationState(value);
+        const docType = this._currentDocType();
+        const { state, message } = this._getDniValidationState(value, docType);
         const valEl = document.getElementById(validationElId);
         if (valEl) {
             valEl.textContent = message;
@@ -287,7 +410,7 @@ class DgcKiosk {
         // Enable/disable Next button
         const nextBtn = document.getElementById(nextBtnId);
         if (nextBtn) {
-            const isValid = this.validateDni(value);
+            const isValid = this.validateDni(value, docType);
             if (isValid) {
                 nextBtn.classList.remove("numpad-next-disabled");
                 nextBtn.removeAttribute("disabled");
@@ -295,6 +418,24 @@ class DgcKiosk {
                 nextBtn.classList.add("numpad-next-disabled");
                 nextBtn.setAttribute("disabled", "disabled");
             }
+        }
+    }
+
+    /**
+     * Reset a doc-type toggle back to DNI mode.
+     */
+    _resetDocTypeToggle(toggleId, switchContainerId, inputEl, validationElId, nextBtnId) {
+        const toggle = document.getElementById(toggleId);
+        if (toggle) toggle.checked = false;
+        if (inputEl) {
+            inputEl.setAttribute("maxlength", "8");
+            inputEl.setAttribute("placeholder", "Ingrese su DNI");
+        }
+        const switchEl = document.getElementById(switchContainerId);
+        if (switchEl) {
+            switchEl.querySelectorAll(".doc-type-label").forEach((lbl) => {
+                lbl.classList.toggle("active", lbl.dataset.type === "dni");
+            });
         }
     }
 
@@ -312,14 +453,20 @@ class DgcKiosk {
     }
 
     async _onNextStep1() {
-        const dni = this.dniInput.value.trim();
+        const raw = this.dniInput.value.trim();
+        const dni = this._stripNonDigits(raw);
         this._hideError("dni-error");
 
-        if (!this.validateDni(dni)) {
-            this._showError("dni-error", "Ingrese un DNI (7-8 dígitos) o CUIT (11 dígitos) válido.");
+        if (!this.validateDni(raw, this.docType)) {
+            const msg = this.docType === "cuit"
+                ? "Ingrese un CUIT válido (11 dígitos)."
+                : "Ingrese un DNI válido (7-8 dígitos).";
+            this._showError("dni-error", msg);
             return;
         }
 
+        // Store stripped digits for submission
+        this._submittedDni = dni;
         const ok = await this.fetchAreas();
         if (ok) this.showStep(2);
     }
@@ -328,11 +475,15 @@ class DgcKiosk {
 
     async _onCheckTurnSubmit() {
         if (this._isSubmitting) return;
-        const dni = this.checkDniInput.value.trim();
+        const raw = this.checkDniInput.value.trim();
+        const dni = this._stripNonDigits(raw);
         this._hideError("check-dni-error");
 
-        if (!this.validateDni(dni)) {
-            this._showError("check-dni-error", "Ingrese un DNI (7-8 dígitos) o CUIT (11 dígitos) válido.");
+        if (!this.validateDni(raw, this.checkDocType)) {
+            const msg = this.checkDocType === "cuit"
+                ? "Ingrese un CUIT válido (11 dígitos)."
+                : "Ingrese un DNI válido (7-8 dígitos).";
+            this._showError("check-dni-error", msg);
             return;
         }
 
@@ -479,7 +630,8 @@ class DgcKiosk {
 
     async _onAreaSelected(areaId) {
         if (this._isSubmitting) return;
-        const dni = this.dniInput.value.trim();
+        // Use stored stripped digits (set in _onNextStep1)
+        const dni = this._submittedDni || this._stripNonDigits(this.dniInput.value.trim());
         this._hideError("area-error");
 
         const card = document.querySelector(`.area-card[data-area-id="${areaId}"]`);

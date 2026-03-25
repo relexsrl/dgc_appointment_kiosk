@@ -63,7 +63,7 @@ class DisplayController(http.Controller):
             "calling": [{
                 "turn_number": t.turn_number,
                 "citizen_name": t.citizen_name or "",
-                "citizen_dni": request.env["dgc.appointment.turn"]._mask_dni(t.citizen_dni),
+                "citizen_dni": t.citizen_dni or "",
                 "area_name": t.area_id.name,
                 "area_code": t.area_id.dgc_code,
                 "area_color": t.area_id._get_display_hex_color(),

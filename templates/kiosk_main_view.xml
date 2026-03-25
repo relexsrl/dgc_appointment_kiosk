@@ -50,10 +50,18 @@
                     <!-- Step 1: DNI Input -->
                     <div class="step" id="step-1">
                         <h2 tabindex="-1">Ingrese su DNI o CUIT</h2>
+                        <div class="doc-type-switch d-flex justify-content-center align-items-center gap-3 mb-3" id="doc-type-switch-1">
+                            <span class="doc-type-label active" data-type="dni">DNI</span>
+                            <label class="switch">
+                                <input type="checkbox" id="doc-type-toggle-1"/>
+                                <span class="slider round"></span>
+                            </label>
+                            <span class="doc-type-label" data-type="cuit">CUIT</span>
+                        </div>
                         <div class="dni-display">
                             <input type="text" id="dni-input" readonly="readonly"
-                                   placeholder="Ingrese su documento"
-                                   class="dni-field" maxlength="11"
+                                   placeholder="Ingrese su DNI"
+                                   class="dni-field" maxlength="8"
                                    role="status" aria-live="polite" aria-label="Número de documento ingresado"/>
                             <div id="dni-validation" class="dni-validation neutral"></div>
                         </div>
@@ -113,10 +121,18 @@
                     <div class="step" id="step-check">
                         <h2 tabindex="-1">Consultar mi Turno</h2>
                         <p class="step-hint">Ingrese su DNI o CUIT para buscar su turno activo</p>
+                        <div class="doc-type-switch d-flex justify-content-center align-items-center gap-3 mb-3" id="doc-type-switch-check">
+                            <span class="doc-type-label active" data-type="dni">DNI</span>
+                            <label class="switch">
+                                <input type="checkbox" id="doc-type-toggle-check"/>
+                                <span class="slider round"></span>
+                            </label>
+                            <span class="doc-type-label" data-type="cuit">CUIT</span>
+                        </div>
                         <div class="dni-display">
                             <input type="text" id="check-dni-input" readonly="readonly"
-                                   placeholder="Ingrese su documento"
-                                   class="dni-field" maxlength="11"
+                                   placeholder="Ingrese su DNI"
+                                   class="dni-field" maxlength="8"
                                    role="status" aria-live="polite" aria-label="Número de documento ingresado"/>
                             <div id="check-dni-validation" class="dni-validation neutral"></div>
                         </div>

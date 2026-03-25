@@ -149,8 +149,16 @@ class DgcDisplay {
         for (const turn of calling) {
             const countClass = `call-count-${Math.min(turn.call_count, 3)}`;
             // Use citizen_dni as primary identifier; fall back to turn_number
-            const primaryId = turn.citizen_dni
-                ? this._escapeHtml(turn.citizen_dni)
+            // Format CUIT (11 digits) with hyphens for readability
+            const rawDni = turn.citizen_dni || "";
+            let displayDni;
+            if (rawDni.length === 11 && /^\d{11}$/.test(rawDni)) {
+                displayDni = rawDni.slice(0, 2) + "-" + rawDni.slice(2, 10) + "-" + rawDni.slice(10);
+            } else {
+                displayDni = rawDni;
+            }
+            const primaryId = displayDni
+                ? this._escapeHtml(displayDni)
                 : this._escapeHtml(turn.turn_number);
             const boxHtml = turn.operator_box
                 ? `<div class="calling-box">Ventanilla ${this._escapeHtml(turn.operator_box)}</div>`
