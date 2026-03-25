@@ -6,7 +6,6 @@
         <!-- Operators (res.users)                                        -->
         <!-- ============================================================ -->
 
-        <!-- Area Geodesia operators -->
         <record id="user_op_geo_1" model="res.users">
             <field name="name">María López</field>
             <field name="login">maria.lopez@dgc.demo</field>
@@ -18,7 +17,7 @@
             ]"/>
         </record>
 
-        <record id="user_op_geo_2" model="res.users">
+        <record id="user_op_cat_1" model="res.users">
             <field name="name">Juan Pérez</field>
             <field name="login">juan.perez@dgc.demo</field>
             <field name="password">demo</field>
@@ -29,21 +28,9 @@
             ]"/>
         </record>
 
-        <!-- Area Catastro operators -->
-        <record id="user_op_cat_1" model="res.users">
+        <record id="user_op_cat_2" model="res.users">
             <field name="name">Ana García</field>
             <field name="login">ana.garcia@dgc.demo</field>
-            <field name="password">demo</field>
-            <field name="tz">America/Argentina/Buenos_Aires</field>
-            <field name="group_ids" eval="[
-                Command.link(ref('base.group_user')),
-                Command.link(ref('dgc_appointment_kiosk.group_dgc_operator')),
-            ]"/>
-        </record>
-
-        <record id="user_op_cat_2" model="res.users">
-            <field name="name">Carlos Ruiz</field>
-            <field name="login">carlos.ruiz@dgc.demo</field>
             <field name="password">demo</field>
             <field name="tz">America/Argentina/Buenos_Aires</field>
             <field name="group_ids" eval="[
@@ -62,14 +49,14 @@
             <field name="is_published" eval="True"/>
             <field name="dgc_code">GEO</field>
             <field name="dgc_location">Planta Baja - Ventanilla 1</field>
-            <field name="dgc_max_counters">2</field>
+            <field name="dgc_max_counters">1</field>
+            <field name="dgc_color">4</field>
             <field name="dgc_welcome_message">Bienvenido al área de Geodesia</field>
             <field name="appointment_duration">0.25</field>
             <field name="appointment_tz">America/Argentina/Buenos_Aires</field>
             <field name="category">recurring</field>
             <field name="staff_user_ids" eval="[
                 Command.link(ref('user_op_geo_1')),
-                Command.link(ref('user_op_geo_2')),
             ]"/>
         </record>
 
@@ -78,16 +65,117 @@
             <field name="is_dgc_area" eval="True"/>
             <field name="is_published" eval="True"/>
             <field name="dgc_code">CAT</field>
-            <field name="dgc_location">Primer Piso - Ventanilla 3</field>
+            <field name="dgc_location">Primer Piso - Ventanilla 2</field>
             <field name="dgc_max_counters">2</field>
+            <field name="dgc_color">2</field>
             <field name="dgc_welcome_message">Bienvenido al área de Catastro</field>
-            <field name="appointment_duration">0.33</field>
+            <field name="appointment_duration">0.25</field>
             <field name="appointment_tz">America/Argentina/Buenos_Aires</field>
             <field name="category">recurring</field>
             <field name="staff_user_ids" eval="[
                 Command.link(ref('user_op_cat_1')),
                 Command.link(ref('user_op_cat_2')),
             ]"/>
+        </record>
+
+        <!-- ============================================================ -->
+        <!-- Slots (appointment.slot) — Mon to Fri per area               -->
+        <!-- ============================================================ -->
+
+        <!-- Geodesia slots -->
+        <record id="slot_geo_mon" model="appointment.slot">
+            <field name="appointment_type_id" ref="area_geodesia"/>
+            <field name="weekday">1</field>
+            <field name="start_hour">7.5</field>
+            <field name="end_hour">11.5</field>
+            <field name="slot_type">recurring</field>
+        </record>
+        <record id="slot_geo_tue" model="appointment.slot">
+            <field name="appointment_type_id" ref="area_geodesia"/>
+            <field name="weekday">2</field>
+            <field name="start_hour">7.5</field>
+            <field name="end_hour">11.5</field>
+            <field name="slot_type">recurring</field>
+        </record>
+        <record id="slot_geo_wed" model="appointment.slot">
+            <field name="appointment_type_id" ref="area_geodesia"/>
+            <field name="weekday">3</field>
+            <field name="start_hour">7.5</field>
+            <field name="end_hour">11.5</field>
+            <field name="slot_type">recurring</field>
+        </record>
+        <record id="slot_geo_thu" model="appointment.slot">
+            <field name="appointment_type_id" ref="area_geodesia"/>
+            <field name="weekday">4</field>
+            <field name="start_hour">7.5</field>
+            <field name="end_hour">11.5</field>
+            <field name="slot_type">recurring</field>
+        </record>
+        <record id="slot_geo_fri" model="appointment.slot">
+            <field name="appointment_type_id" ref="area_geodesia"/>
+            <field name="weekday">5</field>
+            <field name="start_hour">7.5</field>
+            <field name="end_hour">11.5</field>
+            <field name="slot_type">recurring</field>
+        </record>
+
+        <!-- Catastro slots -->
+        <record id="slot_cat_mon" model="appointment.slot">
+            <field name="appointment_type_id" ref="area_catastro"/>
+            <field name="weekday">1</field>
+            <field name="start_hour">7.5</field>
+            <field name="end_hour">11.5</field>
+            <field name="slot_type">recurring</field>
+        </record>
+        <record id="slot_cat_tue" model="appointment.slot">
+            <field name="appointment_type_id" ref="area_catastro"/>
+            <field name="weekday">2</field>
+            <field name="start_hour">7.5</field>
+            <field name="end_hour">11.5</field>
+            <field name="slot_type">recurring</field>
+        </record>
+        <record id="slot_cat_wed" model="appointment.slot">
+            <field name="appointment_type_id" ref="area_catastro"/>
+            <field name="weekday">3</field>
+            <field name="start_hour">7.5</field>
+            <field name="end_hour">11.5</field>
+            <field name="slot_type">recurring</field>
+        </record>
+        <record id="slot_cat_thu" model="appointment.slot">
+            <field name="appointment_type_id" ref="area_catastro"/>
+            <field name="weekday">4</field>
+            <field name="start_hour">7.5</field>
+            <field name="end_hour">11.5</field>
+            <field name="slot_type">recurring</field>
+        </record>
+        <record id="slot_cat_fri" model="appointment.slot">
+            <field name="appointment_type_id" ref="area_catastro"/>
+            <field name="weekday">5</field>
+            <field name="start_hour">7.5</field>
+            <field name="end_hour">11.5</field>
+            <field name="slot_type">recurring</field>
+        </record>
+
+        <!-- ============================================================ -->
+        <!-- Operator boxes (dgc.operator.box)                            -->
+        <!-- ============================================================ -->
+
+        <record id="box_geo_maria" model="dgc.operator.box">
+            <field name="operator_id" ref="user_op_geo_1"/>
+            <field name="area_id" ref="area_geodesia"/>
+            <field name="box_number">1</field>
+        </record>
+
+        <record id="box_cat_juan" model="dgc.operator.box">
+            <field name="operator_id" ref="user_op_cat_1"/>
+            <field name="area_id" ref="area_catastro"/>
+            <field name="box_number">1</field>
+        </record>
+
+        <record id="box_cat_ana" model="dgc.operator.box">
+            <field name="operator_id" ref="user_op_cat_2"/>
+            <field name="area_id" ref="area_catastro"/>
+            <field name="box_number">2</field>
         </record>
 
     </data>
