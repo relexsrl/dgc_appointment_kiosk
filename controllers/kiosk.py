@@ -225,7 +225,7 @@ class KioskController(http.Controller):
                 "message": "Ya existe un turno pendiente para este DNI/CUIT en la misma fecha y área.",
             }
 
-        from odoo.exceptions import ValidationError
+        from odoo.exceptions import AccessError, UserError, ValidationError
         try:
             partner_result = Turn._find_or_create_partner(dni, None, email)
 
@@ -239,10 +239,10 @@ class KioskController(http.Controller):
                 "source": "kiosk",
             }
             turn = Turn.create(vals)
-        except ValidationError as e:
+        except (UserError, ValidationError, AccessError) as e:
             return {
                 "success": False,
-                "error_code": "DUPLICATE_TURN",
+                "error_code": "VALIDATION_ERROR",
                 "message": str(e),
             }
         except Exception:

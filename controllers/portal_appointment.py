@@ -72,7 +72,8 @@ class DgcPortalAppointmentController(AppointmentController):
                     partner.vat = raw_dni
 
                 # Store resolved partner for _get_customer_partner override
-                self._dgc_customer_partner = partner
+                # Use request object instead of self (controller is a singleton)
+                request._dgc_customer_partner = partner
 
         return super().appointment_form_submit(
             appointment_type_id,
@@ -89,9 +90,9 @@ class DgcPortalAppointmentController(AppointmentController):
 
     def _get_customer_partner(self):
         """Return the DNI-resolved partner if available (one-shot)."""
-        partner = getattr(self, "_dgc_customer_partner", None)
+        partner = getattr(request, "_dgc_customer_partner", None)
         if partner:
-            self._dgc_customer_partner = None
+            request._dgc_customer_partner = None
             return partner
         return super()._get_customer_partner()
 

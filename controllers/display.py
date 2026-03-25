@@ -1,6 +1,7 @@
 from odoo import http
 from odoo.http import request
 
+from ..models.dgc_appointment_turn import _today_tz
 from ..utils import sanitize_hex_color
 
 
@@ -35,7 +36,7 @@ class DisplayController(http.Controller):
         waiting_count = int(icp.get_param("dgc_appointment_kiosk.display_waiting_count", "10"))
 
         Turn = request.env["dgc.appointment.turn"].sudo()
-        today = request.env["dgc.appointment.turn"]._fields["date"].default(Turn)
+        today = _today_tz(request.env)
 
         domain_base = [("date", "=", today)]
         if area_id:

@@ -1,6 +1,7 @@
 import logging
 
 from odoo import http
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
@@ -22,6 +23,8 @@ class TurnAPIController(http.Controller):
         try:
             turn.action_call()
             return {"success": True, "turn_number": turn.turn_number, "state": turn.state}
+        except (UserError, ValidationError, AccessError) as e:
+            return {"success": False, "message": str(e)}
         except Exception as e:
             _logger.exception("Error in turn_call: %s", e)
             return {"success": False, "message": "Error interno del servidor"}
@@ -34,6 +37,8 @@ class TurnAPIController(http.Controller):
         try:
             turn.action_serve()
             return {"success": True, "turn_number": turn.turn_number, "state": turn.state}
+        except (UserError, ValidationError, AccessError) as e:
+            return {"success": False, "message": str(e)}
         except Exception as e:
             _logger.exception("Error in turn_serve: %s", e)
             return {"success": False, "message": "Error interno del servidor"}
@@ -46,6 +51,8 @@ class TurnAPIController(http.Controller):
         try:
             turn.action_done()
             return {"success": True, "turn_number": turn.turn_number, "state": turn.state}
+        except (UserError, ValidationError, AccessError) as e:
+            return {"success": False, "message": str(e)}
         except Exception as e:
             _logger.exception("Error in turn_done: %s", e)
             return {"success": False, "message": "Error interno del servidor"}
@@ -58,6 +65,8 @@ class TurnAPIController(http.Controller):
         try:
             turn.action_no_show()
             return {"success": True, "turn_number": turn.turn_number, "state": turn.state}
+        except (UserError, ValidationError, AccessError) as e:
+            return {"success": False, "message": str(e)}
         except Exception as e:
             _logger.exception("Error in turn_noshow: %s", e)
             return {"success": False, "message": "Error interno del servidor"}
@@ -75,6 +84,8 @@ class TurnAPIController(http.Controller):
             })
             wizard.action_derive()
             return {"success": True, "turn_number": turn.turn_number, "state": turn.state}
+        except (UserError, ValidationError, AccessError) as e:
+            return {"success": False, "message": str(e)}
         except Exception as e:
             _logger.exception("Error in turn_derive: %s", e)
             return {"success": False, "message": "Error interno del servidor"}

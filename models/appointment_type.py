@@ -27,6 +27,7 @@ class AppointmentType(models.Model):
         "res.company",
         string="Compañía",
         default=lambda self: self.env.company,
+        ondelete="set null",
     )
 
     # --- Relations ---
