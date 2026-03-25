@@ -108,9 +108,10 @@ class DgcAppointmentConfig(models.TransientModel):
         self.env['ir.config_parameter'].sudo().set_param(param_key, token)
         self.env.registry.clear_cache()
         setattr(self, field_name, token)
+        return token
 
     def action_regenerate_kiosk_token(self):
-        self._regenerate_token("dgc_appointment_kiosk.kiosk_token", "dgc_kiosk_token")
+        return self._regenerate_token("dgc_appointment_kiosk.kiosk_token", "dgc_kiosk_token")
 
     def action_regenerate_display_token(self):
-        self._regenerate_token("dgc_appointment_kiosk.display_token", "dgc_display_token")
+        return self._regenerate_token("dgc_appointment_kiosk.display_token", "dgc_display_token")
