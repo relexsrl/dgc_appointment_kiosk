@@ -40,8 +40,6 @@
         # Reports
         "report/dgc_turn_report.xml",
         "report/dgc_turn_report_template.xml",
-        # Seed / demo data (always loaded)
-        "data/demo_data.xml",
     ],
     "assets": {
         "dgc_appointment_kiosk.assets_kiosk": [
@@ -74,7 +72,9 @@
             "dgc_appointment_kiosk/static/src/css/operator_dashboard.dark.scss",
         ],
     },
-    "demo": [],
+    "demo": [
+        "data/demo_data.xml",
+    ],
     "installable": True,
     "application": True,
     "auto_install": False,
