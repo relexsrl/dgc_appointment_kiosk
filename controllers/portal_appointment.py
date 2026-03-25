@@ -71,6 +71,13 @@ class DgcPortalAppointmentController(AppointmentController):
                 if partner and not partner.vat:
                     partner.vat = raw_dni
 
+                # Sync partner email/name so super()'s email comparison
+                # doesn't discard our partner and create a duplicate.
+                if partner and email:
+                    partner.email = email
+                if partner and name:
+                    partner.name = name
+
                 # Store resolved partner for _get_customer_partner override
                 # Use request object instead of self (controller is a singleton)
                 request._dgc_customer_partner = partner
@@ -96,29 +103,14 @@ class DgcPortalAppointmentController(AppointmentController):
             return partner
         return super()._get_customer_partner()
 
-    def _get_dgc_appointment_type(self, appointment_type_id, **kwargs):
-        """Fetch the appointment type by ID, checking availability.
+    def _get_dgc_appointment_type(self, appointment_type_id, **_kwargs):
+        """Fetch the appointment type by ID.
 
         Returns the appointment.type record or None if not found.
         """
         try:
-            domain = self._appointments_base_domain(
-                filter_appointment_type_ids=kwargs.get("filter_appointment_type_ids"),
-                search=kwargs.get("search"),
-                invite_token=kwargs.get("invite_token"),
-            )
-            available = self._fetch_and_check_private_appointment_types(
-                kwargs.get("filter_appointment_type_ids"),
-                kwargs.get("filter_staff_user_ids"),
-                kwargs.get("filter_resource_ids"),
-                kwargs.get("invite_token"),
-                domain=domain,
-            )
-            return available.filtered(lambda a: a.id == int(appointment_type_id))[:1]
-        except Exception:
-            _logger.warning(
-                "Could not resolve appointment type %s for DGC DNI check",
-                appointment_type_id,
-                exc_info=True,
-            )
+            return request.env["appointment.type"].sudo().browse(
+                int(appointment_type_id)
+            ).exists()
+        except (ValueError, TypeError):
             return None
