@@ -15,6 +15,7 @@ export class DgcOperatorDashboard extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
+        this.busState = useService("dgc_turn_bus");
 
         this.state = useState({
             currentTurn: null,
@@ -46,12 +47,21 @@ export class DgcOperatorDashboard extends Component {
             this.loadData();
         };
 
+        this._onDgcBusConnected = () => {
+            this._markBusAlive();
+        };
+
         onWillStart(async () => {
             await this.loadData();
         });
         onMounted(() => {
             this._startTimer();
             document.addEventListener("dgc_turn_update", this._onDgcTurnUpdate);
+            document.addEventListener("dgc_bus_connected", this._onDgcBusConnected);
+            // Check if bus service already connected (resolves race condition)
+            if (this.busState?.connected) {
+                this._markBusAlive();
+            }
             // Initialize bus heartbeat — assume connected if event arrives within timeout
             this._startBusHeartbeat();
         });
@@ -60,6 +70,7 @@ export class DgcOperatorDashboard extends Component {
             this._stopBusHeartbeat();
             this._clearNewTurnTimers();
             document.removeEventListener("dgc_turn_update", this._onDgcTurnUpdate);
+            document.removeEventListener("dgc_bus_connected", this._onDgcBusConnected);
         });
     }
 

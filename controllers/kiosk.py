@@ -3,7 +3,7 @@ import logging
 import threading
 import time
 
-from odoo import _, http
+from odoo import http
 from odoo.http import request
 
 from ..models.dgc_appointment_turn import _today_tz
@@ -111,7 +111,7 @@ class KioskController(http.Controller):
             return {
                 "found": False,
                 "error_code": "RATE_LIMIT",
-                "message": _("Demasiadas solicitudes. Espere unos segundos."),
+                "message": "Demasiadas solicitudes. Espere unos segundos.",
             }
 
         Turn = request.env["dgc.appointment.turn"].sudo()
@@ -121,7 +121,7 @@ class KioskController(http.Controller):
             return {
                 "found": False,
                 "error_code": "INVALID_DNI",
-                "message": _("El DNI/CUIT ingresado no es válido."),
+                "message": "El DNI/CUIT ingresado no es válido.",
             }
 
         today = _today_tz(request.env)
@@ -171,7 +171,7 @@ class KioskController(http.Controller):
             return {
                 "success": False,
                 "error_code": "RATE_LIMIT",
-                "message": _("Demasiadas solicitudes. Espere unos segundos."),
+                "message": "Demasiadas solicitudes. Espere unos segundos.",
             }
 
         Turn = request.env["dgc.appointment.turn"].sudo()
@@ -181,7 +181,7 @@ class KioskController(http.Controller):
             return {
                 "success": False,
                 "error_code": "INVALID_DNI",
-                "message": _("El DNI/CUIT ingresado no es válido."),
+                "message": "El DNI/CUIT ingresado no es válido.",
             }
 
         # Validate area
@@ -190,7 +190,7 @@ class KioskController(http.Controller):
             return {
                 "success": False,
                 "error_code": "INVALID_AREA",
-                "message": _("El área seleccionada no está disponible."),
+                "message": "El área seleccionada no está disponible.",
             }
 
         # Check capacity
@@ -198,7 +198,7 @@ class KioskController(http.Controller):
             return {
                 "success": False,
                 "error_code": "CAPACITY_FULL",
-                "message": _("No hay más turnos disponibles para esta área hoy."),
+                "message": "No hay más turnos disponibles para esta área hoy.",
             }
 
         # Step 5: explicit duplicate check before partner creation
@@ -216,7 +216,7 @@ class KioskController(http.Controller):
             return {
                 "success": False,
                 "error_code": "DUPLICATE_TURN",
-                "message": _("Ya existe un turno pendiente para este DNI/CUIT en la misma fecha y área."),
+                "message": "Ya existe un turno pendiente para este DNI/CUIT en la misma fecha y área.",
             }
 
         from odoo.exceptions import ValidationError
@@ -244,7 +244,7 @@ class KioskController(http.Controller):
             return {
                 "success": False,
                 "error_code": "SERVER_ERROR",
-                "message": _("Error interno. Intente nuevamente."),
+                "message": "Error interno. Intente nuevamente.",
             }
 
         # Count turns ahead in queue (same area, same day, earlier ID, pending states)

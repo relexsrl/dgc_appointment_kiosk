@@ -45,7 +45,7 @@
         align-items: center;
         gap: var(--dgc-spacing-md);
         padding: var(--dgc-spacing-sm) var(--dgc-spacing-lg);
-        background: white;
+        background: var(--dgc-bg-card);
         border-bottom: 1px solid var(--dgc-border-color);
         position: sticky;
         top: 0;
@@ -103,7 +103,7 @@
 }
 
 .dgc-kpi-card {
-    background: white;
+    background: var(--dgc-bg-card);
     border-radius: 12px;
     padding: var(--dgc-spacing-lg) var(--dgc-spacing-md);
     text-align: center;
@@ -358,7 +358,7 @@
 // ── Section Headers (Queue cards) ─────────────────────────────────
 .dgc-waiting-queue .card-header.dgc-section-header,
 .dgc-done-today .card-header.dgc-section-header {
-    background: white;
+    background: var(--dgc-bg-card);
     border-left: 3px solid var(--dgc-primary);
     border-bottom: 1px solid var(--dgc-border-color);
     padding: var(--dgc-spacing-sm) var(--dgc-spacing-md);
