@@ -106,3 +106,8 @@
     --dgc-z-overlay: 1000;
     --dgc-z-modal: 1050;
 }
+
+// ── Dark Mode Overrides ────────────────────────────────────────────
+// Odoo 19 uses a separate CSS bundle (web.assets_web_dark) for dark mode
+// instead of runtime selectors.  All dark overrides live in _tokens.dark.scss
+// which is registered in that bundle.  See __manifest__.py → web.assets_web_dark.

@@ -13,6 +13,7 @@
         "mail",
         "bus",
         "web",
+        "website",
     ],
     "data": [
         # Security
@@ -35,9 +36,12 @@
         # Templates
         "templates/kiosk_main_view.xml",
         "templates/display_queue_view.xml",
+        "templates/portal_booking_form.xml",
         # Reports
         "report/dgc_turn_report.xml",
         "report/dgc_turn_report_template.xml",
+        # Seed / demo data (always loaded)
+        "data/demo_data.xml",
     ],
     "assets": {
         "dgc_appointment_kiosk.assets_kiosk": [
@@ -61,8 +65,16 @@
             "dgc_appointment_kiosk/static/src/js/token_field.js",
             "dgc_appointment_kiosk/static/src/xml/token_field.xml",
         ],
+        "web.assets_frontend": [
+            "dgc_appointment_kiosk/static/lib/js/portal_booking.js",
+            "dgc_appointment_kiosk/static/lib/css/portal_booking.scss",
+        ],
+        "web.assets_web_dark": [
+            "dgc_appointment_kiosk/static/src/css/_tokens.dark.scss",
+            "dgc_appointment_kiosk/static/src/css/operator_dashboard.dark.scss",
+        ],
     },
-    "demo": ["data/demo_data.xml"],
+    "demo": [],
     "installable": True,
     "application": True,
     "auto_install": False,

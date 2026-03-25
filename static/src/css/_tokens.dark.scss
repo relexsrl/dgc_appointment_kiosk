@@ -1,0 +1,31 @@
+// DGC Design Tokens — Dark Mode Overrides
+// Loaded only in the web.assets_web_dark bundle (Odoo 19 dark mode).
+// Overrides the CSS custom properties from _tokens.scss with dark-appropriate values.
+
+:root {
+    // ── Surface Colors (dark mode) ──────────────────────────────
+    --dgc-text-primary: #dee2e6;
+    --dgc-text-secondary: #adb5bd;
+    --dgc-text-dark: #f8f9fa;
+    --dgc-text-muted: #6c757d;
+
+    --dgc-bg-primary: #2b2b3d;
+    --dgc-bg-secondary: #212133;
+    --dgc-bg-card: #1e1e2e;
+
+    --dgc-border-color: #3a3a4a;
+    --dgc-border-light: #3a3a4a;
+    --dgc-border-input: #4a4a5a;
+
+    // ── Semantic tinted backgrounds (dark mode) ─────────────────
+    --dgc-primary-bg: #1a2744;
+    --dgc-success-bg: #1a2e1a;
+    --dgc-warning-bg: #2e2314;
+    --dgc-danger-bg: #2e1a1a;
+    --dgc-error-bg: #2e1a1a;
+
+    // ── Shadows (stronger in dark mode for visibility) ──────────
+    --dgc-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+    --dgc-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --dgc-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.45);
+}

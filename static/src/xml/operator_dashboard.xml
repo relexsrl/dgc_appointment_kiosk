@@ -37,7 +37,7 @@
                                         t-on-click="callNext">
                                     <i class="fa fa-bullhorn me-2"/>
                                     Llamar Siguiente
-                                    <span class="badge text-bg-light text-primary ms-2"
+                                    <span class="badge text-bg-secondary text-primary ms-2"
                                           t-out="state.waitingTurns.length"/>
                                 </button>
                                 <t t-if="!state.waitingTurns.length">
@@ -55,9 +55,9 @@
                                         <div>
                                             <small class="text-uppercase opacity-75">Turno Actual</small>
                                             <div class="d-flex align-items-center gap-2 mt-1">
-                                                <span class="badge text-bg-light text-dark" t-out="state.currentTurn.turn_number"/>
+                                                <span class="badge text-bg-secondary" t-out="state.currentTurn.turn_number"/>
                                                 <span t-if="state.currentTurn.operator_box"
-                                                      class="badge text-bg-light text-dark">
+                                                      class="badge text-bg-secondary">
                                                     <i class="fa fa-desktop me-1"/><t t-out="state.currentTurn.operator_box"/>
                                                 </span>
                                             </div>
@@ -67,7 +67,7 @@
                                             <i class="fa fa-clock-o me-1"/>
                                             <t t-out="state.timerDisplay"/>
                                         </span>
-                                        <span t-else="" class="badge text-bg-light fw-bold dgc-badge-calling">LLAMANDO</span>
+                                        <span t-else="" class="badge text-bg-secondary fw-bold dgc-badge-calling">LLAMANDO</span>
                                     </div>
                                 </div>
                                 <div class="card-body">
@@ -95,7 +95,7 @@
                                             <td t-out="state.currentTurn.call_count"/>
                                         </tr>
                                     </table>
-                                    <div t-if="state.currentTurn.notes" class="mt-3 p-2 bg-light rounded">
+                                    <div t-if="state.currentTurn.notes" class="mt-3 p-2 bg-body-tertiary rounded">
                                         <strong class="text-secondary small">Observaciones:</strong>
                                         <p class="mb-0 mt-1" t-out="state.currentTurn.notes"/>
                                     </div>

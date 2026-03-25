@@ -1,0 +1,123 @@
+// DGC Operator Dashboard — Dark Mode Overrides
+// Loaded only in the web.assets_web_dark bundle (Odoo 19 dark mode).
+// Provides direct CSS overrides for surfaces that remain white in dark mode.
+
+// ── Dashboard Layout ──────────────────────────────────────────────
+.dgc-dashboard {
+    background: var(--dgc-bg-secondary);
+
+    &__header {
+        background: var(--dgc-bg-card);
+        border-bottom-color: var(--dgc-border-color);
+    }
+}
+
+// ── KPI Cards ─────────────────────────────────────────────────────
+.dgc-kpi-card {
+    background: var(--dgc-bg-card);
+    box-shadow: var(--dgc-shadow-sm);
+}
+
+// ── Current Turn Card ─────────────────────────────────────────────
+.dgc-current-card {
+    background: var(--dgc-bg-card);
+    box-shadow: var(--dgc-shadow-sm);
+
+    .card-body {
+        background: var(--dgc-bg-card);
+
+        .table td {
+            border-color: var(--dgc-border-color);
+        }
+    }
+
+    &__dni {
+        background: var(--dgc-bg-primary);
+    }
+
+    &__dni-value {
+        color: #6ea8fe;  // lighter blue for readability on dark bg
+    }
+
+    &__actions {
+        background: var(--dgc-bg-primary);
+        border-top-color: var(--dgc-border-color);
+    }
+}
+
+// ── Section Headers (Queue cards) ─────────────────────────────────
+.dgc-waiting-queue .card-header.dgc-section-header,
+.dgc-done-today .card-header.dgc-section-header {
+    background: var(--dgc-bg-card);
+    border-bottom-color: var(--dgc-border-color);
+}
+
+.dgc-done-today {
+    .card-header.dgc-section-header.cursor-pointer:hover {
+        background: var(--dgc-bg-primary);
+    }
+}
+
+// ── Queue Tables (Waiting & Done) ─────────────────────────────────
+.dgc-waiting-queue,
+.dgc-done-today {
+    .card {
+        background: var(--dgc-bg-card);
+        border-color: var(--dgc-border-color);
+        box-shadow: var(--dgc-shadow-sm);
+    }
+
+    .table {
+        // Ensure table itself doesn't have a white background
+        --bs-table-bg: transparent;
+
+        thead {
+            background: var(--dgc-bg-primary);
+
+            th {
+                color: var(--dgc-text-secondary);
+                border-bottom-color: var(--dgc-border-color);
+                background: var(--dgc-bg-primary);
+            }
+        }
+
+        tbody {
+            td {
+                color: var(--dgc-text-primary);
+                border-color: var(--dgc-border-color);
+                background: var(--dgc-bg-card);
+            }
+
+            tr:hover td {
+                background: #262640;
+            }
+        }
+
+        // Badge inside table cells
+        td .badge.text-bg-secondary {
+            background: var(--dgc-bg-primary) !important;
+            color: var(--dgc-text-primary);
+            border-color: var(--dgc-border-color);
+        }
+    }
+}
+
+// ── Empty State ───────────────────────────────────────────────────
+.dgc-empty-state {
+    color: var(--dgc-text-secondary);
+}
+
+// ── Loading State ─────────────────────────────────────────────────
+.dgc-dashboard-loading {
+    color: var(--dgc-text-secondary);
+}
+
+// ── Bootstrap card overrides within dashboard ─────────────────────
+// Catch any Bootstrap .card that might still have white bg
+.dgc-dashboard .card {
+    --bs-card-bg: var(--dgc-bg-card);
+    --bs-card-border-color: var(--dgc-border-color);
+    background: var(--dgc-bg-card);
+    border-color: var(--dgc-border-color);
+    color: var(--dgc-text-primary);
+}
