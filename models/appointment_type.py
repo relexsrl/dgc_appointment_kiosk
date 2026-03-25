@@ -216,9 +216,8 @@ class AppointmentType(models.Model):
     def _get_dgc_areas_for_user(self, user=None):
         """Retorna las areas DGC asignadas al usuario via staff_user_ids.
 
-        Busca appointment.type donde is_dgc_area=True y el usuario
-        esta en staff_user_ids. Centraliza la logica que antes
-        dependia del campo custom dgc_area_ids.
+        Admins y area managers ven todas las areas DGC.
+        Operadores solo ven las areas donde estan en staff_user_ids.
 
         Args:
             user: Recordset de res.users. Si es None, usa el usuario actual.
@@ -228,6 +227,8 @@ class AppointmentType(models.Model):
         """
         if user is None:
             user = self.env.user
+        if user.has_group("dgc_appointment_kiosk.group_dgc_area_manager"):
+            return self.sudo().search([('is_dgc_area', '=', True)])
         return self.sudo().search([
             ('is_dgc_area', '=', True),
             ('staff_user_ids', 'in', user.id),
