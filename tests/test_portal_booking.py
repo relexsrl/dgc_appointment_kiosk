@@ -48,11 +48,11 @@ class TestPortalBooking(TransactionCase):
             "appointment_tz": "America/Argentina/Buenos_Aires",
         })
 
-        # Existing partner with VAT
+        # Existing partner with VAT (stored as normalized base DNI)
         cls.existing_partner = cls.Partner.create({
             "name": "Carlos Test",
             "email": "carlos@test.com",
-            "vat": "30712345678",
+            "vat": "12345678",
         })
 
     # --- Partner reuse by VAT ---
@@ -60,7 +60,7 @@ class TestPortalBooking(TransactionCase):
     def test_partner_reused_by_vat(self):
         """Submitting a DNI that matches an existing partner.vat reuses that partner."""
         result = self.Turn._find_or_create_partner(
-            "30712345678", "Carlos Otro Nombre", "otro@test.com"
+            "12345678", "Carlos Otro Nombre", "otro@test.com"
         )
         self.assertEqual(
             result["partner_id"],
@@ -68,13 +68,13 @@ class TestPortalBooking(TransactionCase):
             "Should reuse existing partner with matching VAT",
         )
         # Should not create a new partner
-        partner_count = self.Partner.search_count([("vat", "=", "30712345678")])
+        partner_count = self.Partner.search_count([("vat", "=", "12345678")])
         self.assertEqual(partner_count, 1, "No duplicate partner should be created")
 
     def test_partner_reuse_detects_email_conflict(self):
         """When partner is reused but email differs, email_conflict is flagged."""
         result = self.Turn._find_or_create_partner(
-            "30712345678", "Carlos Test", "different@test.com"
+            "12345678", "Carlos Test", "different@test.com"
         )
         self.assertEqual(result["partner_id"], self.existing_partner.id)
         self.assertTrue(result["email_conflict"])
@@ -156,7 +156,7 @@ class TestPortalBooking(TransactionCase):
         turn = event.dgc_turn_id
         self.assertTrue(turn, "A DGC turn should be created")
         self.assertEqual(turn.source, "portal")
-        self.assertEqual(turn.citizen_dni, "30712345678")
+        self.assertEqual(turn.citizen_dni, "12345678")
         self.assertEqual(turn.partner_id, self.existing_partner)
         self.assertEqual(turn.area_id, self.dgc_area)
         self.assertEqual(turn.calendar_event_id, event)
@@ -228,3 +228,91 @@ class TestPortalBooking(TransactionCase):
                 portal_calls,
                 "A bus notification with action='portal_booking' should be sent",
             )
+
+    # --- DNI/CUIT normalization ---
+
+    def test_normalize_dni_7_digits(self):
+        """7-digit DNI is returned unchanged."""
+        self.assertEqual(self.Turn._normalize_dni("1234567"), "1234567")
+
+    def test_normalize_dni_8_digits(self):
+        """8-digit DNI is returned unchanged."""
+        self.assertEqual(self.Turn._normalize_dni("12345678"), "12345678")
+
+    def test_normalize_cuit_extracts_base_dni(self):
+        """CUIT 20-12345678-6 normalizes to base DNI 12345678."""
+        self.assertEqual(self.Turn._normalize_dni("20123456786"), "12345678")
+
+    def test_normalize_cuit_with_hyphens(self):
+        """CUIT with hyphens is stripped and normalized."""
+        self.assertEqual(self.Turn._normalize_dni("20-12345678-6"), "12345678")
+
+    def test_normalize_cuit_strips_leading_zeros(self):
+        """CUIT with leading zeros in base DNI strips them."""
+        # CUIT 27-00123456-X -> base = 00123456 -> stripped = 123456
+        self.assertEqual(self.Turn._normalize_dni("27001234564"), "123456")
+
+    def test_normalize_cuit_all_zeros_returns_zero(self):
+        """CUIT where base is all zeros returns '0'."""
+        # digits[2:10] = "00000000" -> lstrip("0") = "" -> "0"
+        self.assertEqual(self.Turn._normalize_dni("20000000004"), "0")
+
+    def test_normalize_empty_returns_empty(self):
+        """Empty string returns empty."""
+        self.assertEqual(self.Turn._normalize_dni(""), "")
+
+    def test_normalize_none_returns_none(self):
+        """None returns None."""
+        self.assertIsNone(self.Turn._normalize_dni(None))
+
+    def test_cuit_and_dni_resolve_to_same_partner(self):
+        """CUIT 20-12345678-6 and DNI 12345678 resolve to same partner."""
+        # existing_partner has vat="12345678"
+        result_dni = self.Turn._find_or_create_partner(
+            "12345678", "Test DNI", "test@test.com"
+        )
+        result_cuit = self.Turn._find_or_create_partner(
+            "20123456786", "Test CUIT", "test2@test.com"
+        )
+        self.assertEqual(
+            result_dni["partner_id"],
+            result_cuit["partner_id"],
+            "DNI and CUIT should resolve to the same partner",
+        )
+        self.assertEqual(result_dni["partner_id"], self.existing_partner.id)
+
+    def test_turn_created_with_cuit_stores_normalized_dni(self):
+        """Turn created with CUIT stores normalized base DNI in citizen_dni."""
+        turn = self.Turn.create({
+            "citizen_dni": "20123456786",
+            "area_id": self.dgc_area.id,
+            "source": "kiosk",
+        })
+        self.assertEqual(
+            turn.citizen_dni, "12345678",
+            "citizen_dni should be normalized to base DNI",
+        )
+
+    def test_search_by_dni_finds_turn_created_with_cuit(self):
+        """Searching by DNI 12345678 finds a turn created with CUIT 20-12345678-6."""
+        turn = self.Turn.create({
+            "citizen_dni": "20123456786",
+            "area_id": self.dgc_area.id,
+            "source": "kiosk",
+        })
+        found = self.Turn.search([
+            ("citizen_dni", "=", "12345678"),
+            ("id", "=", turn.id),
+        ])
+        self.assertEqual(found.id, turn.id)
+
+    def test_partner_created_via_cuit_has_normalized_vat(self):
+        """Partner created via CUIT has vat set to normalized base DNI."""
+        result = self.Turn._find_or_create_partner(
+            "27287654321", "CUIT Partner", "cuit@test.com"
+        )
+        partner = self.Partner.browse(result["partner_id"])
+        self.assertEqual(
+            partner.vat, "28765432",
+            "Partner VAT should be the normalized base DNI from the CUIT",
+        )

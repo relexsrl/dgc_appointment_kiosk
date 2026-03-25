@@ -67,7 +67,7 @@ class CalendarEvent(models.Model):
             if not booker:
                 continue
 
-            dni = booker.vat or ""
+            dni = Turn._normalize_dni(booker.vat or "") or ""
 
             turn = Turn.with_context(dgc_skip_turn_creation=True).create({
                 "citizen_dni": dni or f"PORTAL-{booker.id}",

@@ -60,6 +60,9 @@ class DgcPortalAppointmentController(AppointmentController):
                         "CUIT debe tener 11 dígitos con checksum válido."
                     )
 
+                # Normalize: extract base DNI from CUIT
+                raw_dni = Turn._normalize_dni(raw_dni)
+
                 # Find or create partner by VAT
                 result = Turn._find_or_create_partner(raw_dni, name, email)
                 partner = request.env["res.partner"].sudo().browse(result["partner_id"])

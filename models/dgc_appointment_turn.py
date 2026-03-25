@@ -236,6 +236,8 @@ class DgcAppointmentTurn(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            if vals.get("citizen_dni"):
+                vals["citizen_dni"] = self._normalize_dni(vals["citizen_dni"])
             if not vals.get("turn_number"):
                 area = self.env["appointment.type"].browse(vals.get("area_id"))
                 seq = self.env["ir.sequence"].next_by_code("dgc.appointment.turn") or "000"
@@ -245,7 +247,11 @@ class DgcAppointmentTurn(models.Model):
                 vals["state"] = "waiting"
         try:
             with self.env.cr.savepoint():
-                return super().create(vals_list)
+                records = super().create(vals_list)
+            for turn in records:
+                if not self.env.context.get("dgc_skip_turn_creation"):
+                    turn._send_bus_notification("new")
+            return records
         except psycopg2.IntegrityError as e:
             if "dgc_turn_unique_dni_area_date_pending" in str(e):
                 raise ValidationError(
@@ -370,10 +376,31 @@ class DgcAppointmentTurn(models.Model):
         }
         self.env['bus.bus']._sendone('dgc_turn_display', 'dgc_display_update', payload)
 
+    @staticmethod
+    def _normalize_dni(value):
+        """Extract base DNI from a CUIT or return DNI as-is.
+
+        CUIT format: XX-XXXXXXXX-X (11 digits)
+        Base DNI is positions 2-9 (the middle 8 digits), stripped of leading zeros.
+        DNI (7-8 digits) is returned unchanged.
+        Non-numeric values (e.g. PORTAL-xxx placeholders) are returned as-is.
+        """
+        if not value:
+            return value
+        digits = re.sub(r"\D", "", value)
+        # If the original contains letters, it's not a DNI/CUIT — return as-is
+        if re.search(r"[a-zA-Z]", value):
+            return value
+        if len(digits) == 11:
+            base = digits[2:10].lstrip("0")
+            return base if base else "0"
+        return digits
+
     @api.model
     def _find_or_create_partner(self, dni, name, email):
+        normalized = self._normalize_dni(dni)
         Partner = self.env["res.partner"].sudo()
-        partner = Partner.search([("vat", "=", dni)], limit=1)
+        partner = Partner.search([("vat", "=", normalized)], limit=1)
         result = {"partner_id": False, "email_conflict": False, "existing_email_masked": ""}
         if partner:
             result["partner_id"] = partner.id
@@ -381,7 +408,7 @@ class DgcAppointmentTurn(models.Model):
                 result["email_conflict"] = True
                 result["existing_email_masked"] = self._mask_email(partner.email)
             return result
-        vals = {"name": name or dni, "vat": dni}
+        vals = {"name": name or normalized, "vat": normalized}
         if email:
             vals["email"] = email
         partner = Partner.create(vals)

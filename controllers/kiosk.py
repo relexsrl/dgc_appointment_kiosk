@@ -124,6 +124,9 @@ class KioskController(http.Controller):
                 "message": "El DNI/CUIT ingresado no es válido.",
             }
 
+        # Normalize: extract base DNI from CUIT
+        dni = Turn._normalize_dni(dni)
+
         today = _today_tz(request.env)
 
         # Search for active turn: today, matching DNI, active states
@@ -183,6 +186,9 @@ class KioskController(http.Controller):
                 "error_code": "INVALID_DNI",
                 "message": "El DNI/CUIT ingresado no es válido.",
             }
+
+        # Normalize: extract base DNI from CUIT
+        dni = Turn._normalize_dni(dni)
 
         # Validate area
         area = request.env["appointment.type"].sudo().browse(int(area_id))

@@ -1,6 +1,8 @@
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
+from ..models.dgc_appointment_turn import DgcAppointmentTurn
+
 
 class DgcTurnCreateWizard(models.TransientModel):
     _name = "dgc.turn.create.wizard"
@@ -39,8 +41,9 @@ class DgcTurnCreateWizard(models.TransientModel):
     def _onchange_citizen_dni(self):
         if not self.citizen_dni:
             return
+        normalized = DgcAppointmentTurn._normalize_dni(self.citizen_dni)
         partner = self.env["res.partner"].sudo().search(
-            [("vat", "=", self.citizen_dni)], limit=1,
+            [("vat", "=", normalized)], limit=1,
         )
         if partner:
             self.citizen_name = partner.name

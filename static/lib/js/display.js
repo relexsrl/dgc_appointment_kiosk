@@ -149,14 +149,8 @@ class DgcDisplay {
         for (const turn of calling) {
             const countClass = `call-count-${Math.min(turn.call_count, 3)}`;
             // Use citizen_dni as primary identifier; fall back to turn_number
-            // Format CUIT (11 digits) with hyphens for readability
-            const rawDni = turn.citizen_dni || "";
-            let displayDni;
-            if (rawDni.length === 11 && /^\d{11}$/.test(rawDni)) {
-                displayDni = rawDni.slice(0, 2) + "-" + rawDni.slice(2, 10) + "-" + rawDni.slice(10);
-            } else {
-                displayDni = rawDni;
-            }
+            // DNI is always stored as base 7-8 digit number (CUIT is normalized on the server)
+            const displayDni = turn.citizen_dni || "";
             const primaryId = displayDni
                 ? this._escapeHtml(displayDni)
                 : this._escapeHtml(turn.turn_number);
