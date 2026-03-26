@@ -624,6 +624,15 @@ class DgcKiosk {
                 card.classList.add("area-full");
             }
 
+            // Unavailable area overlay (no active counters or non-working day)
+            if (area.available === false) {
+                card.classList.add("area-unavailable");
+                const overlay = document.createElement("div");
+                overlay.className = "area-unavailable-overlay";
+                overlay.textContent = "No disponible";
+                card.appendChild(overlay);
+            }
+
             list.appendChild(card);
         }
     }
@@ -635,8 +644,12 @@ class DgcKiosk {
         this._hideError("area-error");
 
         const card = document.querySelector(`.area-card[data-area-id="${areaId}"]`);
+        if (card && card.classList.contains("area-unavailable")) {
+            this._showError("area-error", "El area no se encuentra disponible en este momento.");
+            return;
+        }
         if (card && card.classList.contains("area-full")) {
-            this._showError("area-error", "No hay turnos disponibles para esta área.");
+            this._showError("area-error", "No hay turnos disponibles para esta area.");
             return;
         }
 

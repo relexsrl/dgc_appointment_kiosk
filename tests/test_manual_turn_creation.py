@@ -38,7 +38,24 @@ class TestManualTurnCreation(TransactionCase):
                 ],
             }
         )
-        cls.area_geo.staff_user_ids = [(4, cls.operator.id)]
+        cls.operator2_mc = cls.env["res.users"].create({
+            "name": "Op Manual Test 2", "login": "op_manual_test2",
+            "group_ids": [
+                (4, cls.env.ref("base.group_user").id),
+                (4, cls.env.ref("dgc_appointment_kiosk.group_dgc_operator").id),
+            ],
+        })
+        cls.area_geo.staff_user_ids = [(4, cls.operator.id), (4, cls.operator2_mc.id)]
+
+        # Create active operator boxes so capacity is non-zero
+        Box = cls.env["dgc.operator.box"]
+        Box.create({"operator_id": cls.operator.id, "area_id": cls.area_geo.id, "box_number": "1", "active": True})
+        Box.create({"operator_id": cls.operator2_mc.id, "area_id": cls.area_geo.id, "box_number": "2", "active": True})
+
+        # Set fallback hours explicitly
+        ICP = cls.env["ir.config_parameter"].sudo()
+        ICP.set_param("dgc_appointment_kiosk.hour_start", "0.0")
+        ICP.set_param("dgc_appointment_kiosk.hour_end", "24.0")
 
     def _create_wizard(self, user=None, **kwargs):
         vals = {

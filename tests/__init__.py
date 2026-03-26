@@ -10,3 +10,4 @@ from . import test_operator_dashboard
 from . import test_appointment_integration
 from . import test_turn_api
 from . import test_portal_booking
+from . import test_dynamic_counters

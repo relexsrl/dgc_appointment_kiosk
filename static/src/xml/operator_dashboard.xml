@@ -17,6 +17,19 @@
                         <span t-if="state.busConnected" class="text-secondary small">En linea</span>
                         <span t-else="" class="text-secondary small">Sin conexion</span>
                     </div>
+                    <!-- Box toggle button -->
+                    <t t-if="state.boxStatus !== 'no_box'">
+                        <button t-attf-class="btn dgc-box-toggle #{state.boxActive ? 'dgc-box-toggle--open' : 'dgc-box-toggle--closed'}"
+                                t-on-click="toggleBox">
+                            <i t-attf-class="fa #{state.boxActive ? 'fa-toggle-on' : 'fa-toggle-off'} me-1"/>
+                            <t t-if="state.boxActive">Cerrar Ventanilla</t>
+                            <t t-else="">Abrir Ventanilla</t>
+                        </button>
+                        <span class="badge text-bg-secondary ms-1" title="Ventanillas activas">
+                            <i class="fa fa-desktop me-1"/><t t-out="state.activeBoxCount"/>
+                        </span>
+                    </t>
+
                     <div class="flex-grow-1"/>
                     <button class="btn btn-primary" t-on-click="openCreateWizard">
                         <i class="fa fa-plus me-1"/> Crear Turno Manual

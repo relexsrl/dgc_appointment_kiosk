@@ -34,6 +34,11 @@ export class DgcOperatorDashboard extends Component {
             busConnected: false,
             // Done section collapsed by default
             doneExpanded: false,
+            // Box toggle state
+            boxStatus: "no_box", // "open" | "closed" | "no_box"
+            boxActive: false,
+            activeBoxCount: 0,
+            boxId: false,
         });
 
         this.timerInterval = null;
@@ -115,6 +120,12 @@ export class DgcOperatorDashboard extends Component {
                 this.state.kpis.pending_count = data.kpis.pending_count || 0;
                 this.state.kpis.derivation_count = data.kpis.derivation_count || 0;
             }
+
+            // Box toggle state
+            this.state.boxStatus = data.box_status || "no_box";
+            this.state.boxActive = data.box_active || false;
+            this.state.activeBoxCount = data.active_box_count || 0;
+            this.state.boxId = data.box_id || false;
         } catch {
             this.state.loading = false;
         }
@@ -190,6 +201,27 @@ export class DgcOperatorDashboard extends Component {
 
     toggleDoneSection() {
         this.state.doneExpanded = !this.state.doneExpanded;
+    }
+
+    // --- Box Toggle ---
+
+    async toggleBox() {
+        if (!this.state.boxId) return;
+        try {
+            const result = await this.orm.call(
+                "dgc.operator.box",
+                "action_toggle_box",
+                [this.state.boxId],
+            );
+            this.state.boxActive = result.box_active;
+            this.state.boxStatus = result.box_active ? "open" : "closed";
+            this.state.activeBoxCount = result.active_box_count;
+            await this.loadData();
+        } catch {
+            this.notification.add(_t("Error al cambiar estado de ventanilla."), {
+                type: "danger",
+            });
+        }
     }
 
     // --- Actions ---

@@ -84,6 +84,16 @@ class KioskController(http.Controller):
             turns_in_queue = queue_counts.get(area.id, 0)
             service_minutes = int(area.appointment_duration * 60) if area.appointment_duration > 0 else 15
             estimated_wait_minutes = turns_in_queue * service_minutes
+
+            # Determine availability
+            available = area._is_available_today()
+            unavailable_reason = None
+            if not available:
+                if area.active_box_count <= 0:
+                    unavailable_reason = "no_counters"
+                else:
+                    unavailable_reason = "non_working_day"
+
             result.append({
                 "id": area.id,
                 "name": area.name,
@@ -94,6 +104,9 @@ class KioskController(http.Controller):
                 "max_daily_turns": area.max_daily_turns,
                 "estimated_wait_minutes": estimated_wait_minutes,
                 "turns_in_queue": turns_in_queue,
+                "available": available,
+                "unavailable_reason": unavailable_reason,
+                "active_box_count": area.active_box_count,
             })
         return result
 
@@ -197,6 +210,14 @@ class KioskController(http.Controller):
                 "success": False,
                 "error_code": "INVALID_AREA",
                 "message": "El área seleccionada no está disponible.",
+            }
+
+        # Guard: reject if area is unavailable (no active boxes or non-working day)
+        if not area._is_available_today():
+            return {
+                "success": False,
+                "error_code": "AREA_UNAVAILABLE",
+                "message": "El área no se encuentra disponible en este momento.",
             }
 
         # Check capacity

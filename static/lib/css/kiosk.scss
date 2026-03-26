@@ -435,6 +435,35 @@ body {
             background: var(--dgc-danger);
         }
     }
+
+    &.area-unavailable {
+        position: relative;
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+
+        &:hover,
+        &:active {
+            transform: none;
+            box-shadow: var(--dgc-shadow-sm);
+        }
+    }
+}
+
+.area-unavailable-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.45);
+    color: #ffffff;
+    font-size: var(--dgc-font-size-xl);
+    font-weight: 700;
+    border-radius: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    pointer-events: none;
 }
 
 .area-info {

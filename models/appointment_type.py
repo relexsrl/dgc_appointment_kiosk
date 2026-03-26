@@ -41,8 +41,17 @@ class AppointmentType(models.Model):
         "area_id",
         string="Boxes/Ventanillas",
     )
+    non_working_date_ids = fields.One2many(
+        "dgc.non_working.date",
+        "area_id",
+        string="Fechas no laborables",
+    )
 
     # --- Computed ---
+    active_box_count = fields.Integer(
+        "Ventanillas activas",
+        compute="_compute_active_box_count",
+    )
     pending_turn_count = fields.Integer(
         "Turnos pendientes",
         compute="_compute_pending_turn_count",
@@ -68,6 +77,35 @@ class AppointmentType(models.Model):
         """Return service time in minutes from appointment_duration (hours)."""
         self.ensure_one()
         return self.appointment_duration * 60 if self.appointment_duration > 0 else 0
+
+    @api.depends("operator_box_ids.active")
+    def _compute_active_box_count(self):
+        dgc_recs = self.filtered("is_dgc_area")
+        non_dgc = self - dgc_recs
+        non_dgc.active_box_count = 0
+        if not dgc_recs:
+            return
+        groups = self.env["dgc.operator.box"]._read_group(
+            domain=[
+                ("area_id", "in", dgc_recs.ids),
+                ("active", "=", True),
+            ],
+            groupby=["area_id"],
+            aggregates=["__count"],
+        )
+        counts = {area.id: count for area, count in groups}
+        for rec in dgc_recs:
+            rec.active_box_count = counts.get(rec.id, 0)
+
+    def _is_available_today(self):
+        """Return False when active_box_count == 0 or today is a non-working date."""
+        self.ensure_one()
+        if self.active_box_count <= 0:
+            return False
+        today = _today_tz(self.env)
+        if self.non_working_date_ids.filtered(lambda d: d.date == today):
+            return False
+        return True
 
     @api.depends("turn_ids.state")
     def _compute_pending_turn_count(self):
@@ -102,7 +140,17 @@ class AppointmentType(models.Model):
                 rec.max_daily_turns = 0
                 continue
 
-            counters = rec.dgc_max_counters or 1
+            # Dynamic counters: use the minimum of active boxes and configured max
+            if rec.active_box_count > 0:
+                counters = min(rec.active_box_count, rec.dgc_max_counters) if rec.dgc_max_counters else rec.active_box_count
+            else:
+                rec.max_daily_turns = 0
+                continue
+
+            # Non-working day check: capacity = 0
+            if not rec._is_available_today():
+                rec.max_daily_turns = 0
+                continue
 
             # Use own slot_ids (we ARE the appointment.type)
             if rec.slot_ids:
@@ -161,7 +209,17 @@ class AppointmentType(models.Model):
                 rec.remaining_turns_today = 0
                 continue
 
-            counters = rec.dgc_max_counters or 1
+            # Dynamic counters: use the minimum of active boxes and configured max
+            if rec.active_box_count > 0:
+                counters = min(rec.active_box_count, rec.dgc_max_counters) if rec.dgc_max_counters else rec.active_box_count
+            else:
+                rec.remaining_turns_today = 0
+                continue
+
+            # Non-working day check
+            if not rec._is_available_today():
+                rec.remaining_turns_today = 0
+                continue
 
             # Calculate remaining minutes from now until closing
             remaining_minutes = 0.0

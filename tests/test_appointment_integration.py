@@ -57,6 +57,35 @@ class TestAppointmentIntegration(TransactionCase):
             }
         )
 
+        # Active operator boxes so capacity is non-zero
+        op_group = cls.env.ref("dgc_appointment_kiosk.group_dgc_operator")
+        base_group = cls.env.ref("base.group_user")
+        Box = cls.env["dgc.operator.box"]
+
+        cls.operator_cat1 = cls.env["res.users"].create({
+            "name": "Op Cat 1", "login": "op_cat_integ1",
+            "group_ids": [(4, base_group.id), (4, op_group.id)],
+        })
+        cls.operator_cat2 = cls.env["res.users"].create({
+            "name": "Op Cat 2", "login": "op_cat_integ2",
+            "group_ids": [(4, base_group.id), (4, op_group.id)],
+        })
+        cls.area_cat.staff_user_ids = [(4, cls.operator_cat1.id), (4, cls.operator_cat2.id)]
+        Box.create({"operator_id": cls.operator_cat1.id, "area_id": cls.area_cat.id, "box_number": "1", "active": True})
+        Box.create({"operator_id": cls.operator_cat2.id, "area_id": cls.area_cat.id, "box_number": "2", "active": True})
+
+        cls.operator_geo = cls.env["res.users"].create({
+            "name": "Op Geo", "login": "op_geo_integ",
+            "group_ids": [(4, base_group.id), (4, op_group.id)],
+        })
+        cls.area_geo.staff_user_ids = [(4, cls.operator_geo.id)]
+        Box.create({"operator_id": cls.operator_geo.id, "area_id": cls.area_geo.id, "box_number": "1", "active": True})
+
+        # Set wide fallback hours so turn creation always has capacity
+        ICP = cls.env["ir.config_parameter"].sudo()
+        ICP.set_param("dgc_appointment_kiosk.hour_start", "0.0")
+        ICP.set_param("dgc_appointment_kiosk.hour_end", "24.0")
+
         # Partner with VAT (DNI)
         cls.partner_with_vat = cls.env["res.partner"].create(
             {

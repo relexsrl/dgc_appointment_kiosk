@@ -156,6 +156,38 @@
     }
 }
 
+// ── Box Toggle Button ─────────────────────────────────────────────
+.dgc-box-toggle {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 6px 16px;
+    border: 2px solid transparent;
+    transition: all var(--dgc-transition-fast);
+    color: white;
+
+    &--open {
+        background: var(--dgc-success);
+        border-color: var(--dgc-success);
+
+        &:hover {
+            background: var(--dgc-success-dark);
+            border-color: var(--dgc-success-dark);
+            color: white;
+        }
+    }
+
+    &--closed {
+        background: var(--dgc-danger);
+        border-color: var(--dgc-danger);
+
+        &:hover {
+            background: var(--dgc-danger-dark, #a51d22);
+            border-color: var(--dgc-danger-dark, #a51d22);
+            color: white;
+        }
+    }
+}
+
 // ── Bus Indicator ─────────────────────────────────────────────────
 .dgc-bus-indicator {
     width: 10px;

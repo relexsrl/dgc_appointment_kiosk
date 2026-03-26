@@ -19,6 +19,21 @@ class TestControllers(HttpCase):
                 "appointment_tz": "America/Argentina/Buenos_Aires",
             }
         )
+        # Create active operator boxes so capacity is non-zero
+        op_group = cls.env.ref("dgc_appointment_kiosk.group_dgc_operator")
+        base_group = cls.env.ref("base.group_user")
+        Box = cls.env["dgc.operator.box"]
+        cls.operator1 = cls.env["res.users"].create({
+            "name": "Op Ctrl 1", "login": "op_ctrl_test1",
+            "group_ids": [(4, base_group.id), (4, op_group.id)],
+        })
+        cls.operator2 = cls.env["res.users"].create({
+            "name": "Op Ctrl 2", "login": "op_ctrl_test2",
+            "group_ids": [(4, base_group.id), (4, op_group.id)],
+        })
+        cls.area.staff_user_ids = [(4, cls.operator1.id), (4, cls.operator2.id)]
+        Box.create({"operator_id": cls.operator1.id, "area_id": cls.area.id, "box_number": "1", "active": True})
+        Box.create({"operator_id": cls.operator2.id, "area_id": cls.area.id, "box_number": "2", "active": True})
 
     def setUp(self):
         super().setUp()

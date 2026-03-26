@@ -531,6 +531,19 @@ class DgcAppointmentTurn(models.Model):
             )),
         ])
 
+        # --- Operator box state ---
+        box = self.env["dgc.operator.box"].sudo().with_context(active_test=False).search([
+            ("operator_id", "=", user.id),
+            ("area_id", "in", area_ids),
+        ], limit=1)
+        box_status = "no_box"
+        box_active = False
+        active_box_count = 0
+        if box:
+            box_status = "open" if box.active else "closed"
+            box_active = box.active
+            active_box_count = box.area_id.active_box_count
+
         return {
             "current_turn": current[0] if current else False,
             "waiting_turns": waiting,
@@ -542,6 +555,10 @@ class DgcAppointmentTurn(models.Model):
                 "pending_count": pending_count,
                 "derivation_count": derivation_count,
             },
+            "box_status": box_status,
+            "box_active": box_active,
+            "active_box_count": active_box_count,
+            "box_id": box.id if box else False,
         }
 
     @api.model

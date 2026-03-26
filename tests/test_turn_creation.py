@@ -36,6 +36,30 @@ class TestTurnCreation(TransactionCase):
             }
         )
 
+        # Create active operator boxes so capacity is non-zero
+        op_group = cls.env.ref("dgc_appointment_kiosk.group_dgc_operator")
+        base_group = cls.env.ref("base.group_user")
+        Box = cls.env["dgc.operator.box"]
+
+        cls.operator_tc1 = cls.env["res.users"].create({
+            "name": "Op TC 1", "login": "op_tc_test1",
+            "group_ids": [(4, base_group.id), (4, op_group.id)],
+        })
+        cls.operator_tc2 = cls.env["res.users"].create({
+            "name": "Op TC 2", "login": "op_tc_test2",
+            "group_ids": [(4, base_group.id), (4, op_group.id)],
+        })
+        cls.area_geo.staff_user_ids = [(4, cls.operator_tc1.id), (4, cls.operator_tc2.id)]
+        cls.area_cat.staff_user_ids = [(4, cls.operator_tc1.id)]
+        Box.create({"operator_id": cls.operator_tc1.id, "area_id": cls.area_geo.id, "box_number": "1", "active": True})
+        Box.create({"operator_id": cls.operator_tc2.id, "area_id": cls.area_geo.id, "box_number": "2", "active": True})
+        Box.create({"operator_id": cls.operator_tc1.id, "area_id": cls.area_cat.id, "box_number": "1", "active": True})
+
+        # Set wide fallback hours so remaining_turns_today is always > 0
+        ICP = cls.env["ir.config_parameter"].sudo()
+        ICP.set_param("dgc_appointment_kiosk.hour_start", "0.0")
+        ICP.set_param("dgc_appointment_kiosk.hour_end", "24.0")
+
     def test_create_turn_generates_number(self):
         """Turn creation generates a turn number with area code prefix."""
         turn = self.Turn.create(

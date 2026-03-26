@@ -5,3 +5,4 @@ from . import dgc_appointment_call_log
 from . import dgc_appointment_derivation
 from . import dgc_appointment_config
 from . import dgc_operator_box
+from . import dgc_non_working_date
