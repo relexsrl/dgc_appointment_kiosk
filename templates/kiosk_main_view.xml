@@ -15,9 +15,6 @@
             </head>
             <body>
                 <div class="kiosk-container"
-                     data-timeout="[timeout]"
-                     data-require-email="[require_email]"
-                     data-show-notes="[show_notes]"
                      t-att-data-timeout="timeout"
                      t-att-data-require-email="require_email"
                      t-att-data-show-notes="show_notes">

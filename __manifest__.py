@@ -1,6 +1,6 @@
 {
     "name": "DGC Turnero - Sistema de Turnos con Kiosco",
-    "version": "19.0.5.0.0",
+    "version": "19.0.5.0.1",
     "category": "Services",
     "summary": "Sistema de gestión de turnos con kiosco táctil para la DGC",
     "author": "Relex SRL",
@@ -10,6 +10,7 @@
         "base",
         "base_setup",
         "appointment",
+        "calendar",
         "mail",
         "bus",
         "web",

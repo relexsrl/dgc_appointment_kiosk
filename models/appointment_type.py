@@ -73,6 +73,52 @@ class AppointmentType(models.Model):
 
     # --- Computed methods ---
 
+    def _get_capacity_params(self):
+        """Return shared capacity parameters for a single DGC area record.
+
+        Returns a dict with:
+        - ``service_minutes``: service time in minutes (float)
+        - ``counters``: effective number of parallel counters (int)
+        - ``available``: whether the area is open today (bool)
+        - ``fallback_start``: ICP fallback start hour (float)
+        - ``fallback_end``: ICP fallback end hour (float)
+
+        If the area cannot serve turns (not DGC, no service time,
+        no active boxes, or non-working day), ``available`` is False
+        and ``counters`` is 0.
+        """
+        self.ensure_one()
+        icp = self.env["ir.config_parameter"].sudo()
+        fallback_start = float(icp.get_param("dgc_appointment_kiosk.hour_start", "8.0"))
+        fallback_end = float(icp.get_param("dgc_appointment_kiosk.hour_end", "14.0"))
+
+        service_minutes = self.appointment_duration * 60 if self.appointment_duration > 0 else 0
+        result = {
+            "service_minutes": service_minutes,
+            "counters": 0,
+            "available": False,
+            "fallback_start": fallback_start,
+            "fallback_end": fallback_end,
+        }
+
+        if not self.is_dgc_area or service_minutes <= 0:
+            return result
+        if self.active_box_count <= 0:
+            return result
+
+        counters = (
+            min(self.active_box_count, self.dgc_max_counters)
+            if self.dgc_max_counters
+            else self.active_box_count
+        )
+        result["counters"] = counters
+
+        if not self._is_available_today():
+            return result
+
+        result["available"] = True
+        return result
+
     def _get_service_time_minutes(self):
         """Return service time in minutes from appointment_duration (hours)."""
         self.ensure_one()
@@ -129,28 +175,25 @@ class AppointmentType(models.Model):
         for rec in dgc_recs:
             rec.pending_turn_count = counts.get(rec.id, 0)
 
+    @api.depends(
+        "is_dgc_area",
+        "appointment_duration",
+        "dgc_max_counters",
+        "active_box_count",
+        "non_working_date_ids.date",
+        "slot_ids.weekday",
+        "slot_ids.start_hour",
+        "slot_ids.end_hour",
+    )
     def _compute_max_daily_turns(self):
-        icp = self.env["ir.config_parameter"].sudo()
-        fallback_start = float(icp.get_param("dgc_appointment_kiosk.hour_start", "8.0"))
-        fallback_end = float(icp.get_param("dgc_appointment_kiosk.hour_end", "14.0"))
-
         for rec in self:
-            service_minutes = rec.appointment_duration * 60 if rec.appointment_duration > 0 else 0
-            if not rec.is_dgc_area or service_minutes <= 0:
+            params = rec._get_capacity_params()
+            if not params["available"]:
                 rec.max_daily_turns = 0
                 continue
 
-            # Dynamic counters: use the minimum of active boxes and configured max
-            if rec.active_box_count > 0:
-                counters = min(rec.active_box_count, rec.dgc_max_counters) if rec.dgc_max_counters else rec.active_box_count
-            else:
-                rec.max_daily_turns = 0
-                continue
-
-            # Non-working day check: capacity = 0
-            if not rec._is_available_today():
-                rec.max_daily_turns = 0
-                continue
+            service_minutes = params["service_minutes"]
+            counters = params["counters"]
 
             # Use own slot_ids (we ARE the appointment.type)
             if rec.slot_ids:
@@ -162,20 +205,34 @@ class AppointmentType(models.Model):
                     continue
 
             # Fallback: global config hours
-            minutes = (fallback_end - fallback_start) * 60
+            minutes = (params["fallback_end"] - params["fallback_start"]) * 60
             rec.max_daily_turns = int(minutes / service_minutes * counters)
 
     @staticmethod
     def _now_float_tz(env):
         """Return current local time as a float (e.g. 13.75 for 13:45)."""
         try:
-            tz = env.company.partner_id.tz or "America/Argentina/Buenos_Aires"
+            # Access company.partner_id.tz to verify ACL; the tz value itself
+            # is resolved by context_timestamp from the user/context.
+            _tz = env.company.partner_id.tz  # noqa: F841 — ACL probe
         except AccessError:
-            tz = "America/Argentina/Buenos_Aires"
+            pass
         rec = env["dgc.appointment.turn"]
         local_now = fields.Datetime.context_timestamp(rec, fields.Datetime.now())
         return local_now.hour + local_now.minute / 60.0
 
+    @api.depends(
+        "is_dgc_area",
+        "appointment_duration",
+        "dgc_max_counters",
+        "active_box_count",
+        "non_working_date_ids.date",
+        "slot_ids.weekday",
+        "slot_ids.start_hour",
+        "slot_ids.end_hour",
+        "turn_ids.state",
+        "turn_ids.date",
+    )
     def _compute_remaining_turns_today(self):
         today = _today_tz(self.env)
         dgc_recs = self.filtered("is_dgc_area")
@@ -199,27 +256,16 @@ class AppointmentType(models.Model):
         )
         pending = {area.id: count for area, count in groups}
 
-        icp = self.env["ir.config_parameter"].sudo()
-        fallback_start = float(icp.get_param("dgc_appointment_kiosk.hour_start", "8.0"))
-        fallback_end = float(icp.get_param("dgc_appointment_kiosk.hour_end", "14.0"))
-
         for rec in dgc_recs:
-            service_minutes = rec.appointment_duration * 60 if rec.appointment_duration > 0 else 0
-            if service_minutes <= 0:
+            params = rec._get_capacity_params()
+            if not params["available"]:
                 rec.remaining_turns_today = 0
                 continue
 
-            # Dynamic counters: use the minimum of active boxes and configured max
-            if rec.active_box_count > 0:
-                counters = min(rec.active_box_count, rec.dgc_max_counters) if rec.dgc_max_counters else rec.active_box_count
-            else:
-                rec.remaining_turns_today = 0
-                continue
-
-            # Non-working day check
-            if not rec._is_available_today():
-                rec.remaining_turns_today = 0
-                continue
+            service_minutes = params["service_minutes"]
+            counters = params["counters"]
+            fallback_start = params["fallback_start"]
+            fallback_end = params["fallback_end"]
 
             # Calculate remaining minutes from now until closing
             remaining_minutes = 0.0

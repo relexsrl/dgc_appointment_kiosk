@@ -1,3 +1,5 @@
+import hmac
+
 from odoo import http
 from odoo.http import request
 
@@ -11,7 +13,7 @@ class DisplayController(http.Controller):
     def _verify_token(cls, token):
         icp = request.env["ir.config_parameter"].sudo()
         valid_token = icp.get_param("dgc_appointment_kiosk.display_token")
-        return valid_token and token == valid_token
+        return bool(valid_token) and hmac.compare_digest(valid_token, token)
 
     @http.route("/display/<string:token>/queue", type="http", auth="public", website=False)
     def display_queue(self, token):

@@ -4,7 +4,7 @@ from datetime import datetime as _dt
 
 import psycopg2
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
@@ -13,11 +13,11 @@ _logger = logging.getLogger(__name__)
 def _today_tz(env):
     """Return today's date in the company's timezone."""
     try:
-        # Try to get timezone from company, but may fail for public users (no ACL on partner_id)
-        tz = env.company.partner_id.tz or "America/Argentina/Buenos_Aires"
+        # Access company.partner_id.tz to verify ACL; the tz value itself
+        # is resolved by context_timestamp from the user/context.
+        _tz = env.company.partner_id.tz  # noqa: F841 — ACL probe
     except AccessError:
-        # Public user or no ACL: use default timezone
-        tz = "America/Argentina/Buenos_Aires"
+        pass
     rec = env["dgc.appointment.turn"]
     local_now = fields.Datetime.context_timestamp(rec, fields.Datetime.now())
     return local_now.date()
@@ -180,6 +180,7 @@ class DgcAppointmentTurn(models.Model):
             else:
                 turn.wait_time = 0.0
 
+    @api.depends("state", "serve_date")
     def _compute_elapsed_time_display(self):
         now = fields.Datetime.now()
         for turn in self:
@@ -229,8 +230,8 @@ class DgcAppointmentTurn(models.Model):
                 domain.append(("area_id", "=", turn.area_id.id))
             if self.search_count(domain):
                 raise ValidationError(
-                    "Ya existe un turno pendiente para este DNI/CUIT "
-                    "en la misma fecha y área."
+                    _("Ya existe un turno pendiente para este DNI/CUIT "
+                      "en la misma fecha y área.")
                 )
 
     @api.model_create_multi
@@ -255,15 +256,15 @@ class DgcAppointmentTurn(models.Model):
         except psycopg2.IntegrityError as e:
             if "dgc_turn_unique_dni_area_date_pending" in str(e):
                 raise ValidationError(
-                    "Ya existe un turno pendiente para este DNI/CUIT "
-                    "en la misma fecha y área."
+                    _("Ya existe un turno pendiente para este DNI/CUIT "
+                      "en la misma fecha y área.")
                 ) from None
             raise
 
     def action_call(self):
         self.ensure_one()
         if self.state not in ("waiting", "calling"):
-            raise UserError("Solo se pueden llamar turnos en espera.")
+            raise UserError(_("Solo se pueden llamar turnos en espera."))
         now = fields.Datetime.now()
         new_count = self.call_count + 1
         vals = {
@@ -286,7 +287,7 @@ class DgcAppointmentTurn(models.Model):
     def action_recall(self):
         self.ensure_one()
         if self.state != "calling":
-            raise UserError("Solo se pueden re-llamar turnos en estado llamando.")
+            raise UserError(_("Solo se pueden re-llamar turnos en estado llamando."))
         new_count = self.call_count + 1
         self.write({"call_count": new_count})
         self.env["dgc.appointment.call.log"].create({
@@ -301,7 +302,7 @@ class DgcAppointmentTurn(models.Model):
     def action_serve(self):
         self.ensure_one()
         if self.state != "calling":
-            raise UserError("Solo se pueden atender turnos que están siendo llamados.")
+            raise UserError(_("Solo se pueden atender turnos que están siendo llamados."))
         self.write({
             "state": "serving",
             "serve_date": fields.Datetime.now(),
@@ -313,7 +314,7 @@ class DgcAppointmentTurn(models.Model):
     def action_done(self):
         self.ensure_one()
         if self.state != "serving":
-            raise UserError("Solo se pueden finalizar turnos en atención.")
+            raise UserError(_("Solo se pueden finalizar turnos en atención."))
         self.write({
             "state": "done",
             "done_date": fields.Datetime.now(),
@@ -324,9 +325,9 @@ class DgcAppointmentTurn(models.Model):
     def action_no_show(self):
         self.ensure_one()
         if self.state != "calling":
-            raise UserError("Solo se puede marcar 'No se presentó' a turnos llamados.")
+            raise UserError(_("Solo se puede marcar 'No se presentó' a turnos llamados."))
         if self.call_count < 1:
-            raise UserError("Debe llamar al turno al menos una vez antes de marcarlo como no presentado.")
+            raise UserError(_("Debe llamar al turno al menos una vez antes de marcarlo como no presentado."))
         self.write({"state": "no_show"})
         self._send_bus_notification("no_show")
         self._send_display_notification("no_show")

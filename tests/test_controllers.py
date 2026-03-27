@@ -1,8 +1,10 @@
 import json
 
+from odoo.tests import tagged
 from odoo.tests.common import HttpCase
 
 
+@tagged('post_install', '-at_install')
 class TestControllers(HttpCase):
     @classmethod
     def setUpClass(cls):

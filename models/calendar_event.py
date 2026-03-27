@@ -56,6 +56,9 @@ class CalendarEvent(models.Model):
 
         Turn = self.env["dgc.appointment.turn"].sudo()
 
+        # Per-record create is intentional: each turn must be linked back to its
+        # specific event (dgc_turn_id) and trigger a targeted bus notification.
+        # Portal bookings typically create one event at a time.
         for event in self:
             # Only process events whose appointment_type is a DGC area
             appt_type = event.appointment_type_id

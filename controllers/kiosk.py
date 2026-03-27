@@ -1,4 +1,5 @@
 import hashlib
+import hmac
 import logging
 import threading
 import time
@@ -11,6 +12,10 @@ from ..utils import sanitize_hex_color
 
 _logger = logging.getLogger(__name__)
 
+# Rate limiter uses in-process memory (module-level dict). In multi-worker
+# deployments each Odoo worker keeps its own store, so the effective limit
+# becomes N * max_hits (N = number of workers). This is acceptable for the
+# kiosk use case where a single terminal makes infrequent requests.
 _rate_limit_store = {}
 _rate_limit_lock = threading.Lock()
 
@@ -21,7 +26,7 @@ class KioskController(http.Controller):
     def _verify_token(cls, token):
         icp = request.env["ir.config_parameter"].sudo()
         valid_token = icp.get_param("dgc_appointment_kiosk.kiosk_token")
-        return valid_token and token == valid_token
+        return bool(valid_token) and hmac.compare_digest(valid_token, token)
 
     @classmethod
     def _check_rate_limit(cls, ip, window=60, max_hits=5):

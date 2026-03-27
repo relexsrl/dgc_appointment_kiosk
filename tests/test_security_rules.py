@@ -1,7 +1,9 @@
 from odoo.exceptions import AccessError
+from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
 
+@tagged('standard', 'at_install')
 class TestSecurityRules(TransactionCase):
     @classmethod
     def setUpClass(cls):

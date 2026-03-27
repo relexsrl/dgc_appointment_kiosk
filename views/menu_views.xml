@@ -5,7 +5,8 @@
     <menuitem id="menu_dgc_turnero_root"
               name="Turnero DGC"
               web_icon="dgc_appointment_kiosk,static/description/icon.png"
-              sequence="200"/>
+              sequence="200"
+              groups="dgc_appointment_kiosk.group_dgc_operator"/>
 
     <!-- Panel Operador -->
     <menuitem id="menu_dgc_operator_panel"
@@ -20,34 +21,39 @@
               name="Turnos"
               parent="menu_dgc_turnero_root"
               action="action_dgc_appointment_turn"
-              sequence="10"/>
+              sequence="10"
+              groups="dgc_appointment_kiosk.group_dgc_operator"/>
 
     <!-- Áreas -->
     <menuitem id="menu_dgc_areas"
               name="Áreas"
               parent="menu_dgc_turnero_root"
               action="action_dgc_appointment_area"
-              sequence="20"/>
+              sequence="20"
+              groups="dgc_appointment_kiosk.group_dgc_area_manager"/>
 
     <!-- Derivaciones -->
     <menuitem id="menu_dgc_derivaciones"
               name="Derivaciones"
               parent="menu_dgc_turnero_root"
               action="action_dgc_appointment_derivation"
-              sequence="30"/>
+              sequence="30"
+              groups="dgc_appointment_kiosk.group_dgc_operator"/>
 
     <!-- Estadísticas -->
     <menuitem id="menu_dgc_dashboard"
               name="Estadísticas"
               parent="menu_dgc_turnero_root"
               action="action_dgc_dashboard"
-              sequence="40"/>
+              sequence="40"
+              groups="dgc_appointment_kiosk.group_dgc_area_manager"/>
 
     <!-- Configuración -->
     <menuitem id="menu_dgc_config"
               name="Configuración"
               parent="menu_dgc_turnero_root"
-              sequence="100"/>
+              sequence="100"
+              groups="dgc_appointment_kiosk.group_dgc_admin"/>
 
     <record id="action_dgc_config_settings" model="ir.actions.act_window">
         <field name="name">Ajustes del Turnero</field>
@@ -61,6 +67,7 @@
               name="Ajustes"
               parent="menu_dgc_config"
               action="action_dgc_config_settings"
-              sequence="10"/>
+              sequence="10"
+              groups="dgc_appointment_kiosk.group_dgc_admin"/>
 
 </odoo>

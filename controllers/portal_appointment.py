@@ -1,7 +1,7 @@
 import logging
 import re
 
-from odoo import http
+from odoo import _, http
 from odoo.http import request
 from odoo.exceptions import UserError
 
@@ -56,8 +56,8 @@ class DgcPortalAppointmentController(AppointmentController):
                 Turn = request.env["dgc.appointment.turn"].sudo()
                 if not Turn._validate_dni(raw_dni):
                     raise UserError(
-                        "DNI/CUIT inválido. DNI debe tener 7-8 dígitos, "
-                        "CUIT debe tener 11 dígitos con checksum válido."
+                        _("DNI/CUIT inválido. DNI debe tener 7-8 dígitos, "
+                          "CUIT debe tener 11 dígitos con checksum válido.")
                     )
 
                 # Normalize: extract base DNI from CUIT
@@ -78,8 +78,13 @@ class DgcPortalAppointmentController(AppointmentController):
                 if partner and name:
                     partner.name = name
 
-                # Store resolved partner for _get_customer_partner override
-                # Use request object instead of self (controller is a singleton)
+                # Store resolved partner on the request object so that
+                # _get_customer_partner() (below) can return it instead of the
+                # default email-based lookup.  This is a standard Odoo pattern
+                # for passing data between controller methods within the same
+                # HTTP request.  The attribute is consumed (set back to None)
+                # on the first read in _get_customer_partner(), ensuring it
+                # never leaks to subsequent requests.
                 request._dgc_customer_partner = partner
 
         return super().appointment_form_submit(
@@ -96,7 +101,12 @@ class DgcPortalAppointmentController(AppointmentController):
         )
 
     def _get_customer_partner(self):
-        """Return the DNI-resolved partner if available (one-shot)."""
+        """Return the DNI-resolved partner if available, otherwise delegate to super().
+
+        This is a one-shot read: the ``request._dgc_customer_partner`` attribute
+        set by ``appointment_form_submit()`` is consumed (reset to None) on the
+        first call, so it never persists beyond the current request cycle.
+        """
         partner = getattr(request, "_dgc_customer_partner", None)
         if partner:
             request._dgc_customer_partner = None

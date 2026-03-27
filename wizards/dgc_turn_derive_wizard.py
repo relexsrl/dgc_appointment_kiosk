@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -10,6 +10,7 @@ class DgcTurnDeriveWizard(models.TransientModel):
         "dgc.appointment.turn",
         string="Turno",
         required=True,
+        ondelete="cascade",
     )
 
     # Related fields for source turn display
@@ -30,6 +31,7 @@ class DgcTurnDeriveWizard(models.TransientModel):
         "appointment.type",
         string="Área destino",
         required=True,
+        ondelete="cascade",
         domain="[('is_dgc_area', '=', True), ('active', '=', True), ('id', '!=', source_area_id)]",
     )
     reason = fields.Text(string="Motivo", required=True)
@@ -38,9 +40,9 @@ class DgcTurnDeriveWizard(models.TransientModel):
         self.ensure_one()
         turn = self.turn_id
         if not turn:
-            raise UserError("No se encontró el turno a derivar.")
+            raise UserError(_("No se encontró el turno a derivar."))
         if self.to_area_id == turn.area_id:
-            raise UserError("El área destino debe ser diferente al área actual del turno.")
+            raise UserError(_("El área destino debe ser diferente al área actual del turno."))
 
         # 1. Create new turn in destination area (inherits citizen data)
         new_turn = self.env["dgc.appointment.turn"].sudo().create({

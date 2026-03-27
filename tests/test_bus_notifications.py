@@ -1,8 +1,10 @@
 from unittest.mock import patch
 
+from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
 
+@tagged('standard', 'at_install')
 class TestBusNotifications(TransactionCase):
     @classmethod
     def setUpClass(cls):

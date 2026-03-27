@@ -1,6 +1,8 @@
+from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
 
+@tagged('standard', 'at_install')
 class TestDerivation(TransactionCase):
     @classmethod
     def setUpClass(cls):

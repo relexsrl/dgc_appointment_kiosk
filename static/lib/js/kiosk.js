@@ -735,6 +735,11 @@ class DgcKiosk {
                 params: params || {},
             }),
         });
+        if (!response.ok) {
+            throw new Error(
+                `Error del servidor (${response.status}). Intente nuevamente.`
+            );
+        }
         const data = await response.json();
         if (data.error) {
             throw new Error(data.error.message || "Error del servidor");

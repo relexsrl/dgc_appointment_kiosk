@@ -1,9 +1,11 @@
 from datetime import timedelta
 
 from odoo import fields
+from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
 
+@tagged('standard', 'at_install')
 class TestElapsedTimer(TransactionCase):
     @classmethod
     def setUpClass(cls):

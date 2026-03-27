@@ -3,12 +3,14 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from odoo import fields
+from odoo.tests import tagged
 from odoo.tests.common import HttpCase, TransactionCase
 
 
 # ── T-15: KPI & Display Bus Tests ──────────────────────────────────────────
 
 
+@tagged('standard', 'at_install')
 class TestKpiDashboard(TransactionCase):
     """Tests for the KPI section of get_operator_dashboard_data()."""
 
@@ -176,6 +178,7 @@ class TestKpiDashboard(TransactionCase):
         self.assertEqual(kpis["pending_count"], 0)
 
 
+@tagged('standard', 'at_install')
 class TestDisplayBusNotifications(TransactionCase):
     """Tests for the display bus notification channel (dgc_turn_display)."""
 
@@ -279,6 +282,7 @@ class TestDisplayBusNotifications(TransactionCase):
 # ── T-23: Turn Status Endpoint Tests ──────────────────────────────────────
 
 
+@tagged('post_install', '-at_install')
 class TestTurnStatusEndpoint(HttpCase):
     """Tests for the /kiosk/api/turn/status JSON-RPC endpoint."""
 

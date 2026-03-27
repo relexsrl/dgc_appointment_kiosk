@@ -1,11 +1,13 @@
 from unittest.mock import patch
 
 from odoo import fields
+from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
 from ..models.dgc_appointment_turn import _today_tz
 
 
+@tagged('standard', 'at_install')
 class TestDynamicCountersBase(TransactionCase):
     """Shared setup for dynamic-counters tests."""
 

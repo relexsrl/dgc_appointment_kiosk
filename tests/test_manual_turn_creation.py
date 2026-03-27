@@ -1,7 +1,9 @@
 from odoo.exceptions import AccessError, UserError
+from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 
 
+@tagged('standard', 'at_install')
 class TestManualTurnCreation(TransactionCase):
     @classmethod
     def setUpClass(cls):

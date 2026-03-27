@@ -145,19 +145,19 @@
                         <!-- KPI Cards Row -->
                         <div class="dgc-kpi-row">
                             <div class="dgc-kpi-card">
-                                <span class="dgc-kpi-card__value" t-esc="state.kpis.served_count"/>
+                                <span class="dgc-kpi-card__value" t-out="state.kpis.served_count"/>
                                 <span class="dgc-kpi-card__label">Atendidos</span>
                             </div>
                             <div class="dgc-kpi-card">
-                                <span class="dgc-kpi-card__value" t-esc="state.kpis.pending_count"/>
+                                <span class="dgc-kpi-card__value" t-out="state.kpis.pending_count"/>
                                 <span class="dgc-kpi-card__label">En Espera</span>
                             </div>
                             <div class="dgc-kpi-card">
-                                <span class="dgc-kpi-card__value" t-esc="formatDuration(state.kpis.avg_duration)"/>
+                                <span class="dgc-kpi-card__value" t-out="formatDuration(state.kpis.avg_duration)"/>
                                 <span class="dgc-kpi-card__label">Tiempo Prom.</span>
                             </div>
                             <div class="dgc-kpi-card">
-                                <span class="dgc-kpi-card__value" t-esc="state.kpis.derivation_count"/>
+                                <span class="dgc-kpi-card__value" t-out="state.kpis.derivation_count"/>
                                 <span class="dgc-kpi-card__label">Derivaciones</span>
                             </div>
                         </div>
