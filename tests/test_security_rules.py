@@ -116,15 +116,15 @@ class TestSecurityRules(TransactionCase):
         self.assertEqual(turn.state, "calling")
 
     def test_group_hierarchy(self):
-        """Admin inherits area_manager which inherits operator."""
+        """Admin inherits area_manager; operator is independent."""
         # all_group_ids includes implied groups
         admin_groups = self.admin_user.all_group_ids
         self.assertIn(
-            self.env.ref("dgc_appointment_kiosk.group_dgc_operator"),
+            self.env.ref("dgc_appointment_kiosk.group_dgc_area_manager"),
             admin_groups,
         )
-        self.assertIn(
-            self.env.ref("dgc_appointment_kiosk.group_dgc_area_manager"),
+        self.assertNotIn(
+            self.env.ref("dgc_appointment_kiosk.group_dgc_operator"),
             admin_groups,
         )
 
