@@ -25,11 +25,10 @@
             <field name="privilege_id" ref="privilege_dgc_turnero"/>
         </record>
 
-        <!-- Area Manager (implies operator) -->
+        <!-- Area Manager (independent role, does NOT imply Operator) -->
         <record id="group_dgc_area_manager" model="res.groups">
             <field name="name">Responsable de Área</field>
             <field name="privilege_id" ref="privilege_dgc_turnero"/>
-            <field name="implied_ids" eval="[(4, ref('group_dgc_operator'))]"/>
         </record>
 
         <!-- Admin (implies area manager) -->
