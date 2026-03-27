@@ -13,7 +13,10 @@ class DgcKiosk {
         this.countdownInterval = null;
         this.areaCache = null;
         this.areaCacheTime = 0;
-        this.CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+        this.CACHE_TTL = 30 * 1000; // 30 seconds (matches poll interval)
+        this.areaPollTimer = null;
+        this.AREA_POLL_INTERVAL = 30 * 1000; // 30 seconds
+        this._lastAreaDataJson = null; // for smart re-rendering
         this._isSubmitting = false;
 
         // Document type: "dni" or "cuit" — separate state per flow
@@ -276,6 +279,10 @@ class DgcKiosk {
     }
 
     showStep(step) {
+        // Stop area polling when leaving the area selection screen
+        if (this.currentStep === 2 && step !== 2) {
+            this._stopAreaPolling();
+        }
         document.querySelectorAll(".step").forEach((el) => el.classList.remove("active"));
         const target = document.getElementById(`step-${step}`);
         if (target) {
@@ -493,7 +500,10 @@ class DgcKiosk {
         // Store stripped digits for submission
         this._submittedDni = dni;
         const ok = await this.fetchAreas();
-        if (ok) this.showStep(2);
+        if (ok) {
+            this.showStep(2);
+            this._startAreaPolling();
+        }
     }
 
     // --- Check Turn flow (T-18/T-19) ---
@@ -585,11 +595,52 @@ class DgcKiosk {
             const result = await this._jsonRpc(`${this._getBasePath()}/api/areas`);
             this.areaCache = result;
             this.areaCacheTime = now;
+            this._lastAreaDataJson = JSON.stringify(result);
             this._renderAreas(result);
             return true;
         } catch {
             this._showError("area-error", "Error al cargar las áreas. Intente nuevamente.");
             return false;
+        }
+    }
+
+    // --- Area polling (keeps area selection reactive to operator changes) ---
+
+    _startAreaPolling() {
+        if (this.areaPollTimer) return;
+        this.areaPollTimer = setInterval(() => this._pollAreas(), this.AREA_POLL_INTERVAL);
+        console.info("[DgcKiosk] Area polling started");
+    }
+
+    _stopAreaPolling() {
+        if (this.areaPollTimer) {
+            clearInterval(this.areaPollTimer);
+            this.areaPollTimer = null;
+            console.info("[DgcKiosk] Area polling stopped");
+        }
+    }
+
+    async _pollAreas() {
+        // Only poll if currently on the area selection step
+        const areaList = document.getElementById("area-list");
+        if (!areaList || this.currentStep !== 2) {
+            return;
+        }
+
+        try {
+            const result = await this._jsonRpc(`${this._getBasePath()}/api/areas`);
+            // Update cache
+            this.areaCache = result;
+            this.areaCacheTime = Date.now();
+
+            // Only re-render if data actually changed (avoid visual flicker)
+            const newJson = JSON.stringify(result);
+            if (newJson !== this._lastAreaDataJson) {
+                this._lastAreaDataJson = newJson;
+                this._renderAreas(result);
+            }
+        } catch (e) {
+            console.warn("[DgcKiosk] Area poll error:", e);
         }
     }
 
@@ -679,6 +730,7 @@ class DgcKiosk {
         }
 
         this._isSubmitting = true;
+        this._stopAreaPolling();
         const areaList = document.getElementById("area-list");
         if (areaList) areaList.classList.add("submitting");
 
@@ -702,6 +754,7 @@ class DgcKiosk {
                 this.startCountdown(this.timeout, "countdown", 0);
                 // Invalidate cache since a turn was taken
                 this.areaCache = null;
+                this._lastAreaDataJson = null;
             } else {
                 this._showError("area-error", result.message || "Error al crear el turno.");
             }
@@ -710,6 +763,10 @@ class DgcKiosk {
         } finally {
             this._isSubmitting = false;
             if (areaList) areaList.classList.remove("submitting");
+            // Restart polling if still on area selection (error or non-success)
+            if (this.currentStep === 2) {
+                this._startAreaPolling();
+            }
         }
     }
 

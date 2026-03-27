@@ -58,7 +58,7 @@
                         <field name="remaining_turns_today"/>
                     </group>
                     <group string="Boxes / Ventanillas">
-                        <field name="operator_box_ids" nolabel="1">
+                        <field name="operator_box_ids" nolabel="1" context="{'active_test': False}">
                             <list editable="bottom">
                                 <field name="box_number"/>
                                 <field name="operator_id" domain="[('id', 'in', parent.staff_user_ids)]"/>
