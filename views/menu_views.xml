@@ -6,7 +6,7 @@
               name="Turnero DGC"
               web_icon="dgc_appointment_kiosk,static/description/icon.png"
               sequence="200"
-              groups="dgc_appointment_kiosk.group_dgc_operator"/>
+              groups="dgc_appointment_kiosk.group_dgc_admin,dgc_appointment_kiosk.group_dgc_area_manager,dgc_appointment_kiosk.group_dgc_operator"/>
 
     <!-- Panel Admin -->
     <menuitem id="menu_dgc_admin_panel"
@@ -14,7 +14,7 @@
               parent="menu_dgc_turnero_root"
               action="action_dgc_admin_dashboard"
               sequence="3"
-              groups="dgc_appointment_kiosk.group_dgc_area_manager"/>
+              groups="dgc_appointment_kiosk.group_dgc_admin,dgc_appointment_kiosk.group_dgc_area_manager"/>
 
     <!-- Panel Operador -->
     <menuitem id="menu_dgc_operator_panel"
@@ -30,7 +30,7 @@
               parent="menu_dgc_turnero_root"
               action="action_dgc_appointment_turn"
               sequence="10"
-              groups="dgc_appointment_kiosk.group_dgc_operator"/>
+              groups="dgc_appointment_kiosk.group_dgc_admin,dgc_appointment_kiosk.group_dgc_area_manager,dgc_appointment_kiosk.group_dgc_operator"/>
 
     <!-- Áreas -->
     <menuitem id="menu_dgc_areas"
@@ -38,7 +38,7 @@
               parent="menu_dgc_turnero_root"
               action="action_dgc_appointment_area"
               sequence="20"
-              groups="dgc_appointment_kiosk.group_dgc_area_manager"/>
+              groups="dgc_appointment_kiosk.group_dgc_admin,dgc_appointment_kiosk.group_dgc_area_manager"/>
 
     <!-- Derivaciones -->
     <menuitem id="menu_dgc_derivaciones"
@@ -46,7 +46,7 @@
               parent="menu_dgc_turnero_root"
               action="action_dgc_appointment_derivation"
               sequence="30"
-              groups="dgc_appointment_kiosk.group_dgc_operator"/>
+              groups="dgc_appointment_kiosk.group_dgc_admin,dgc_appointment_kiosk.group_dgc_area_manager,dgc_appointment_kiosk.group_dgc_operator"/>
 
     <!-- Estadísticas -->
     <menuitem id="menu_dgc_dashboard"
@@ -54,7 +54,7 @@
               parent="menu_dgc_turnero_root"
               action="action_dgc_dashboard"
               sequence="40"
-              groups="dgc_appointment_kiosk.group_dgc_area_manager"/>
+              groups="dgc_appointment_kiosk.group_dgc_admin,dgc_appointment_kiosk.group_dgc_area_manager,dgc_appointment_kiosk.group_dgc_operator"/>
 
     <!-- Configuración -->
     <menuitem id="menu_dgc_config"
