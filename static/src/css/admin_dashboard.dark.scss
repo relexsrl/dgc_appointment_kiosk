@@ -1,0 +1,87 @@
+// DGC Admin Dashboard — Dark Mode Overrides
+// Loaded only in the web.assets_web_dark bundle (Odoo 19 dark mode).
+// Provides direct CSS overrides for surfaces that remain white in dark mode.
+
+// ── Dashboard Layout ──────────────────────────────────────────────────
+.dgc-admin-dashboard {
+    background: var(--dgc-bg-secondary);
+
+    &__header {
+        background: var(--dgc-bg-card);
+        border-bottom-color: var(--dgc-border-color);
+    }
+}
+
+// ── KPI Cards ─────────────────────────────────────────────────────────
+.dgc-admin-kpi-card {
+    background: var(--dgc-bg-card);
+    box-shadow: var(--dgc-shadow-sm);
+}
+
+// ── Area Cards ────────────────────────────────────────────────────────
+.dgc-admin-area-card {
+    background: var(--dgc-bg-card);
+    border-color: var(--dgc-border-color);
+    box-shadow: var(--dgc-shadow-sm);
+
+    &__header {
+        border-bottom-color: var(--dgc-border-color);
+    }
+
+    &__operators {
+        border-top-color: var(--dgc-border-color);
+    }
+
+    &__counters {
+        border-top-color: var(--dgc-border-color);
+    }
+
+    &__footer {
+        background: var(--dgc-bg-primary);
+        border-top-color: var(--dgc-border-color);
+    }
+}
+
+// ── Operator Status Badges ────────────────────────────────────────────
+.dgc-admin-status-badge {
+    &--serving {
+        background: rgba(74, 155, 50, 0.15);
+        color: #6fcf52;
+    }
+
+    &--calling {
+        background: rgba(231, 120, 23, 0.15);
+        color: #f0a050;
+    }
+
+    &--idle {
+        background: var(--dgc-bg-primary);
+        color: var(--dgc-text-muted);
+    }
+
+    &--offline {
+        background: var(--dgc-bg-secondary);
+        color: var(--dgc-text-muted);
+    }
+}
+
+// ── Capacity Bar ──────────────────────────────────────────────────────
+.dgc-admin-capacity-bar {
+    background: var(--dgc-bg-primary);
+}
+
+// ── Loading & Empty States ────────────────────────────────────────────
+.dgc-admin-dashboard__loading {
+    color: var(--dgc-text-secondary);
+}
+
+.dgc-admin-dashboard__empty {
+    color: var(--dgc-text-secondary);
+}
+
+// ── Bootstrap card overrides within admin dashboard ───────────────────
+// Catch any Bootstrap .card that might still have white bg
+.dgc-admin-dashboard .dgc-admin-area-card {
+    --bs-card-bg: var(--dgc-bg-card);
+    color: var(--dgc-text-primary);
+}

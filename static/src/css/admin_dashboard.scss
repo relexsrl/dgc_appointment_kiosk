@@ -1,0 +1,313 @@
+// DGC Admin Dashboard Styles — Odoo 19 Enterprise aligned
+// Design tokens are loaded from _tokens.scss via the asset bundle.
+// Reuses dgc-bus-indicator and dgc-calling-flash from operator_dashboard.scss (same bundle).
+
+// ── Dashboard Layout ──────────────────────────────────────────────────
+.dgc-admin-dashboard {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 50px);
+    background: var(--dgc-bg-secondary);
+    gap: var(--dgc-spacing-lg);
+    padding-bottom: var(--dgc-spacing-lg);
+
+    // ── Header ────────────────────────────────────────────────────
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: var(--dgc-spacing-md);
+        padding: var(--dgc-spacing-sm) var(--dgc-spacing-lg);
+        background: var(--dgc-bg-card);
+        border-bottom: 1px solid var(--dgc-border-color);
+        position: sticky;
+        top: 0;
+        z-index: var(--dgc-z-sticky);
+
+        h2 {
+            font-size: var(--dgc-font-size-xl);
+            font-weight: 600;
+            color: var(--dgc-text-primary);
+        }
+    }
+
+    &__status {
+        display: flex;
+        align-items: center;
+        gap: var(--dgc-spacing-xs);
+    }
+
+    // ── Loading State ─────────────────────────────────────────────
+    &__loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 300px;
+        color: var(--dgc-text-secondary);
+
+        .fa-spinner {
+            color: var(--dgc-primary);
+        }
+    }
+
+    // ── Empty State ───────────────────────────────────────────────
+    &__empty {
+        color: var(--dgc-text-secondary);
+    }
+}
+
+// ── Global KPI Summary Row ────────────────────────────────────────────
+.dgc-admin-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: var(--dgc-spacing-md);
+    padding: 0 var(--dgc-spacing-lg);
+
+    @media (max-width: 1280px) {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    @media (max-width: 768px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.dgc-admin-kpi-card {
+    background: var(--dgc-bg-card);
+    border-radius: var(--dgc-border-radius-lg);
+    padding: var(--dgc-spacing-md) var(--dgc-spacing-sm);
+    text-align: center;
+    box-shadow: var(--dgc-shadow-sm);
+    border-top: 3px solid transparent;
+    transition: box-shadow var(--dgc-transition-fast), transform var(--dgc-transition-fast);
+
+    &:hover {
+        box-shadow: var(--dgc-shadow-md);
+        transform: translateY(-1px);
+    }
+
+    // Modifier classes for top-border color per KPI type
+    &--waiting  { border-top-color: var(--dgc-warning); }
+    &--serving  { border-top-color: var(--dgc-primary); }
+    &--done     { border-top-color: var(--dgc-success); }
+    &--noshow   { border-top-color: var(--dgc-danger); }
+    &--derived  { border-top-color: var(--dgc-accent); }
+    &--duration { border-top-color: var(--dgc-primary-light); }
+    &--wait     { border-top-color: var(--dgc-warning-dark); }
+
+    &__value {
+        display: block;
+        font-size: var(--dgc-font-size-3xl);
+        font-weight: 700;
+        color: var(--dgc-text-primary);
+        line-height: 1.2;
+    }
+
+    &__label {
+        display: block;
+        margin-top: var(--dgc-spacing-xs);
+        font-size: var(--dgc-font-size-xs);
+        color: var(--dgc-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+    }
+}
+
+// ── Area Cards Grid ───────────────────────────────────────────────────
+.dgc-admin-areas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: var(--dgc-spacing-lg);
+    padding: 0 var(--dgc-spacing-lg);
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+// ── Individual Area Card ──────────────────────────────────────────────
+.dgc-admin-area-card {
+    background: var(--dgc-bg-card);
+    border-radius: var(--dgc-border-radius-lg);
+    border: 1px solid var(--dgc-border-color);
+    border-left: 4px solid var(--dgc-primary); // overridden by inline style per area
+    box-shadow: var(--dgc-shadow-sm);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow var(--dgc-transition-fast);
+
+    &:hover {
+        box-shadow: var(--dgc-shadow-md);
+    }
+
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--dgc-spacing-md) var(--dgc-spacing-lg);
+        border-bottom: 1px solid var(--dgc-border-light);
+    }
+
+    &__title {
+        display: flex;
+        align-items: center;
+        gap: var(--dgc-spacing-sm);
+        min-width: 0; // allow flex child to shrink
+    }
+
+    &__name {
+        font-size: var(--dgc-font-size-lg);
+        font-weight: 600;
+        color: var(--dgc-text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--dgc-spacing-sm);
+        padding: var(--dgc-spacing-md) var(--dgc-spacing-lg);
+    }
+
+    &__capacity {
+        padding: 0 var(--dgc-spacing-lg) var(--dgc-spacing-sm);
+    }
+
+    &__operators {
+        padding: var(--dgc-spacing-sm) var(--dgc-spacing-lg);
+        border-top: 1px solid var(--dgc-border-light);
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    &__section-title {
+        display: block;
+        font-weight: 600;
+        color: var(--dgc-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: var(--dgc-spacing-xs);
+        font-size: var(--dgc-font-size-xs);
+    }
+
+    &__counters {
+        padding: var(--dgc-spacing-sm) var(--dgc-spacing-lg);
+        border-top: 1px solid var(--dgc-border-light);
+    }
+
+    &__footer {
+        display: flex;
+        gap: var(--dgc-spacing-md);
+        padding: var(--dgc-spacing-sm) var(--dgc-spacing-lg);
+        background: var(--dgc-bg-primary);
+        border-top: 1px solid var(--dgc-border-light);
+    }
+}
+
+// ── Stat Mini-Cards (inside area card) ────────────────────────────────
+.dgc-admin-stat {
+    text-align: center;
+
+    &__value {
+        display: block;
+        font-size: var(--dgc-font-size-2xl);
+        font-weight: 700;
+        line-height: 1.2;
+
+        &--waiting { color: var(--dgc-warning); }
+        &--serving { color: var(--dgc-primary); }
+        &--done    { color: var(--dgc-success); }
+        &--noshow  { color: var(--dgc-danger); }
+    }
+
+    &__label {
+        display: block;
+        font-size: var(--dgc-font-size-xs);
+        color: var(--dgc-text-secondary);
+        text-transform: uppercase;
+    }
+}
+
+// ── Capacity Bar ──────────────────────────────────────────────────────
+.dgc-admin-capacity-bar {
+    height: 6px;
+    background: var(--dgc-bg-primary);
+    border-radius: 3px;
+    overflow: hidden;
+
+    &__fill {
+        height: 100%;
+        background: var(--dgc-success);
+        border-radius: 3px;
+        transition: width var(--dgc-transition-slow);
+
+        // Threshold color modifiers (set via JS helper getCapacityClass)
+        &--warning { background: var(--dgc-warning); }
+        &--danger  { background: var(--dgc-danger); }
+    }
+}
+
+// ── Operator List ─────────────────────────────────────────────────────
+.dgc-admin-operator-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dgc-spacing-xs);
+}
+
+.dgc-admin-operator-item {
+    display: flex;
+    align-items: center;
+    gap: var(--dgc-spacing-sm);
+    padding: var(--dgc-spacing-xs) 0;
+
+    &__name {
+        font-size: var(--dgc-font-size-sm);
+        font-weight: 500;
+        color: var(--dgc-text-primary);
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__box {
+        font-size: var(--dgc-font-size-xs);
+    }
+}
+
+// ── Operator Status Badges ────────────────────────────────────────────
+.dgc-admin-status-badge {
+    display: inline-block;
+    font-size: var(--dgc-font-size-xs);
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--dgc-border-radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+
+    &--serving {
+        background: var(--dgc-success-bg);
+        color: var(--dgc-success-dark);
+    }
+
+    &--calling {
+        background: var(--dgc-warning-bg);
+        color: var(--dgc-warning-dark);
+        animation: dgc-calling-flash 1.5s ease-in-out infinite;
+    }
+
+    &--idle {
+        background: var(--dgc-bg-primary);
+        color: var(--dgc-text-muted);
+    }
+
+    &--offline {
+        background: var(--dgc-bg-secondary);
+        color: var(--dgc-text-muted);
+        opacity: 0.7;
+    }
+}

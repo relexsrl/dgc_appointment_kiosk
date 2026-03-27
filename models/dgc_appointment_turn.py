@@ -563,6 +563,221 @@ class DgcAppointmentTurn(models.Model):
         }
 
     @api.model
+    def get_admin_dashboard_data(self):
+        """Return aggregated data for the admin/area-manager dashboard.
+
+        Only users with the ``group_dgc_area_manager`` group may call this
+        method.  All queries use ``.sudo()`` to bypass operator-level record
+        rules, ensuring managers see complete data across all their areas.
+        """
+        if not self.env.user.has_group('dgc_appointment_kiosk.group_dgc_area_manager'):
+            raise AccessError(_("Solo los responsables de área pueden acceder al panel de administración."))
+
+        areas = self.env['appointment.type'].sudo()._get_dgc_areas_for_user()
+        area_ids = areas.ids
+        if not area_ids:
+            return {
+                'global_summary': {
+                    'total_waiting': 0,
+                    'total_serving': 0,
+                    'total_done': 0,
+                    'total_no_show': 0,
+                    'total_derived': 0,
+                    'total_remaining': 0,
+                    'avg_duration': 0.0,
+                    'avg_wait_time': 0.0,
+                },
+                'areas': [],
+            }
+
+        today = _today_tz(self.env)
+        Turn = self.env['dgc.appointment.turn'].sudo()
+        Derivation = self.env['dgc.appointment.derivation'].sudo()
+        Box = self.env['dgc.operator.box'].sudo()
+
+        # Q1: Turn counts by area + state (today)
+        count_groups = Turn._read_group(
+            domain=[
+                ('area_id', 'in', area_ids),
+                ('date', '=', today),
+                ('state', 'in', ['waiting', 'serving', 'done', 'no_show']),
+            ],
+            groupby=['area_id', 'state'],
+            aggregates=['__count'],
+        )
+        # {area_id: {state: count}}
+        area_state_counts = {}
+        for area, state, count in count_groups:
+            area_state_counts.setdefault(area.id, {})[state] = count
+
+        # Q2: Avg duration and wait_time by area (today, done)
+        avg_groups = Turn._read_group(
+            domain=[
+                ('area_id', 'in', area_ids),
+                ('date', '=', today),
+                ('state', '=', 'done'),
+            ],
+            groupby=['area_id'],
+            aggregates=['duration:avg', 'wait_time:avg'],
+        )
+        # {area_id: (avg_duration, avg_wait_time)}
+        area_avgs = {}
+        for area, avg_dur, avg_wait in avg_groups:
+            area_avgs[area.id] = (
+                round(avg_dur, 1) if avg_dur else 0.0,
+                round(avg_wait, 1) if avg_wait else 0.0,
+            )
+
+        # Q3: Derivation counts by from_area (today)
+        today_start = fields.Datetime.to_string(
+            _dt.combine(today, _dt.min.time())
+        )
+        deriv_groups = Derivation._read_group(
+            domain=[
+                ('from_area_id', 'in', area_ids),
+                ('derivation_date', '>=', today_start),
+            ],
+            groupby=['from_area_id'],
+            aggregates=['__count'],
+        )
+        # {area_id: count}
+        area_deriv_counts = {area.id: count for area, count in deriv_groups}
+
+        # Q4: All boxes for these areas (including inactive)
+        boxes = Box.with_context(active_test=False).search_read(
+            domain=[('area_id', 'in', area_ids)],
+            fields=['area_id', 'operator_id', 'active', 'display_name', 'box_number'],
+        )
+
+        # Q5: Active turns (calling/serving) for operator status
+        active_turns = Turn.search_read(
+            domain=[
+                ('area_id', 'in', area_ids),
+                ('date', '=', today),
+                ('state', 'in', ['calling', 'serving']),
+            ],
+            fields=['area_id', 'operator_id', 'state', 'turn_number', 'citizen_dni'],
+        )
+        # {(area_id, operator_id): turn_data}
+        active_turn_map = {}
+        for turn in active_turns:
+            key = (turn['area_id'][0], turn['operator_id'][0] if turn['operator_id'] else False)
+            active_turn_map[key] = turn
+
+        # Index boxes by area_id
+        area_boxes = {}
+        for box in boxes:
+            aid = box['area_id'][0]
+            area_boxes.setdefault(aid, []).append(box)
+
+        # Read remaining_turns_today and max_daily_turns from area records
+        # Force recompute by invalidating the relevant fields
+        areas.invalidate_recordset(['remaining_turns_today', 'max_daily_turns'])
+
+        # Build per-area data
+        area_data_list = []
+        total_waiting = 0
+        total_serving = 0
+        total_done = 0
+        total_no_show = 0
+        total_derived = 0
+        total_remaining = 0
+        sum_duration = 0.0
+        sum_wait_time = 0.0
+        areas_with_done = 0
+
+        for area in areas:
+            state_counts = area_state_counts.get(area.id, {})
+            waiting_count = state_counts.get('waiting', 0)
+            serving_count = state_counts.get('serving', 0)
+            done_count = state_counts.get('done', 0)
+            no_show_count = state_counts.get('no_show', 0)
+            derived_count = area_deriv_counts.get(area.id, 0)
+            avg_dur, avg_wait = area_avgs.get(area.id, (0.0, 0.0))
+            remaining = area.remaining_turns_today
+            max_daily = area.max_daily_turns
+
+            # Build operators list from boxes in this area
+            operators = []
+            area_box_list = area_boxes.get(area.id, [])
+            for box in area_box_list:
+                op_id = box['operator_id'][0] if box['operator_id'] else False
+                op_name = box['operator_id'][1] if box['operator_id'] else None
+                turn_key = (area.id, op_id)
+                active_turn = active_turn_map.get(turn_key)
+
+                if not box['active']:
+                    status = 'offline'
+                elif active_turn:
+                    status = active_turn['state']  # 'calling' or 'serving'
+                else:
+                    status = 'idle'
+
+                operators.append({
+                    'id': op_id or 0,
+                    'name': op_name or '',
+                    'status': status,
+                    'box_name': box['display_name'],
+                    'current_turn': active_turn['turn_number'] if active_turn else None,
+                })
+
+            # Build boxes list
+            boxes_list = []
+            for box in area_box_list:
+                boxes_list.append({
+                    'id': box['id'],
+                    'name': box['display_name'],
+                    'active': box['active'],
+                    'operator_name': box['operator_id'][1] if box['operator_id'] else None,
+                })
+
+            area_data_list.append({
+                'id': area.id,
+                'name': area.name,
+                'code': area.dgc_code or '',
+                'color': area._get_display_hex_color(),
+                'is_available': area._is_available_today(),
+                'waiting_count': waiting_count,
+                'serving_count': serving_count,
+                'done_count': done_count,
+                'no_show_count': no_show_count,
+                'derived_count': derived_count,
+                'remaining_turns': remaining,
+                'max_daily_turns': max_daily,
+                'avg_duration': avg_dur,
+                'avg_wait_time': avg_wait,
+                'operators': operators,
+                'boxes': boxes_list,
+            })
+
+            # Accumulate global totals
+            total_waiting += waiting_count
+            total_serving += serving_count
+            total_done += done_count
+            total_no_show += no_show_count
+            total_derived += derived_count
+            total_remaining += remaining
+            if avg_dur > 0:
+                sum_duration += avg_dur
+                areas_with_done += 1
+            if avg_wait > 0:
+                sum_wait_time += avg_wait
+
+        return {
+            'global_summary': {
+                'total_waiting': total_waiting,
+                'total_serving': total_serving,
+                'total_done': total_done,
+                'total_no_show': total_no_show,
+                'total_derived': total_derived,
+                'total_remaining': total_remaining,
+                'avg_duration': round(sum_duration / areas_with_done, 1) if areas_with_done else 0.0,
+                'avg_wait_time': round(sum_wait_time / areas_with_done, 1) if areas_with_done else 0.0,
+            },
+            'areas': area_data_list,
+        }
+
+    @api.model
     def _cron_close_pending_turns(self):
         yesterday = fields.Date.subtract(_today_tz(self.env), days=1)
         pending_turns = self.search([

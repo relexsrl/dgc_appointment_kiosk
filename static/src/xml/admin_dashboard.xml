@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dgc_appointment_kiosk.AdminDashboard" owl="1">
+        <div class="dgc-admin-dashboard o_action">
+
+            <!-- Loading State -->
+            <div t-if="state.loading" class="dgc-admin-loading text-center p-5">
+                <i class="fa fa-spinner fa-spin fa-3x"/>
+                <p class="mt-3">Cargando panel de administracion...</p>
+            </div>
+
+            <t t-else="">
+                <!-- Header -->
+                <div class="dgc-admin-dashboard__header">
+                    <h2 class="mb-0">Panel de Administracion</h2>
+                    <div class="dgc-admin-dashboard__status">
+                        <span t-attf-class="dgc-bus-indicator #{state.busConnected ? 'connected' : 'disconnected'}"/>
+                        <span t-if="state.busConnected" class="text-secondary small">En linea</span>
+                        <span t-else="" class="text-secondary small">Sin conexion</span>
+                    </div>
+                </div>
+
+                <!-- Global KPI Summary Bar -->
+                <div class="dgc-admin-kpi-row">
+                    <div class="dgc-admin-kpi-card dgc-admin-kpi-card--waiting">
+                        <span class="dgc-admin-kpi-card__value" t-out="state.globalSummary.total_waiting"/>
+                        <span class="dgc-admin-kpi-card__label">En Espera</span>
+                    </div>
+                    <div class="dgc-admin-kpi-card dgc-admin-kpi-card--serving">
+                        <span class="dgc-admin-kpi-card__value" t-out="state.globalSummary.total_serving"/>
+                        <span class="dgc-admin-kpi-card__label">Atendiendo</span>
+                    </div>
+                    <div class="dgc-admin-kpi-card dgc-admin-kpi-card--done">
+                        <span class="dgc-admin-kpi-card__value" t-out="state.globalSummary.total_done"/>
+                        <span class="dgc-admin-kpi-card__label">Finalizados</span>
+                    </div>
+                    <div class="dgc-admin-kpi-card dgc-admin-kpi-card--noshow">
+                        <span class="dgc-admin-kpi-card__value" t-out="state.globalSummary.total_no_show"/>
+                        <span class="dgc-admin-kpi-card__label">No Presentados</span>
+                    </div>
+                    <div class="dgc-admin-kpi-card dgc-admin-kpi-card--derived">
+                        <span class="dgc-admin-kpi-card__value" t-out="state.globalSummary.total_derived"/>
+                        <span class="dgc-admin-kpi-card__label">Derivados</span>
+                    </div>
+                    <div class="dgc-admin-kpi-card dgc-admin-kpi-card--duration">
+                        <span class="dgc-admin-kpi-card__value" t-out="formatDuration(state.globalSummary.avg_duration)"/>
+                        <span class="dgc-admin-kpi-card__label">Dur. Promedio</span>
+                    </div>
+                    <div class="dgc-admin-kpi-card dgc-admin-kpi-card--wait">
+                        <span class="dgc-admin-kpi-card__value" t-out="formatDuration(state.globalSummary.avg_wait_time)"/>
+                        <span class="dgc-admin-kpi-card__label">Espera Prom.</span>
+                    </div>
+                </div>
+
+                <!-- Empty State: No Areas -->
+                <div t-if="!sortedAreas.length" class="dgc-admin-empty text-center p-5">
+                    <i class="fa fa-building-o fa-3x text-muted"/>
+                    <p class="mt-3 text-secondary">No hay areas configuradas</p>
+                </div>
+
+                <!-- Area Cards Grid -->
+                <div t-else="" class="dgc-admin-areas-grid">
+                    <div t-foreach="sortedAreas" t-as="area" t-key="area.id"
+                         class="dgc-admin-area-card"
+                         t-attf-style="border-left-color: #{area.color}">
+
+                        <!-- Card Header -->
+                        <div class="dgc-admin-area-card__header">
+                            <div class="dgc-admin-area-card__title">
+                                <span class="dgc-admin-area-card__name" t-out="area.name"/>
+                                <span class="badge text-bg-secondary ms-2" t-out="area.code"/>
+                            </div>
+                            <span t-if="!area.is_available"
+                                  class="badge text-bg-danger">Cerrada</span>
+                            <span t-elif="area.waiting_count > 0"
+                                  class="badge text-bg-warning text-white">
+                                <t t-out="area.waiting_count"/> en espera
+                            </span>
+                            <span t-else="" class="badge text-bg-success">Sin espera</span>
+                        </div>
+
+                        <!-- Turn Stats Row -->
+                        <div class="dgc-admin-area-card__stats">
+                            <div class="dgc-admin-stat">
+                                <span class="dgc-admin-stat__value dgc-admin-stat__value--waiting" t-out="area.waiting_count"/>
+                                <span class="dgc-admin-stat__label">Espera</span>
+                            </div>
+                            <div class="dgc-admin-stat">
+                                <span class="dgc-admin-stat__value dgc-admin-stat__value--serving" t-out="area.serving_count"/>
+                                <span class="dgc-admin-stat__label">Atendiendo</span>
+                            </div>
+                            <div class="dgc-admin-stat">
+                                <span class="dgc-admin-stat__value dgc-admin-stat__value--done" t-out="area.done_count"/>
+                                <span class="dgc-admin-stat__label">Finalizados</span>
+                            </div>
+                            <div class="dgc-admin-stat">
+                                <span class="dgc-admin-stat__value dgc-admin-stat__value--noshow" t-out="area.no_show_count"/>
+                                <span class="dgc-admin-stat__label">No Pres.</span>
+                            </div>
+                        </div>
+
+                        <!-- Capacity Bar -->
+                        <div class="dgc-admin-area-card__capacity">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small class="text-secondary">Capacidad</small>
+                                <small class="text-secondary">
+                                    <t t-out="area.remaining_turns"/> restantes de <t t-out="area.max_daily_turns"/>
+                                </small>
+                            </div>
+                            <div class="dgc-admin-capacity-bar">
+                                <div t-attf-class="dgc-admin-capacity-bar__fill #{getCapacityClass(area)}"
+                                     t-attf-style="width: #{getCapacityPercent(area)}%"/>
+                            </div>
+                        </div>
+
+                        <!-- Operators Section -->
+                        <div class="dgc-admin-area-card__operators">
+                            <small class="dgc-admin-area-card__section-title">
+                                <i class="fa fa-users me-1"/>Operadores
+                                (<t t-out="area.operators.length"/>)
+                            </small>
+                            <t t-if="area.operators.length">
+                                <div class="dgc-admin-operator-list">
+                                    <div t-foreach="area.operators" t-as="op" t-key="op.id"
+                                         class="dgc-admin-operator-item">
+                                        <span class="dgc-admin-operator-item__name" t-out="op.name"/>
+                                        <span class="badge text-bg-secondary dgc-admin-operator-item__box" t-out="op.box_name"/>
+                                        <span t-attf-class="dgc-admin-status-badge #{getStatusClass(op.status)}"
+                                              t-out="getStatusLabel(op.status)"/>
+                                        <span t-if="op.current_turn"
+                                              class="badge text-bg-info ms-1"
+                                              t-out="op.current_turn"/>
+                                    </div>
+                                </div>
+                            </t>
+                            <div t-else="" class="text-muted small">Sin operadores asignados</div>
+                        </div>
+
+                        <!-- Boxes / Counters Section -->
+                        <div class="dgc-admin-area-card__counters" t-if="area.boxes.length">
+                            <small class="dgc-admin-area-card__section-title">
+                                <i class="fa fa-desktop me-1"/>Ventanillas
+                            </small>
+                            <div class="dgc-admin-boxes-grid">
+                                <div t-foreach="area.boxes" t-as="box" t-key="box.id"
+                                     t-attf-class="dgc-admin-box #{box.active ? 'dgc-admin-box--open' : 'dgc-admin-box--closed'}">
+                                    <span class="dgc-admin-box__name" t-out="box.name"/>
+                                    <span class="dgc-admin-box__operator" t-if="box.operator_name" t-out="box.operator_name"/>
+                                    <span class="dgc-admin-box__empty" t-if="box.active and !box.operator_name">Libre</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Area KPIs Footer -->
+                        <div class="dgc-admin-area-card__footer">
+                            <small class="text-secondary">
+                                <i class="fa fa-clock-o me-1"/>Dur: <t t-out="formatDuration(area.avg_duration)"/>
+                            </small>
+                            <small class="text-secondary">
+                                <i class="fa fa-hourglass-half me-1"/>Espera: <t t-out="formatDuration(area.avg_wait_time)"/>
+                            </small>
+                            <small t-if="area.derived_count" class="text-secondary">
+                                <i class="fa fa-share me-1"/>Derivados: <t t-out="area.derived_count"/>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

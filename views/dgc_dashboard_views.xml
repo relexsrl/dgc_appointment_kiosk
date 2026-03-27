@@ -40,4 +40,10 @@
         <field name="tag">dgc_operator_dashboard</field>
     </record>
 
+    <!-- Admin Dashboard (client action) -->
+    <record id="action_dgc_admin_dashboard" model="ir.actions.client">
+        <field name="name">Panel de Administración</field>
+        <field name="tag">dgc_admin_dashboard</field>
+    </record>
+
 </odoo>
