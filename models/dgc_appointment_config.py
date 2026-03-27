@@ -31,7 +31,7 @@ class DgcAppointmentConfig(models.TransientModel):
     dgc_display_refresh_interval = fields.Integer(
         string="Intervalo de refresco display (seg)",
         config_parameter="dgc_appointment_kiosk.display_refresh_interval",
-        default=30,
+        default=5,
     )
     dgc_display_calling_count = fields.Integer(
         string="Turnos llamando visibles",

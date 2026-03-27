@@ -13,9 +13,9 @@ class DgcKiosk {
         this.countdownInterval = null;
         this.areaCache = null;
         this.areaCacheTime = 0;
-        this.CACHE_TTL = 30 * 1000; // 30 seconds (matches poll interval)
+        this.CACHE_TTL = 5 * 1000; // 5 seconds (matches poll interval)
         this.areaPollTimer = null;
-        this.AREA_POLL_INTERVAL = 30 * 1000; // 30 seconds
+        this.AREA_POLL_INTERVAL = 5 * 1000; // 5 seconds
         this._lastAreaDataJson = null; // for smart re-rendering
         this._isSubmitting = false;
 
