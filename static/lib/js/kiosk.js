@@ -354,10 +354,32 @@ class DgcKiosk {
         const digits = this._stripNonDigits(value || "");
         if (!digits || !/^\d+$/.test(digits)) return false;
         if (docType === "cuit") {
-            return digits.length === 11;
+            return digits.length === 11 && this._validateCuitChecksum(digits);
         }
         // DNI mode
         return digits.length === 7 || digits.length === 8;
+    }
+
+    /**
+     * Validate CUIT check digit using the modulo 11 algorithm.
+     * Matches the backend _validate_cuit() in dgc_appointment_turn.py.
+     * @param {string} digits - 11-digit string (no hyphens)
+     * @returns {boolean}
+     */
+    _validateCuitChecksum(digits) {
+        if (digits.length !== 11) return false;
+        const weights = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+        const nums = digits.split("").map(Number);
+        let total = 0;
+        for (let i = 0; i < 10; i++) {
+            total += nums[i] * weights[i];
+        }
+        const remainder = total % 11;
+        let expected;
+        if (remainder === 0) expected = 0;
+        else if (remainder === 1) expected = 9;
+        else expected = 11 - remainder;
+        return nums[10] === expected;
     }
 
     /**
@@ -378,7 +400,10 @@ class DgcKiosk {
                 return { state: "neutral", message: `${len}/11 dígitos` };
             }
             if (len === 11) {
-                return { state: "valid", message: "CUIT válido ✓" };
+                if (this._validateCuitChecksum(digits)) {
+                    return { state: "valid", message: "CUIT válido ✓" };
+                }
+                return { state: "invalid", message: "CUIT inválido (dígito verificador)" };
             }
             return { state: "invalid", message: "Máximo 11 dígitos" };
         }
