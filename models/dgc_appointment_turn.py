@@ -462,6 +462,18 @@ class DgcAppointmentTurn(models.Model):
         area_ids = self.env['appointment.type']._get_dgc_areas_for_user(user).ids
         today = _today_tz(self.env)
 
+        def localize_dates(turn_list):
+            """Convert UTC datetime strings to user's local timezone strings."""
+            if not turn_list:
+                return turn_list
+            for turn in turn_list:
+                for field in ["create_date", "done_date", "serve_date", "call_date"]:
+                    if turn.get(field):
+                        dt = fields.Datetime.from_string(turn[field])
+                        local_dt = fields.Datetime.context_timestamp(self, dt)
+                        turn[field] = fields.Datetime.to_string(local_dt)
+            return turn_list
+
         current = self.search_read(
             [
                 ("operator_id", "=", user.id),
@@ -475,6 +487,8 @@ class DgcAppointmentTurn(models.Model):
             ],
             limit=1,
         )
+        current = localize_dates(current)
+
         # --- Single query for all pending turns (new, waiting, calling) ---
         # Replaces separate search_read(waiting) + search_count(pending)
         pending_all = self.search_read(
@@ -489,6 +503,7 @@ class DgcAppointmentTurn(models.Model):
             ],
             order="create_date asc",
         )
+        pending_all = localize_dates(pending_all)
         pending_count = len(pending_all)
         waiting = [t for t in pending_all if t["state"] == "waiting"]
         done = self.search_read(
@@ -504,6 +519,7 @@ class DgcAppointmentTurn(models.Model):
             order="done_date desc",
             limit=50,
         )
+        done = localize_dates(done)
         # --- KPIs: served_count + avg_duration in one _read_group ---
         avg_duration = 0.0
         served_count = 0
