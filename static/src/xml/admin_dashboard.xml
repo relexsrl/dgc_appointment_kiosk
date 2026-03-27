@@ -144,9 +144,13 @@
                             <div class="dgc-admin-boxes-grid">
                                 <div t-foreach="area.boxes" t-as="box" t-key="box.id"
                                      t-attf-class="dgc-admin-box #{box.active ? 'dgc-admin-box--open' : 'dgc-admin-box--closed'}">
-                                    <span class="dgc-admin-box__name" t-out="box.name"/>
-                                    <span class="dgc-admin-box__operator" t-if="box.operator_name" t-out="box.operator_name"/>
-                                    <span class="dgc-admin-box__empty" t-if="box.active and !box.operator_name">Libre</span>
+                                    <div class="dgc-admin-box__header">
+                                        <span class="dgc-admin-box__name" t-out="box.name"/>
+                                    </div>
+                                    <div class="dgc-admin-box__content">
+                                        <span class="dgc-admin-box__operator" t-if="box.operator_name" t-out="box.operator_name"/>
+                                        <span class="dgc-admin-box__empty" t-if="box.active and !box.operator_name">Libre</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
