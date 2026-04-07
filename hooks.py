@@ -19,8 +19,9 @@ def patch_resource_manage_capacity_templates(cr):
     cr.execute(
         """
         UPDATE mail_template
-           SET body_html = REPLACE(body_html, %s, %s)
-         WHERE body_html LIKE %s
+           SET body_html = REPLACE(body_html::text, %s, %s)::jsonb
+         WHERE body_html IS NOT NULL
+           AND body_html::text LIKE %s
         """,
         (BROKEN_EXPR, SAFE_EXPR, like_pattern),
     )
