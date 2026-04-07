@@ -9,7 +9,7 @@ SAFE_EXPR = (
     "(('manage_capacity' in object.event_id.appointment_type_id._fields and "
     "object.event_id.appointment_type_id.manage_capacity) or "
     "('resource_manage_capacity' in object.event_id.appointment_type_id._fields and "
-    "getattr(object.event_id.appointment_type_id, 'resource_manage_capacity', False)))"
+    "object.event_id.appointment_type_id.resource_manage_capacity))"
 )
 
 
