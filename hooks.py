@@ -27,29 +27,38 @@ def patch_resource_manage_capacity_templates(cr):
     )
     templates_patched = cr.rowcount
 
-    cr.execute(
-        """
-        UPDATE ir_translation
-           SET value = REPLACE(value, %s, %s)
-         WHERE name = 'mail.template,body_html'
-           AND value LIKE %s
-        """,
-        (BROKEN_EXPR, SAFE_EXPR, like_pattern),
-    )
-    translations_value_patched = cr.rowcount
+    cr.execute("SELECT to_regclass('ir_translation')")
+    ir_translation_table = cr.fetchone()[0]
+    translations_patched = 0
 
-    cr.execute(
-        """
-        UPDATE ir_translation
-           SET src = REPLACE(src, %s, %s)
-         WHERE name = 'mail.template,body_html'
-           AND src LIKE %s
-        """,
-        (BROKEN_EXPR, SAFE_EXPR, like_pattern),
-    )
-    translations_src_patched = cr.rowcount
+    if ir_translation_table:
+        cr.execute(
+            """
+            UPDATE ir_translation
+               SET value = REPLACE(value, %s, %s)
+             WHERE name = 'mail.template,body_html'
+               AND value LIKE %s
+            """,
+            (BROKEN_EXPR, SAFE_EXPR, like_pattern),
+        )
+        translations_value_patched = cr.rowcount
 
-    translations_patched = translations_value_patched + translations_src_patched
+        cr.execute(
+            """
+            UPDATE ir_translation
+               SET src = REPLACE(src, %s, %s)
+             WHERE name = 'mail.template,body_html'
+               AND src LIKE %s
+            """,
+            (BROKEN_EXPR, SAFE_EXPR, like_pattern),
+        )
+        translations_src_patched = cr.rowcount
+        translations_patched = translations_value_patched + translations_src_patched
+    else:
+        _logger.info(
+            "Skipping translation patch: table ir_translation does not exist in this Odoo version"
+        )
+
     _logger.info(
         "Patched mail templates for resource_manage_capacity fallback: templates=%s, translations=%s",
         templates_patched,
