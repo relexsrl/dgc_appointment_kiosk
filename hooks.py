@@ -92,7 +92,6 @@ def patch_assign_method_templates(cr):
     return templates_patched, translations_patched
 
 
-def post_init_hook(cr, registry):
-    del registry
-    patch_resource_manage_capacity_templates(cr)
-    patch_assign_method_templates(cr)
+def post_init_hook(env):
+    patch_resource_manage_capacity_templates(env.cr)
+    patch_assign_method_templates(env.cr)
