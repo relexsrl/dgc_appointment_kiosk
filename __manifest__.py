@@ -15,6 +15,7 @@
         "bus",
         "web",
         "website",
+        "website_appointment",
     ],
     "data": [
         # Security
